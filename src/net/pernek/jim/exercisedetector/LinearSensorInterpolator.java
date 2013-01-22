@@ -24,44 +24,28 @@ public class LinearSensorInterpolator implements SensorInterpolator {
 
 	@Override
 	public void push(SensorValue sensorValue) {
-		if(sensorValue.getTimestamp() % mSamplingInterval == 0){
-			mLastSensorValue = sensorValue;
-			
-			notifySensorInterpolatorObservers(sensorValue);
-			return;
-		}
-		
-		if(mLastSensorValue == null){
-			mLastSensorValue = sensorValue;
-		}
-		else {
-			int countLast = (int)Math.floor(mLastSensorValue.getTimestamp() / mSamplingInterval);
-			int countCurrent = (int)Math.floor(sensorValue.getTimestamp() / mSamplingInterval);
-			
-			int valuesToCaluclate = countCurrent - countLast;
-			
-			long x1 = mLastSensorValue.getTimestamp();
-			long x2 = sensorValue.getTimestamp();
-
+		if(mLastSensorValue != null){
 			// get the first x to calculate
-			int x = (int)Math.ceil((double)mLastSensorValue.getTimestamp() / (double)mSamplingInterval) * mSamplingInterval;
-			while(valuesToCaluclate > 0){
-				float[] currentValues = sensorValue.getValues();
-				float[] lastValues = mLastSensorValue.getValues();
-				float[] newValues = new float[lastValues.length];
-				for(int i = 0; i < lastValues.length; i++){
-					newValues[i] = lastValues[i] + (currentValues[i] - lastValues[i]) * 
+			long x = (int)Math.ceil((double)mLastSensorValue.getTimestamp() / (double)mSamplingInterval) * mSamplingInterval;
+			if(x == mLastSensorValue.getTimestamp()){
+				x += mSamplingInterval;
+			}
+			
+			while(x <= sensorValue.getTimestamp()){
+				int numValues = mLastSensorValue.getValues().length;
+				float[] newValues = new float[numValues];
+				for(int i = 0; i < numValues; i++){
+					newValues[i] = mLastSensorValue.getValues()[i] + (sensorValue.getValues()[i] - mLastSensorValue.getValues()[i]) * 
 							(x - mLastSensorValue.getTimestamp()) / (sensorValue.getTimestamp() - mLastSensorValue.getTimestamp());
 				}
-				
 				
 				SensorValue newValue = SensorValue.create(sensorValue.getSensorType(), newValues, x);
 				notifySensorInterpolatorObservers(newValue);
 				x += mSamplingInterval;
-				valuesToCaluclate--;
 			}
-			
-		}		
+		}	
+		
+		mLastSensorValue = sensorValue;
 	}
 
 	@Override
