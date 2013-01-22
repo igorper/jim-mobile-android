@@ -22,6 +22,7 @@ public class LinearSensorInterpolator implements SensorInterpolator {
 		return retVal;
 	}
 
+	// very simple implementation, interpolates desired values based on its 1NN, other values are simply dropped
 	@Override
 	public void push(SensorValue sensorValue) {
 		if(mLastSensorValue != null){
