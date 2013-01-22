@@ -24,15 +24,15 @@ public class LinearSensorInterpolator implements SensorInterpolator {
 
 	@Override
 	public void push(SensorValue sensorValue) {
-		if(mLastSensorValue.getTimestamp() < 0){
-			mLastSensorValue = sensorValue;
-			return;
-		}
-		
 		if(sensorValue.getTimestamp() % mSamplingInterval == 0){
 			mLastSensorValue = sensorValue;
 			
 			notifySensorInterpolatorObservers(sensorValue);
+			return;
+		}
+		
+		if(mLastSensorValue == null){
+			mLastSensorValue = sensorValue;
 		}
 		else {
 			int countLast = (int)Math.floor(mLastSensorValue.getTimestamp() / mSamplingInterval);
@@ -44,7 +44,7 @@ public class LinearSensorInterpolator implements SensorInterpolator {
 			long x2 = sensorValue.getTimestamp();
 
 			// get the first x to calculate
-			int x = (int)Math.ceil(mLastSensorValue.getTimestamp() / mSamplingInterval);
+			int x = (int)Math.ceil((double)mLastSensorValue.getTimestamp() / (double)mSamplingInterval) * mSamplingInterval;
 			while(valuesToCaluclate > 0){
 				float[] currentValues = sensorValue.getValues();
 				float[] lastValues = mLastSensorValue.getValues();
@@ -56,15 +56,12 @@ public class LinearSensorInterpolator implements SensorInterpolator {
 				
 				
 				SensorValue newValue = SensorValue.create(sensorValue.getSensorType(), newValues, x);
+				notifySensorInterpolatorObservers(newValue);
 				x += mSamplingInterval;
 				valuesToCaluclate--;
 			}
 			
-		}
-		
-		
-		// interpolate, if new value created notify observers 
-		
+		}		
 	}
 
 	@Override
@@ -88,7 +85,9 @@ public class LinearSensorInterpolator implements SensorInterpolator {
 	}
 	
 	private void notifySensorInterpolatorObservers(SensorValue newSensorValue){
-		
+		for (SensorInterpolatorObserver observer : mInterpolatorObservers) {
+			observer.onNewValue(newSensorValue);
+		}
 	}
 	// TODO additionally a callback to which different listeners could register and do whatever they want with the data
 	// (visualize it, process it, write it to a file, etc.)
