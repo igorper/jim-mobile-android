@@ -120,10 +120,10 @@ public class LinearSensorInterpolatorTest extends TestCase {
 		sensorInterpolator.push(fifth);
 	}
 	
-	public static Test suite() {
+	/*public static Test suite() {
         return new TestSuiteBuilder(LinearSensorInterpolatorTest.class)
                 .includeAllPackagesUnderHere()
                 .build();
-    }
+    }*/
 
 }
