@@ -107,11 +107,11 @@ public class LinearSensorInterpolatorTest extends TestCase {
 			}
 		});
 		
-		SensorValue first = SensorValue.create(SensorType.ACCELEROMETER_BUILTIN, new float[]{3, 1, 9}, 2);
-		SensorValue second = SensorValue.create(SensorType.ACCELEROMETER_BUILTIN, new float[]{17, 26, 55}, 63);
-		SensorValue third = SensorValue.create(SensorType.ACCELEROMETER_BUILTIN, new float[]{20, 30, 40}, 70);
-		SensorValue fourth = SensorValue.create(SensorType.ACCELEROMETER_BUILTIN, new float[]{68, 88, 47}, 90);
-		SensorValue fifth = SensorValue.create(SensorType.ACCELEROMETER_BUILTIN, new float[]{57, 45, 15}, 92);
+		SensorValue first = SensorValue.create(SensorType.ACCELEROMETER_BUILTIN, new Float[]{3f, 1f, 9f}, 2);
+		SensorValue second = SensorValue.create(SensorType.ACCELEROMETER_BUILTIN, new Float[]{17f, 26f, 55f}, 63);
+		SensorValue third = SensorValue.create(SensorType.ACCELEROMETER_BUILTIN, new Float[]{20f, 30f, 40f}, 70);
+		SensorValue fourth = SensorValue.create(SensorType.ACCELEROMETER_BUILTIN, new Float[]{68f, 88f, 47f}, 90);
+		SensorValue fifth = SensorValue.create(SensorType.ACCELEROMETER_BUILTIN, new Float[]{57f, 45f, 15f}, 92);
 
 		sensorInterpolator.push(first);
 		sensorInterpolator.push(second);

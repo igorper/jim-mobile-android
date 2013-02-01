@@ -36,7 +36,7 @@ public class LinearSensorInterpolator implements SensorInterpolator {
 			
 			while(x <= sensorValue.getTimestamp()){
 				int numValues = mLastSensorValue.getValues().length;
-				float[] newValues = new float[numValues];
+				Float[] newValues = new Float[numValues];
 				for(int i = 0; i < numValues; i++){
 					newValues[i] = mLastSensorValue.getValues()[i] + (sensorValue.getValues()[i] - mLastSensorValue.getValues()[i]) * 
 							(x - mLastSensorValue.getTimestamp()) / (sensorValue.getTimestamp() - mLastSensorValue.getTimestamp());

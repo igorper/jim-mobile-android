@@ -45,7 +45,7 @@ public class StDevExerciseDetectionAlgorithmTest extends
 		try {
 			while ((nextLine = reader.readNext()) != null) {
 				testValues.add(SensorValue.create(SensorType.ACCELEROMETER_BUILTIN, 
-						new float[] {Float.parseFloat(nextLine[1]), Float.parseFloat(nextLine[2]), Float.parseFloat(nextLine[3])}, 
+						new Float[] {Float.parseFloat(nextLine[1]), Float.parseFloat(nextLine[2]), Float.parseFloat(nextLine[3])}, 
 						Long.parseLong(nextLine[0])));
 			}
 		} catch (Exception e) {

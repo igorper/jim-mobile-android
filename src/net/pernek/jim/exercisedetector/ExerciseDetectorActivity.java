@@ -84,9 +84,14 @@ public class ExerciseDetectorActivity extends Activity implements SensorEventLis
 	@Override
 	public void onSensorChanged(SensorEvent event) {
 		if(event.sensor.getType() == Sensor.TYPE_ACCELEROMETER){
+			Float[] values = new Float[event.values.length];
+			for(int i=0; i < values.length; i++){
+				values[i] = event.values[i];
+			}
+			
 			// convert timestamp to ms
 			mAccelerationInterpolator.push(
-					SensorValue.create(SensorType.ACCELEROMETER_BUILTIN, event.values, event.timestamp/1000000));
+					SensorValue.create(SensorType.ACCELEROMETER_BUILTIN, values, event.timestamp/1000000));
 		}
 	}
 
