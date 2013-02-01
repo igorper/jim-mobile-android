@@ -1,13 +1,13 @@
 package net.pernek.jim.exercisedetector.test;
 
-import android.test.suitebuilder.TestSuiteBuilder;
-import android.util.Log;
-
+import net.pernek.jim.common.SensorValue;
+import net.pernek.jim.common.SensorValue.SensorType;
 import net.pernek.jim.exercisedetector.LinearSensorInterpolator;
 import net.pernek.jim.exercisedetector.SensorInterpolator;
 import net.pernek.jim.exercisedetector.SensorInterpolatorObserver;
-import net.pernek.jim.exercisedetector.SensorValue;
-import net.pernek.jim.exercisedetector.SensorValue.SensorType;
+import android.test.suitebuilder.TestSuiteBuilder;
+import android.util.Log;
+
 import junit.framework.Test;
 import junit.framework.TestCase;
 

@@ -5,6 +5,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 
+import net.pernek.jim.common.SensorValue;
+
 public class LinearSensorInterpolator implements SensorInterpolator {
 	
 	private List<SensorInterpolatorObserver> mInterpolatorObservers = new ArrayList<SensorInterpolatorObserver>();

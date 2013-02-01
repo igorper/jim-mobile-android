@@ -18,9 +18,9 @@ import au.com.bytecode.opencsv.CSVReader;
 
 import net.pernek.jim.exercisedetector.ExerciseDetectionAlgorithm;
 import net.pernek.jim.exercisedetector.ExerciseState;
-import net.pernek.jim.exercisedetector.SensorValue;
+import net.pernek.jim.common.SensorValue;
 import net.pernek.jim.exercisedetector.StDevExerciseDetectionAlgorithm;
-import net.pernek.jim.exercisedetector.SensorValue.SensorType;
+import net.pernek.jim.common.SensorValue.SensorType;
 import junit.framework.Test;
 
 public class StDevExerciseDetectionAlgorithmTest extends

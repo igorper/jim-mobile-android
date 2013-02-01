@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import net.pernek.jim.common.SensorValue;
 import net.pernek.jim.exercisedetector.util.Statistics;
 
 public class StDevExerciseDetectionAlgorithm implements

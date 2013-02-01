@@ -7,7 +7,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 
-import net.pernek.jim.exercisedetector.SensorValue.SensorType;
+import net.pernek.jim.common.SensorValue;
+import net.pernek.jim.common.SensorValue.SensorType;
 import android.os.Bundle;
 import android.os.Environment;
 import android.app.Activity;
@@ -20,7 +21,7 @@ import android.hardware.SensorManager;
 import android.util.Log;
 import android.view.Menu;
 
-public class MainActivity extends Activity implements SensorEventListener, ExerciseDetectionAlgorithmObserver, SensorInterpolatorObserver {
+public class ExerciseDetectorActivity extends Activity implements SensorEventListener, ExerciseDetectionAlgorithmObserver, SensorInterpolatorObserver {
 	
 	private static final String TAG = "MainActivity";
 	
