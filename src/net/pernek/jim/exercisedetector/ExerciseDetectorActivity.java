@@ -21,6 +21,7 @@ import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.hardware.Sensor;
@@ -48,14 +49,25 @@ public class ExerciseDetectorActivity extends Activity{
 		
 		mChbToggleService = (CheckBox)findViewById(R.id.chbToggleService);
 		mChbToggleService.setChecked(mSettings.isServiceRunning());
-		
+				
 		mChbToggleService.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
 			
 			@Override
 			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+				if(isChecked){
+					startService(new Intent(ExerciseDetectorActivity.this, DetectorService.class));
+				} else {
+					stopService(new Intent(ExerciseDetectorActivity.this, DetectorService.class));
+				}
+				
+				// store persistently if the service is running
 				mSettings.saveServiceRunning(isChecked);
 			}
 		});
+		
+		if(mSettings.isServiceRunning() /*&& we are not bound to the service*/){
+			// rebind to service
+		}
 
 		Log.w(TAG, "OnCreate");
 	}
@@ -78,9 +90,7 @@ public class ExerciseDetectorActivity extends Activity{
 	}
 	
 	@Override
-	protected void onPause() {
-		// write persistent data to storage
-		
+	protected void onPause() {		
 		// TODO Auto-generated method stub
 		super.onPause();
 	}
