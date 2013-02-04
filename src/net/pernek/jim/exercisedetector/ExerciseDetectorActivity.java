@@ -7,7 +7,14 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 
+import net.pernek.jim.common.ExerciseDetectionAlgorithm;
+import net.pernek.jim.common.ExerciseDetectionAlgorithmObserver;
+import net.pernek.jim.common.ExerciseState;
+import net.pernek.jim.common.LinearSensorInterpolator;
+import net.pernek.jim.common.SensorInterpolator;
+import net.pernek.jim.common.SensorInterpolatorObserver;
 import net.pernek.jim.common.SensorValue;
+import net.pernek.jim.common.StDevExerciseDetectionAlgorithm;
 import net.pernek.jim.common.SensorValue.SensorType;
 import android.os.Bundle;
 import android.os.Environment;
