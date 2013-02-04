@@ -18,10 +18,13 @@ import net.pernek.jim.common.StDevExerciseDetectionAlgorithm;
 import net.pernek.jim.common.SensorValue.SensorType;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.app.Activity;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.hardware.Sensor;
@@ -39,6 +42,24 @@ public class ExerciseDetectorActivity extends Activity{
 	
 	private CheckBox mChbToggleService;
 	private DetectorSettings mSettings;
+	private DetectorService mDetectorService;
+	
+	private ServiceConnection mDetectorConnection = new ServiceConnection() {
+		
+		@Override
+		public void onServiceDisconnected(ComponentName name) {
+			mDetectorService = null;
+			
+			Log.w(TAG, "MainActivity onServiceDisconnected");
+		}
+		
+		@Override
+		public void onServiceConnected(ComponentName name, IBinder service) {
+			mDetectorService = ((DetectorService.DetectorServiceBinder)service).getService();
+			
+			Log.w(TAG, "MainActivity onServiceConnected");
+		}
+	};
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -54,22 +75,38 @@ public class ExerciseDetectorActivity extends Activity{
 			
 			@Override
 			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-				if(isChecked){
-					startService(new Intent(ExerciseDetectorActivity.this, DetectorService.class));
-				} else {
-					stopService(new Intent(ExerciseDetectorActivity.this, DetectorService.class));
-				}
-				
 				// store persistently if the service is running
 				mSettings.saveServiceRunning(isChecked);
+				
+				if(isChecked){
+					startService(new Intent(ExerciseDetectorActivity.this, DetectorService.class));
+									
+					bindIfNotBound();
+				} else {
+					unbindDetectorService();
+					
+					stopService(new Intent(ExerciseDetectorActivity.this, DetectorService.class));
+				}	
 			}
 		});
 		
-		if(mSettings.isServiceRunning() /*&& we are not bound to the service*/){
-			// rebind to service
-		}
-
+		bindIfNotBound();
+		
 		Log.w(TAG, "OnCreate");
+	}
+	
+	private void bindIfNotBound(){
+		if(mSettings.isServiceRunning() && mDetectorService == null){
+			boolean status = bindService(new Intent(ExerciseDetectorActivity.this, DetectorService.class), mDetectorConnection, 0);
+		}
+	}
+	
+	private void unbindDetectorService(){
+		// if we are bound to the service first unbind
+		if(mDetectorService != null){
+			unbindService(mDetectorConnection);
+			mDetectorService = null;
+		}
 	}
 	
 	@Override
@@ -103,6 +140,8 @@ public class ExerciseDetectorActivity extends Activity{
 	
 	@Override
 	protected void onDestroy() {
+		unbindDetectorService();
+		
 		super.onDestroy();
 	}
 }

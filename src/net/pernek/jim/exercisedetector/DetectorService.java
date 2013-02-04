@@ -5,20 +5,26 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
+import android.os.Binder;
 import android.os.IBinder;
 import android.util.Log;
 
 public class DetectorService extends Service {
 	private static final String TAG = "MainActivity";
-	
 	private int NOTIFICATION_ID = 1;
 	
 	private NotificationManager mNotificationManager;
+	private final IBinder mDetectorBinder = new DetectorServiceBinder();
+	
+	public class DetectorServiceBinder extends Binder {
+		DetectorService getService(){
+			return DetectorService.this;
+		}
+	}
 
 	@Override
 	public IBinder onBind(Intent arg0) {
-		// TODO Auto-generated method stub
-		return null;
+		return mDetectorBinder;
 	}
 	
 	@Override
@@ -44,7 +50,6 @@ public class DetectorService extends Service {
         notification.setLatestEventInfo(this, "status", message, contentIntent);
 
         mNotificationManager.notify(NOTIFICATION_ID, notification);
-		
 	}
 
 	@Override
