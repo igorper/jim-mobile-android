@@ -18,8 +18,10 @@ import net.pernek.jim.common.StDevExerciseDetectionAlgorithm;
 import net.pernek.jim.common.SensorValue.SensorType;
 import android.os.Bundle;
 import android.os.Environment;
+import android.preference.PreferenceManager;
 import android.app.Activity;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -27,90 +29,70 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.util.Log;
 import android.view.Menu;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 
-public class ExerciseDetectorActivity extends Activity implements SensorEventListener, ExerciseDetectionAlgorithmObserver, SensorInterpolatorObserver {
+public class ExerciseDetectorActivity extends Activity{
 	
 	private static final String TAG = "MainActivity";
 	
-	private SensorInterpolator mAccelerationInterpolator;
-	
-	private SensorManager mSensorManager;
-	private Sensor mAccelerometer;
-	
-	private ExerciseDetectionAlgorithm mExerciseDetectionAlgorithm;
+	private CheckBox mChbToggleService;
+	private DetectorSettings mSettings;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 		
-		// TODO: a quick and hacky way to disabling screen orientation changes (and app reset) 
-		setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+		mSettings = DetectorSettings.create(PreferenceManager.getDefaultSharedPreferences(this));
 		
-		mExerciseDetectionAlgorithm = StDevExerciseDetectionAlgorithm.create(0.8F, 0.1F, 0.3F, 10.11F, 15000, 120, 20, 5, 10);
-		mExerciseDetectionAlgorithm.addExerciseDetectionObserver(this);
+		mChbToggleService = (CheckBox)findViewById(R.id.chbToggleService);
+		mChbToggleService.setChecked(mSettings.isServiceRunning());
 		
-		mAccelerationInterpolator = LinearSensorInterpolator.create(40);
-		mAccelerationInterpolator.addSensorInterpolatorObserver(this);
-		
-		mSensorManager = (SensorManager)getSystemService(Context.SENSOR_SERVICE);
-		mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-		
-		mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_FASTEST);
-		
-		
+		mChbToggleService.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+			
+			@Override
+			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+				mSettings.saveServiceRunning(isChecked);
+			}
+		});
+
 		Log.w(TAG, "OnCreate");
 	}
 	
 	@Override
+	protected void onStart() {
+		// TODO Auto-generated method stub
+		super.onStart();
+	}
+	
+	@Override
+	protected void onRestart() {
+		// TODO Auto-generated method stub
+		super.onRestart();
+	}
+	
+	@Override
+	protected void onResume() {
+		super.onResume();		
+	}
+	
+	@Override
+	protected void onPause() {
+		// write persistent data to storage
+		
+		// TODO Auto-generated method stub
+		super.onPause();
+	}
+	
+	@Override
+	protected void onStop() {
+		// TODO Auto-generated method stub
+		super.onStop();
+	}
+	
+	@Override
 	protected void onDestroy() {
-		mSensorManager.unregisterListener(this);
-		mExerciseDetectionAlgorithm.removeExerciseDetectionObserver(this);
-		mAccelerationInterpolator.removeSensorInterpolatorObserver(this);
-		
-		// TODO Auto-generated method stub
 		super.onDestroy();
-		
-		
-		
-	}
-
-	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
-		// Inflate the menu; this adds items to the action bar if it is present.
-		getMenuInflater().inflate(R.menu.activity_main, menu);
-		return true;
-	}
-
-	@Override
-	public void onAccuracyChanged(Sensor sensor, int accuracy) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void onSensorChanged(SensorEvent event) {
-		if(event.sensor.getType() == Sensor.TYPE_ACCELEROMETER){
-			Float[] values = new Float[event.values.length];
-			for(int i=0; i < values.length; i++){
-				values[i] = event.values[i];
-			}
-			
-			// convert timestamp to ms
-			mAccelerationInterpolator.push(
-					SensorValue.create(SensorType.ACCELEROMETER_BUILTIN, values, event.timestamp/1000000));
-		}
-	}
-
-	@Override
-	public void exerciseStateChanged(ExerciseState newState) {
-		// TODO Notify new state to UI
-		Log.w(TAG, "Test");
-	}
-
-	@Override
-	public void onNewValue(SensorValue newValue) {
-		mExerciseDetectionAlgorithm.push(newValue);
-		
 	}
 }
