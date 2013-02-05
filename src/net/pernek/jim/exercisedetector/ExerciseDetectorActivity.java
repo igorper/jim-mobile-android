@@ -6,6 +6,8 @@ import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 
 import net.pernek.jim.common.ExerciseDetectionAlgorithm;
 import net.pernek.jim.common.ExerciseDetectionAlgorithmObserver;
@@ -31,6 +33,7 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.text.format.Time;
 import android.util.Log;
 import android.view.Menu;
 import android.widget.CheckBox;
@@ -38,8 +41,8 @@ import android.widget.CompoundButton;
 
 public class ExerciseDetectorActivity extends Activity{
 	
-	private static final String TAG = "MainActivity";
-	
+	private static final String TAG = Utils.getApplicationTag();
+		
 	private CheckBox mChbToggleService;
 	private DetectorSettings mSettings;
 	private DetectorService mDetectorService;
@@ -56,6 +59,12 @@ public class ExerciseDetectorActivity extends Activity{
 		@Override
 		public void onServiceConnected(ComponentName name, IBinder service) {
 			mDetectorService = ((DetectorService.DetectorServiceBinder)service).getService();
+			if(!mDetectorService.isCollectingData()) {
+				if(!mDetectorService.startDataCollection()){
+					stopService();
+					mChbToggleService.setChecked(false);
+				}
+			}
 			
 			Log.w(TAG, "MainActivity onServiceConnected");
 		}
@@ -76,16 +85,24 @@ public class ExerciseDetectorActivity extends Activity{
 			@Override
 			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
 				// store persistently if the service is running
-				mSettings.saveServiceRunning(isChecked);
+				//mSettings.saveServiceRunning(isChecked);
 				
 				if(isChecked){
+					// if there is no output file we should create one
+					if(mSettings.getOutputFile().equals("")){
+						mSettings.saveOutputFile(generateFileName());
+					}
+					
 					startService(new Intent(ExerciseDetectorActivity.this, DetectorService.class));
 									
-					bindIfNotBound();
+					boolean isBound = getApplicationContext().bindService(new Intent(ExerciseDetectorActivity.this, DetectorService.class), mDetectorConnection, Context.BIND_NOT_FOREGROUND);
+					int z=0;
+					z = z+ 1;
 				} else {
-					unbindDetectorService();
+					stopService();
 					
-					stopService(new Intent(ExerciseDetectorActivity.this, DetectorService.class));
+					// only here we can remove the output file (so when the users manually selects that he wants to stop)ž
+					mSettings.saveOutputFile("");
 				}	
 			}
 		});
@@ -95,17 +112,25 @@ public class ExerciseDetectorActivity extends Activity{
 		Log.w(TAG, "OnCreate");
 	}
 	
-	private void bindIfNotBound(){
-		if(mSettings.isServiceRunning() && mDetectorService == null){
-			boolean status = bindService(new Intent(ExerciseDetectorActivity.this, DetectorService.class), mDetectorConnection, 0);
+	private void stopService(){		
+		if(mDetectorService != null && mDetectorService.isCollectingData()){
+			assert mDetectorService.stopDataCollection();
+			getApplicationContext().unbindService(mDetectorConnection);
 		}
+		
+		stopService(new Intent(ExerciseDetectorActivity.this, DetectorService.class));
 	}
 	
-	private void unbindDetectorService(){
-		// if we are bound to the service first unbind
-		if(mDetectorService != null){
-			unbindService(mDetectorConnection);
-			mDetectorService = null;
+	private static String generateFileName(){
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmss");
+		return sdf.format(Calendar.getInstance().getTime());
+	}
+	
+	private void bindIfNotBound(){
+		if(mSettings.isServiceRunning() && mDetectorService == null){
+			boolean result = getApplication().bindService(new Intent(ExerciseDetectorActivity.this, DetectorService.class), mDetectorConnection, Context.BIND_AUTO_CREATE);
+			int z=0;
+			z = z +1;
 		}
 	}
 	
@@ -139,9 +164,7 @@ public class ExerciseDetectorActivity extends Activity{
 	}
 	
 	@Override
-	protected void onDestroy() {
-		unbindDetectorService();
-		
+	protected void onDestroy() {		
 		super.onDestroy();
 	}
 }
