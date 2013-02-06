@@ -61,7 +61,6 @@ public class ExerciseDetectorActivity extends Activity{
 			mDetectorService = ((DetectorService.DetectorServiceBinder)service).getService();
 			if(!mDetectorService.isCollectingData()) {
 				if(!mDetectorService.startDataCollection()){
-					stopService();
 					mChbToggleService.setChecked(false);
 				}
 			}
@@ -87,22 +86,14 @@ public class ExerciseDetectorActivity extends Activity{
 				// store persistently if the service is running
 				//mSettings.saveServiceRunning(isChecked);
 				
-				if(isChecked){
-					// if there is no output file we should create one
-					if(mSettings.getOutputFile().equals("")){
-						mSettings.saveOutputFile(generateFileName());
-					}
-					
+				if(isChecked){		
 					startService(new Intent(ExerciseDetectorActivity.this, DetectorService.class));
-									
-					boolean isBound = getApplicationContext().bindService(new Intent(ExerciseDetectorActivity.this, DetectorService.class), mDetectorConnection, Context.BIND_NOT_FOREGROUND);
-					int z=0;
-					z = z+ 1;
-				} else {
-					stopService();
 					
-					// only here we can remove the output file (so when the users manually selects that he wants to stop)ž
-					mSettings.saveOutputFile("");
+					// we will never unbind the service as binding was performed with 0 flag meaning the service had to be started before with start service
+					getApplicationContext().bindService(new Intent(ExerciseDetectorActivity.this, DetectorService.class), mDetectorConnection, 0);
+				} else {
+					boolean res = mDetectorService.stopDataCollection();
+					stopService(new Intent(ExerciseDetectorActivity.this, DetectorService.class));
 				}	
 			}
 		});
@@ -112,25 +103,12 @@ public class ExerciseDetectorActivity extends Activity{
 		Log.w(TAG, "OnCreate");
 	}
 	
-	private void stopService(){		
-		if(mDetectorService != null && mDetectorService.isCollectingData()){
-			assert mDetectorService.stopDataCollection();
-			getApplicationContext().unbindService(mDetectorConnection);
-		}
-		
-		stopService(new Intent(ExerciseDetectorActivity.this, DetectorService.class));
-	}
-	
-	private static String generateFileName(){
-		SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmss");
-		return sdf.format(Calendar.getInstance().getTime());
-	}
-	
+	// we could have a method start service, which could call startService again if
+	// mSettings.isServiceRunning == true && mDetectorService == null
+			
 	private void bindIfNotBound(){
 		if(mSettings.isServiceRunning() && mDetectorService == null){
-			boolean result = getApplication().bindService(new Intent(ExerciseDetectorActivity.this, DetectorService.class), mDetectorConnection, Context.BIND_AUTO_CREATE);
-			int z=0;
-			z = z +1;
+			getApplication().bindService(new Intent(ExerciseDetectorActivity.this, DetectorService.class), mDetectorConnection, 0);
 		}
 	}
 	

@@ -22,7 +22,6 @@ public class DetectorService extends Service {
 	private int NOTIFICATION_ID = 1;
 	
 	private boolean mIsCollectingData = false;
-	private NotificationManager mNotificationManager;
 	private final IBinder mDetectorBinder = new DetectorServiceBinder();
 	
 	private SensorListener mSensorListener;
@@ -44,13 +43,7 @@ public class DetectorService extends Service {
 		super.onCreate();
 		
 		Log.d(TAG, "DetectorService onCreate");
-		
-		// here we should read the output file for current acceleration data and create the acceleration listener 
-
-		mNotificationManager = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
-	
-		showNotification();
-		
+				
 		mSettings = DetectorSettings.create(PreferenceManager.getDefaultSharedPreferences(this));
 		
 		mSettings.saveServiceRunning(true);
@@ -62,8 +55,12 @@ public class DetectorService extends Service {
 	
 	public boolean startDataCollection(){
 		String testOutput = mSettings.getOutputFile();
-		// output file should always be set here
-		assert !mSettings.getOutputFile().equals("");
+		
+		// if there is no output file we should create one
+		// (this means we are starting a new sampling session)
+		if(mSettings.getOutputFile().equals("")){
+			mSettings.saveOutputFile(Utils.generateFileName());
+		}
 		
 		// check if the folder exists and create it
 		File folder = new File(Environment.getExternalStorageDirectory(), Utils.getDataFolder());
@@ -85,29 +82,31 @@ public class DetectorService extends Service {
 		return true;
 	}
 	
+	// this method should only be called when we want to legally stop sampling
 	public boolean stopDataCollection(){
 		mIsCollectingData = false;
+		
+		// only here we can remove the output file (so when the users manually selects that he wants to stop)
+		mSettings.saveOutputFile("");
+		
 		return mSensorListener.stop();
 	}
-	
-	private void showNotification() {
+
+	@Override
+	public int onStartCommand(Intent intent, int flags, int startId) {
+		Log.d(TAG, "DetectorService onStartCommand");
+		
 		String message = "Detector service on.";
 		
-        Notification notification = new Notification(R.drawable.ic_launcher, message,
+		Notification notification = new Notification(R.drawable.ic_launcher, message,
                 System.currentTimeMillis());
 
         PendingIntent contentIntent = PendingIntent.getActivity(this, 0,
                 new Intent(this, ExerciseDetectorActivity.class), 0);
 
         notification.setLatestEventInfo(this, "status", message, contentIntent);
-
-        mNotificationManager.notify(NOTIFICATION_ID, notification);
-	}
-
-	@Override
-	public int onStartCommand(Intent intent, int flags, int startId) {
-		
-		Log.d(TAG, "DetectorService onStartCommand");
+        notification.flags |= Notification.FLAG_NO_CLEAR;
+		startForeground(NOTIFICATION_ID, notification);
 		
 		return START_STICKY;
 	}
@@ -117,8 +116,6 @@ public class DetectorService extends Service {
 		Log.d(TAG, "DetectorService onDestroy");
 		
 		mSettings.saveServiceRunning(false);
-		
-        mNotificationManager.cancel(NOTIFICATION_ID);
         
 		assert mSensorListener.stop();
 		

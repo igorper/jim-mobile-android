@@ -1,5 +1,8 @@
 package net.pernek.jim.exercisedetector;
 
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+
 public class Utils {
 	
 	public static String getApplicationTag(){
@@ -8,6 +11,10 @@ public class Utils {
 	
 	public static String getDataFolder(){
 		return "jimdata";
+	}
+	
+	public static String generateFileName(){
+		return new SimpleDateFormat("yyyyMMddHHmmss").format(Calendar.getInstance().getTime());
 	}
 
 }

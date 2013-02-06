@@ -52,6 +52,7 @@ public class ExerciseDetectorActivityTest extends
 	}
 	
 	// CATION! The screen should be on during tests, otherwise they will fail
+	// also it seems this has some problems with the emulator, so run the tests on an actual device
 	public void testDetectorService(){
 		solo.assertCurrentActivity("Run activity for the 1st time.", ExerciseDetectorActivity.class);
 		assertFalse("Service should not be started", isServicerunning("net.pernek.jim.exercisedetector.DetectorService"));
