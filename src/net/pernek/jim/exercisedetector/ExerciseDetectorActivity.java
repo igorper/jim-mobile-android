@@ -9,15 +9,6 @@ import java.io.OutputStreamWriter;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 
-import net.pernek.jim.common.ExerciseDetectionAlgorithm;
-import net.pernek.jim.common.ExerciseDetectionAlgorithmObserver;
-import net.pernek.jim.common.ExerciseState;
-import net.pernek.jim.common.LinearSensorInterpolator;
-import net.pernek.jim.common.SensorInterpolator;
-import net.pernek.jim.common.SensorInterpolatorObserver;
-import net.pernek.jim.common.SensorValue;
-import net.pernek.jim.common.StDevExerciseDetectionAlgorithm;
-import net.pernek.jim.common.SensorValue.SensorType;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.IBinder;
@@ -82,17 +73,16 @@ public class ExerciseDetectorActivity extends Activity{
 		mChbToggleService.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
 			
 			@Override
-			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-				// store persistently if the service is running
-				//mSettings.saveServiceRunning(isChecked);
-				
+			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {				
 				if(isChecked){		
 					startService(new Intent(ExerciseDetectorActivity.this, DetectorService.class));
 					
 					// we will never unbind the service as binding was performed with 0 flag meaning the service had to be started before with start service
 					getApplicationContext().bindService(new Intent(ExerciseDetectorActivity.this, DetectorService.class), mDetectorConnection, 0);
 				} else {
-					boolean res = mDetectorService.stopDataCollection();
+					if(mDetectorService != null){
+						mDetectorService.stopDataCollection();
+					}
 					stopService(new Intent(ExerciseDetectorActivity.this, DetectorService.class));
 				}	
 			}

@@ -48,8 +48,9 @@ public class ExerciseDetectorActivityTest extends
 			}
 		}
 		return false;
-
 	}
+	
+	// create a test case for the sampling service getting killed and ressurecting by the activity on new start
 	
 	// CATION! The screen should be on during tests, otherwise they will fail
 	// also it seems this has some problems with the emulator, so run the tests on an actual device

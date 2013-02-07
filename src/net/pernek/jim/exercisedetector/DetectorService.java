@@ -53,9 +53,7 @@ public class DetectorService extends Service {
 		return mIsCollectingData;
 	}
 	
-	public boolean startDataCollection(){
-		String testOutput = mSettings.getOutputFile();
-		
+	public boolean startDataCollection(){		
 		// if there is no output file we should create one
 		// (this means we are starting a new sampling session)
 		if(mSettings.getOutputFile().equals("")){
@@ -67,9 +65,10 @@ public class DetectorService extends Service {
 		folder.mkdir();
 		
 		mSensorListener = SensorListener.create(new File(folder, mSettings.getOutputFile()), (SensorManager)getSystemService(SENSOR_SERVICE));
-		assert mSensorListener != null;
 		try {
 			if(!mSensorListener.start()){
+				// do this more gracefully -> the app simply does not need to offer automated functionalities if the sensors are not present
+				// (user can still swipe through the user interface)
 				Toast.makeText(this, "Unable to start accelerometer service. Is the sensor really present?", Toast.LENGTH_SHORT).show();
 				return false;
 			}
