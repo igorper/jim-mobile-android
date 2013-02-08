@@ -26,6 +26,8 @@ public class SensorListener implements SensorEventListener, SensorInterpolatorLi
 	private static final int SAMPLING_MS = 10;
 	private static final double PLA_ERROR = 3;
 	
+	// TODO those writers here are only used for testing
+	// purposes and should be deleted
 	private PrintWriter mInterpolatedWriter;
 	private PrintWriter mOutputWriter;
 	private PrintWriter mFullWriter;

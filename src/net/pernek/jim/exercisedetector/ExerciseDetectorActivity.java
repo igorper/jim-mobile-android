@@ -5,20 +5,23 @@ import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.util.Log;
+import android.view.MenuItem;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 
 public class ExerciseDetectorActivity extends Activity{
 	
 	private static final String TAG = Utils.getApplicationTag();
-		
+	
+	private final static int MENU_UPLOAD = 1;
 	private CheckBox mChbToggleService;
 	private DetectorSettings mSettings;
 	private DetectorService mDetectorService;
-	
+		
 	private ServiceConnection mDetectorConnection = new ServiceConnection() {
 		
 		@Override
@@ -40,6 +43,30 @@ public class ExerciseDetectorActivity extends Activity{
 			Log.w(TAG, "MainActivity onServiceConnected");
 		}
 	};
+	
+	public boolean onCreateOptionsMenu(android.view.Menu menu) {
+		menu.add(1, MENU_UPLOAD, 1, "Upload");
+		return true;
+	};
+	
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		switch (item.getItemId()) {
+		case MENU_UPLOAD:
+			Log.d(TAG, "on menu upload click");
+			Intent intent = new Intent(this, DataUploaderService.class);
+			//TODO: hardcode, could open an activity where all files to upload should be listed
+			intent.putExtra(DataUploaderService.INTENT_KEY_FILE, Environment.getExternalStorageDirectory() + "/jimdata/p");
+			startService(intent);
+			break;
+
+		default:
+			break;
+		}
+		
+		
+		return super.onOptionsItemSelected(item);
+	}
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
