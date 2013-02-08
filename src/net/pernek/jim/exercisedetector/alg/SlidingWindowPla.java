@@ -183,7 +183,9 @@ public class SlidingWindowPla implements Pla {
 			// as we are always saving the forelast elements we have to write 
 			// the last element in the end 
 			
-			mOutputWriter.println(mKeyValues.get(mKeyValues.size() - 1).getCsvString());
+			if(mKeyValues.size() > 1){
+				mOutputWriter.println(mKeyValues.get(mKeyValues.size() - 1).getCsvString());
+			}
 			
 			mOutputWriter.close();
 			mOutputWriter = null;

@@ -66,7 +66,6 @@ public class SensorListener implements SensorEventListener, SensorInterpolatorLi
 		mInterpolatedWriter = new PrintWriter(new BufferedWriter(new FileWriter(interpolatedFile, true)));
 		mPlaWritter.setOutputFile(plaFile);
 		
-		
 		// rework this (if false is returned no file should be created)
 		return mSensorManager.registerListener(this, mSensor, SensorManager.SENSOR_DELAY_FASTEST);
 	}

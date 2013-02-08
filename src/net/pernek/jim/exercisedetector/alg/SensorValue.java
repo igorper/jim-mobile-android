@@ -46,9 +46,9 @@ public class SensorValue {
 	
 	public String getCsvString(){ 
 		return mTimestamp + "," +
-				(mValues[0] == null ? "" : String.format("%.0f", mValues[0]*10000)) + "," + 
-				   (mValues[1] == null ? "" : String.format("%.0f", mValues[1]*10000)) + "," + 
-				   (mValues[2] == null ? "" : String.format("%.0f", mValues[2]*10000)); 
+				(mValues[0] == null ? "" : String.format("%.4f", mValues[0])) + "," + 
+				   (mValues[1] == null ? "" : String.format("%.4f", mValues[1])) + "," + 
+				   (mValues[2] == null ? "" : String.format("%.4f", mValues[2])); 
 	}
 	
 	public String getFullCsvString(){ 

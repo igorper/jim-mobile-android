@@ -1,32 +1,13 @@
 package net.pernek.jim.exercisedetector;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-
-import android.os.Bundle;
-import android.os.Environment;
-import android.os.IBinder;
-import android.preference.PreferenceManager;
 import android.app.Activity;
 import android.content.ComponentName;
-import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.content.SharedPreferences;
-import android.content.pm.ActivityInfo;
-import android.hardware.Sensor;
-import android.hardware.SensorEvent;
-import android.hardware.SensorEventListener;
-import android.hardware.SensorManager;
-import android.text.format.Time;
+import android.os.Bundle;
+import android.os.IBinder;
+import android.preference.PreferenceManager;
 import android.util.Log;
-import android.view.Menu;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 
@@ -95,7 +76,6 @@ public class ExerciseDetectorActivity extends Activity{
 	
 	// we could have a method start service, which could call startService again if
 	// mSettings.isServiceRunning == true && mDetectorService == null
-			
 	private void bindIfNotBound(){
 		if(mSettings.isServiceRunning() && mDetectorService == null){
 			getApplication().bindService(new Intent(ExerciseDetectorActivity.this, DetectorService.class), mDetectorConnection, 0);
