@@ -26,6 +26,7 @@
         </activity>
         <service android:name="net.pernek.jim.exercisedetector.DetectorService" />
         <service android:name="net.pernek.jim.exercisedetector.DataUploaderService" />
+        <activity android:name="net.pernek.jim.exercisedetector.UploadSessionActivity" />
     </application>
 
 </manifest>

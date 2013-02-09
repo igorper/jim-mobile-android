@@ -54,10 +54,9 @@ public class ExerciseDetectorActivity extends Activity{
 		switch (item.getItemId()) {
 		case MENU_UPLOAD:
 			Log.d(TAG, "on menu upload click");
-			Intent intent = new Intent(this, DataUploaderService.class);
-			//TODO: hardcode, could open an activity where all files to upload should be listed
-			intent.putExtra(DataUploaderService.INTENT_KEY_FILE, Environment.getExternalStorageDirectory() + "/jimdata/p");
-			startService(intent);
+			
+			Intent intent = new Intent(this, UploadSessionActivity.class);
+			startActivity(intent);
 			break;
 
 		default:
