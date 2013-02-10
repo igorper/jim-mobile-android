@@ -3,5 +3,5 @@ package net.pernek.jim.exercisedetector.alg;
 
 public interface ExerciseDetectionAlgorithmListener {
 	
-	void exerciseStateChanged(ExerciseState newState);
+	void exerciseStateChanged(ExerciseStateChange newState);
 }
