@@ -1,5 +1,7 @@
 package net.pernek.jim.exercisedetector;
 
+import org.apache.http.conn.ssl.SSLSocketFactory;
+
 import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Intent;
