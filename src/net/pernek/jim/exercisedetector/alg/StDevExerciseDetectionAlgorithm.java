@@ -1,12 +1,7 @@
 package net.pernek.jim.exercisedetector.alg;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
-
-import org.apache.commons.collections.buffer.CircularFifoBuffer;
 
 public class StDevExerciseDetectionAlgorithm implements
 		ExerciseDetectionAlgorithm {
