@@ -52,5 +52,13 @@ public class LimitedSizeQueue<T> extends AbstractQueue<T> {
 	public int getMaxSize(){
 		return mMaxSize;
 	}
+	
+	public T getLast(){
+		return mQueue.getLast();
+	}
+	
+	public boolean isFull(){
+		return mQueue.size() == mMaxSize;
+	}
 
 }
