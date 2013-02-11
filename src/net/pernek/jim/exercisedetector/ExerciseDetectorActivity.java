@@ -1,19 +1,22 @@
 package net.pernek.jim.exercisedetector;
 
-import org.apache.http.conn.ssl.SSLSocketFactory;
-
+import net.pernek.jim.exercisedetector.UploadSessionActivity.ResponseReceiver;
+import net.pernek.jim.exercisedetector.alg.ExerciseState;
 import android.app.Activity;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.MenuItem;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
+import android.widget.TextView;
 
 public class ExerciseDetectorActivity extends Activity{
 	
@@ -21,9 +24,12 @@ public class ExerciseDetectorActivity extends Activity{
 	
 	private final static int MENU_UPLOAD = 1;
 	private CheckBox mChbToggleService;
+	private TextView mTvExerciseState;
 	private DetectorSettings mSettings;
 	private DetectorService mDetectorService;
 		
+	private ResponseReceiver receiver;
+	
 	private ServiceConnection mDetectorConnection = new ServiceConnection() {
 		
 		@Override
@@ -76,6 +82,7 @@ public class ExerciseDetectorActivity extends Activity{
 		
 		mSettings = DetectorSettings.create(PreferenceManager.getDefaultSharedPreferences(this));
 		
+		mTvExerciseState = (TextView)findViewById(R.id.tvExerciseState);
 		mChbToggleService = (CheckBox)findViewById(R.id.chbToggleService);
 		mChbToggleService.setChecked(mSettings.isServiceRunning());
 				
@@ -99,6 +106,11 @@ public class ExerciseDetectorActivity extends Activity{
 		
 		bindIfNotBound();
 		
+		IntentFilter filter = new IntentFilter(ResponseReceiver.ACTION_EXERCISE_STATE_CHANGED);
+        filter.addCategory(Intent.CATEGORY_DEFAULT);
+        receiver = new ResponseReceiver();
+        registerReceiver(receiver, filter);
+		
 		Log.w(TAG, "OnCreate");
 	}
 	
@@ -107,6 +119,22 @@ public class ExerciseDetectorActivity extends Activity{
 	private void bindIfNotBound(){
 		if(mSettings.isServiceRunning() && mDetectorService == null){
 			getApplication().bindService(new Intent(ExerciseDetectorActivity.this, DetectorService.class), mDetectorConnection, 0);
+		}
+	}
+	
+	class ResponseReceiver extends BroadcastReceiver {
+		public static final String ACTION_EXERCISE_STATE_CHANGED = "exercise.state.changed";
+		
+		public static final String PARAM_STATE = "state";
+		public static final String PARAM_TIMESTAMP = "timestamp";
+
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			
+			ExerciseState newState = ExerciseState.values()[intent.getExtras().getInt(PARAM_STATE)];
+			long timestamp = intent.getExtras().getLong(PARAM_TIMESTAMP);
+			mTvExerciseState.setText(newState.toString());
+			
 		}
 	}
 	
@@ -140,7 +168,8 @@ public class ExerciseDetectorActivity extends Activity{
 	}
 	
 	@Override
-	protected void onDestroy() {		
+	protected void onDestroy() {	
+		unregisterReceiver(receiver);
 		super.onDestroy();
 	}
 }

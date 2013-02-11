@@ -68,7 +68,7 @@ public class DetectorService extends Service {
 
 		mSensorListener = SensorListener.create(
 				new File(folder, mSettings.getOutputFile()),
-				(SensorManager) getSystemService(SENSOR_SERVICE));
+				getApplicationContext());
 		try {
 			if (!mSensorListener.start()) {
 				// do this more gracefully -> the app simply does not need to

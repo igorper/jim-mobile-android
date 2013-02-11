@@ -12,4 +12,13 @@
         android:layout_centerVertical="true"
         android:text="ToggleService" />
 
+    <TextView
+        android:id="@+id/tvExerciseState"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/chbToggleService"
+        android:layout_centerHorizontal="true"
+        android:text="Rest"
+        android:textAppearance="?android:attr/textAppearanceLarge" />
+
 </RelativeLayout>

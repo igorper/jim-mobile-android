@@ -45,8 +45,7 @@ public class DataUploaderService extends IntentService {
 	private static final String TAG = Utils.getApplicationTag();
 
 	public static final String INTENT_KEY_FILE = "file";
-	public static final String PARAM_STATUS = "status";
-
+	
 	// those should be moved to settings
 	private static final String TESTING_EMAIL = "igor.pernek@gmail.com";
 	private static final String TESTING_PASSWORD = "307 Lakih_Pet";
@@ -170,9 +169,9 @@ public class DataUploaderService extends IntentService {
 			// interested
 			// (most probably only to the main activity to update the screen)
 			Intent broadcastIntent = new Intent();
-			broadcastIntent.setAction(ResponseReceiver.ACTION_UPLOAD_DONE);
+			broadcastIntent.setAction(UploadSessionActivity.ResponseReceiver.ACTION_UPLOAD_DONE);
 			broadcastIntent.addCategory(Intent.CATEGORY_DEFAULT);
-			broadcastIntent.putExtra(PARAM_STATUS, status);
+			broadcastIntent.putExtra(UploadSessionActivity.ResponseReceiver.PARAM_STATUS, status);
 			sendBroadcast(broadcastIntent);
 
 			// the file could be also deleted here

@@ -59,12 +59,14 @@ public class UploadSessionActivity extends ListActivity {
 		startService(intent);
 	}
 
-	public class ResponseReceiver extends BroadcastReceiver {
+	class ResponseReceiver extends BroadcastReceiver {
 		public static final String ACTION_UPLOAD_DONE = "upload_done";
+		
+		public static final String PARAM_STATUS = "status";
 
 		@Override
 		public void onReceive(Context context, Intent intent) {
-			int status = intent.getExtras().getInt(DataUploaderService.PARAM_STATUS);
+			int status = intent.getExtras().getInt(PARAM_STATUS);
 			Toast.makeText(getApplicationContext(), 
 					"Upload finnished with code " + Integer.toString(status), 
 					Toast.LENGTH_SHORT).show();
