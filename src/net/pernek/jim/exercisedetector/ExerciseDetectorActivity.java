@@ -134,7 +134,6 @@ public class ExerciseDetectorActivity extends Activity{
 			ExerciseState newState = ExerciseState.values()[intent.getExtras().getInt(PARAM_STATE)];
 			long timestamp = intent.getExtras().getLong(PARAM_TIMESTAMP);
 			mTvExerciseState.setText(newState.toString());
-			
 		}
 	}
 	
