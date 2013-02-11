@@ -10,7 +10,7 @@ public interface ExerciseDetectionAlgorithm {
 	
 	List<Long> getTimestamps();
 	
-	void addExerciseDetectionObserver(ExerciseDetectionAlgorithmListener observer);
+	void addExerciseDetectionListener(ExerciseDetectionAlgorithmListener listener);
 	
-	void removeExerciseDetectionObserver(ExerciseDetectionAlgorithmListener observer);
+	void removeExerciseDetectionListener(ExerciseDetectionAlgorithmListener listener);
 }

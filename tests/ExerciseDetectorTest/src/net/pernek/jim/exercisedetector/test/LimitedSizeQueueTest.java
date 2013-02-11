@@ -22,5 +22,10 @@ public class LimitedSizeQueueTest extends TestCase {
 		assertEquals(new Integer(1), queue.peek());
 		queue.add(6);
 		assertEquals(new Integer(2), queue.peek());
+		queue.removeFromHead(4);
+		assertEquals(1, queue.size());
+		queue.removeFromHead(10);
+		assertEquals(0, queue.size());
+		
 	}
 }

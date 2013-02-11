@@ -60,5 +60,13 @@ public class LimitedSizeQueue<T> extends AbstractQueue<T> {
 	public boolean isFull(){
 		return mQueue.size() == mMaxSize;
 	}
+	
+	public void removeFromHead(int numElements){
+		for(int i=0; i < numElements; i++){
+			if(!mQueue.isEmpty()){
+				mQueue.removeFirst();
+			}
+		}
+	}
 
 }
