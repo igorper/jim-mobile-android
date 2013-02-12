@@ -79,7 +79,7 @@ public class SensorListener implements SensorEventListener, SensorInterpolatorLi
 		mPlaWritter.setOutputFile(plaFile);
 		
 		// this values are hardcoded for now (should be made more flexible later)
-		mExerciseDetection = StDevExerciseDetectionAlgorithm.create(0.8F, 0.1F, 0.3F, 10.11F, 15000, 120, 20, 5, 10);
+		mExerciseDetection = StDevExerciseDetectionAlgorithm.create(0.8F, 0.1F, 0.3F, 10.11F, 15000, 120, 20, 5, 70);
 		mExerciseDetection.addExerciseDetectionListener(this);
 		
 		// rework this (if false is returned no file should be created)
@@ -128,6 +128,7 @@ public class SensorListener implements SensorEventListener, SensorInterpolatorLi
 
 	@Override
 	public void onNewValue(SensorValue newValue) {
+		mExerciseDetection.push(newValue);
 		mInterpolatedWriter.println(newValue.getCsvString());
 		mPlaWritter.process(newValue);
 	}
