@@ -16,7 +16,6 @@ public class StDevExerciseDetectionAlgorithm implements
 	private float mThresholdActive;
 	private float mThresholdInactive;
 	private float mExpectedMean;
-	private int mMinDuration;
 	private int mWindowMain;
 	private int mStepMain;
 	private int mMeanDistanceThreshold;
@@ -37,14 +36,13 @@ public class StDevExerciseDetectionAlgorithm implements
 
 	public static StDevExerciseDetectionAlgorithm create(float filterCoeff,
 			float thresholdActive, float thresholdInactive, float expectedMean,
-			int minDuration, final int windowMain, int stepMain,
+			final int windowMain, int stepMain,
 			int meanDistanceThreshold, int windowRemove) {
 		StDevExerciseDetectionAlgorithm retVal = new StDevExerciseDetectionAlgorithm();
 		retVal.mFilterCoeff = filterCoeff;
 		retVal.mThresholdActive = thresholdActive;
 		retVal.mThresholdInactive = thresholdInactive;
 		retVal.mExpectedMean = expectedMean;
-		retVal.mMinDuration = minDuration;
 		retVal.mWindowMain = windowMain;
 		retVal.mStepMain = stepMain;
 		retVal.mMeanDistanceThreshold = meanDistanceThreshold;

@@ -33,8 +33,18 @@ public class SensorListener implements SensorEventListener, SensorInterpolatorLi
 	private static final int SAMPLING_MS = 10;
 	private static final double PLA_ERROR = 3;
 	
+	private static final float LAZY_FILTER_COEF = 0.8F;
+	private static final float THRESHOLD_ACTIVE = 0.1F;
+	private static final float THRESHOLD_INACTIVE = 0.3F;
+	private static final float EXPECTED_MEAN = 10.11F;
+	private static final int WINDOW_MAIN = 120;
+	private static final int STEP_MAIN = 20;
+	private static final int MEAN_DISTANCE_THRESHOLD = 5;
+	private static final int WINDOW_REMOVE = 5;
+	
 	// TODO those writers here are only used for testing
 	// purposes and should be deleted
+	private PrintWriter mDetectedTimestampsWriter;
 	private PrintWriter mInterpolatedWriter;
 	private PrintWriter mOutputWriter;
 	private PrintWriter mFullWriter;
@@ -73,13 +83,15 @@ public class SensorListener implements SensorEventListener, SensorInterpolatorLi
 		String interpolatedFile = mOutputFile.getParent() + "/" + mOutputFile.getName() + "_i";
 		String plaFile = mOutputFile.getParent() + "/" + mOutputFile.getName() + "_p";
 		String fullFile = mOutputFile.getParent() + "/" + mOutputFile.getName() + "_f";
+		String detectedTimestampsFile = mOutputFile.getParent() + "/" + mOutputFile.getName() + "_tstmps";
 		
 		mFullWriter = new PrintWriter(new BufferedWriter(new FileWriter(fullFile, true)));
 		mInterpolatedWriter = new PrintWriter(new BufferedWriter(new FileWriter(interpolatedFile, true)));
+		mDetectedTimestampsWriter = new PrintWriter(new BufferedWriter(new FileWriter(detectedTimestampsFile, true)));
 		mPlaWritter.setOutputFile(plaFile);
 		
 		// this values are hardcoded for now (should be made more flexible later)
-		mExerciseDetection = StDevExerciseDetectionAlgorithm.create(0.8F, 0.1F, 0.3F, 10.11F, 15000, 120, 20, 5, 70);
+		mExerciseDetection = StDevExerciseDetectionAlgorithm.create(LAZY_FILTER_COEF, THRESHOLD_ACTIVE, THRESHOLD_INACTIVE, EXPECTED_MEAN, WINDOW_MAIN, STEP_MAIN, MEAN_DISTANCE_THRESHOLD, WINDOW_REMOVE);
 		mExerciseDetection.addExerciseDetectionListener(this);
 		
 		// rework this (if false is returned no file should be created)
@@ -91,7 +103,8 @@ public class SensorListener implements SensorEventListener, SensorInterpolatorLi
 		mOutputWriter.close();
 		mFullWriter.close();
 		mPlaWritter.closeOutputFile();
-		mInterpolatedWriter.checkError();
+		mInterpolatedWriter.close();
+		mDetectedTimestampsWriter.close();
 		
 		mExerciseDetection.removeExerciseDetectionListener(this);
 		
@@ -135,6 +148,7 @@ public class SensorListener implements SensorEventListener, SensorInterpolatorLi
 
 	@Override
 	public void exerciseStateChanged(ExerciseStateChange newState) {
+		mDetectedTimestampsWriter.println(newState.getNewState().toString() + ", " + Long.toString(newState.getStateChangeTimestamp()));
 		// broadcast current state to change the UI 
 		Intent broadcastIntent = new Intent();
 		broadcastIntent.setAction(ExerciseDetectorActivity.ResponseReceiver.ACTION_EXERCISE_STATE_CHANGED);
