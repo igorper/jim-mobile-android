@@ -28,7 +28,7 @@ public class StDevExerciseDetectionAlgorithmTest extends InstrumentationTestCase
 		}
 		
 		ExerciseDetectionAlgorithm alg = StDevExerciseDetectionAlgorithm
-				.create(0.8F, 0.1F, 0.3F, 10.11F, 15000, 120, 20, 5, 10);
+				.create(0.8F, 0.1F, 0.3F, 10.11F, 120, 20, 5, 10);
 		alg.addExerciseDetectionListener(new ExerciseDetectionAlgorithmListener() {
 			
 			@Override
