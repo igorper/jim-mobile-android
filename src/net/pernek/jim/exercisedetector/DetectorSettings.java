@@ -10,6 +10,7 @@ public class DetectorSettings {
 	
 	private static final String KEY_SERVICE_RUNNING = "service_running";
 	private static final String KEY_OUTPUT_FILE = "output_file";
+	private static final String KEY_START_TIMESTAMP = "start_timestamp"; 
 
 	private SharedPreferences mPreferences;
 	
@@ -30,6 +31,16 @@ public class DetectorSettings {
 	
 	
 	// Internal
+	public void saveStartTimestamp(long startTimestamp){
+		SharedPreferences.Editor editor = mPreferences.edit();
+        editor.putLong(KEY_START_TIMESTAMP, startTimestamp);
+        editor.commit();
+	}
+	
+	public long getStartTimestamp(){
+		return mPreferences.getLong(KEY_START_TIMESTAMP, 0);
+	}
+	
 	public void saveServiceRunning(boolean running){
 		SharedPreferences.Editor editor = mPreferences.edit();
         editor.putBoolean(KEY_SERVICE_RUNNING, running);
