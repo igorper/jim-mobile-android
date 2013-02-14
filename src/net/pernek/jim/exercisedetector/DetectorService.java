@@ -4,11 +4,9 @@ import java.io.File;
 import java.io.IOException;
 
 import android.app.Notification;
-import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
-import android.hardware.SensorManager;
 import android.os.Binder;
 import android.os.Environment;
 import android.os.IBinder;
@@ -79,7 +77,7 @@ public class DetectorService extends Service {
 						this,
 						"Unable to start accelerometer service. Is the sensor really present?",
 						Toast.LENGTH_SHORT).show();
-				return false;
+				return false;	
 			}
 		} catch (IOException e) {
 			// this happens when creating a file fails

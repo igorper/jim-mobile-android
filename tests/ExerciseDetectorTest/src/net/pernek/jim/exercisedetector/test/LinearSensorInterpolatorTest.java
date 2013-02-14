@@ -28,7 +28,7 @@ public class LinearSensorInterpolatorTest extends InstrumentationTestCase{
 		sensorInterpolator.addSensorInterpolatorListener(new SensorInterpolatorListener() {
 			int expectedIndex = 0;
 			@Override
-			public void onNewValue(SensorValue newValue) {
+			public void onNewInterpolatedValue(SensorValue newValue) {
 				SensorValue expected = expectedValues.get(expectedIndex++);
 				assertEquals(expected.getTimestamp(), newValue.getTimestamp());
 				assertEquals(expected.getValues()[0], newValue.getValues()[0], 0.01);

@@ -5,10 +5,15 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
+import android.util.Log;
+
 import net.pernek.jim.exercisedetector.Statistics;
+import net.pernek.jim.exercisedetector.Utils;
 
 public class StDevExerciseDetectionAlgorithm implements
 		ExerciseDetectionAlgorithm {
+	
+	private static final String TAG = Utils.getApplicationTag();
 
 	private List<ExerciseDetectionAlgorithmListener> mExerciseDetectionListeners = new ArrayList<ExerciseDetectionAlgorithmListener>();
 
@@ -87,6 +92,7 @@ public class StDevExerciseDetectionAlgorithm implements
 	// TODO: Test this algorithm
 	@Override
 	public void push(SensorValue newValue) {
+		//Log.d(TAG, "Alg.push: " + Long.toString(newValue.getTimestamp()));
 		if(mBufferX.isEmpty()){
 			mBufferX.add(newValue.getValues()[0]);
 			mBufferY.add(newValue.getValues()[1]);
@@ -105,6 +111,8 @@ public class StDevExerciseDetectionAlgorithm implements
 		mBufferTstmp.add(newValue.getTimestamp());
 		
 		if(mBufferX.isFull()){
+
+			Log.d(TAG, "Alg.XisFull: " + Long.toString(Thread.currentThread().getId()));
 			double curSdX = Statistics.stDev(new ArrayList<Float>(mBufferX));
 			double curSdY = Statistics.stDev(new ArrayList<Float>(mBufferY));
 			double curSdZ = Statistics.stDev(new ArrayList<Float>(mBufferZ));
@@ -124,6 +132,7 @@ public class StDevExerciseDetectionAlgorithm implements
 			boolean binaryCandidate = binaryZ && (!binaryX || !binaryY);
 			
 			if(mCandidatesQueue.isFull()){
+				Log.d(TAG, "Alg.candIsFull: " + Long.toString(Thread.currentThread().getId()));
 				boolean lastCandidate = mCandidatesQueue.poll();
 				mCandidatesQueue.add(binaryCandidate);
 				mTstmpsQueue.add(curTstmp);

@@ -81,7 +81,7 @@ public class LinearSensorInterpolator implements SensorInterpolator {
 	
 	private void notifySensorInterpolatorObservers(SensorValue newSensorValue){
 		for (SensorInterpolatorListener observer : mInterpolatorObservers) {
-			observer.onNewValue(newSensorValue);
+			observer.onNewInterpolatedValue(newSensorValue);
 		}
 	}
 	// TODO additionally a callback to which different listeners could register and do whatever they want with the data
