@@ -1,6 +1,5 @@
 package net.pernek.jim.exercisedetector;
 
-import net.pernek.jim.exercisedetector.UploadSessionActivity.ResponseReceiver;
 import net.pernek.jim.exercisedetector.alg.ExerciseState;
 import android.app.Activity;
 import android.content.BroadcastReceiver;
@@ -122,7 +121,7 @@ public class ExerciseDetectorActivity extends Activity {
 									DetectorService.class));
 							
 							mSettings.saveStartTimestamp(System.currentTimeMillis());
-							mTimerHandler.postDelayed(mRunTimerUpdate, TIMER_UPDATE_MS);
+							//mTimerHandler.postDelayed(mRunTimerUpdate, TIMER_UPDATE_MS);
 
 							// NOTE: we will never unbind the service as binding was
 							// performed with 0 flag meaning the service had to
@@ -164,7 +163,7 @@ public class ExerciseDetectorActivity extends Activity {
 	// this method resurrects everything, that should be running or visible but was killed by onDestroy 
 	private void resurrectDestroyed() {
 		if (mSettings.isServiceRunning()){
-			mTimerHandler.postDelayed(mRunTimerUpdate, TIMER_UPDATE_MS);
+			//mTimerHandler.postDelayed(mRunTimerUpdate, TIMER_UPDATE_MS);
 		}
 		
 		if (mSettings.isServiceRunning() && mDetectorService == null) {

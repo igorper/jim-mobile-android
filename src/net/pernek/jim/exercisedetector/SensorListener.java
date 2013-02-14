@@ -35,13 +35,13 @@ public class SensorListener implements SensorEventListener,
 
 	private static final float LAZY_FILTER_COEF = 0.8F;
 	private static final float THRESHOLD_ACTIVE = 0.1F;
-	private static final float THRESHOLD_INACTIVE = 0.3F; // 0.3 real; 5.3
+	private static final float THRESHOLD_INACTIVE = 18.3F; // 0.3 real; 5.3
 															// testing
 	private static final float EXPECTED_MEAN = 10.11F;
-	private static final int WINDOW_MAIN = 120;
-	private static final int STEP_MAIN = 20;
-	private static final int MEAN_DISTANCE_THRESHOLD = 5;
-	private static final int WINDOW_REMOVE = 5;
+	private static final int WINDOW_MAIN = 320;
+	private static final int STEP_MAIN = 160;
+	private static final int MEAN_DISTANCE_THRESHOLD = 2;
+	private static final int WINDOW_REMOVE = 13;
 
 	// TODO those writers here are only used for testing
 	// purposes and should be deleted
@@ -57,7 +57,7 @@ public class SensorListener implements SensorEventListener,
 	private SensorInterpolator mSensorInterpolator;
 	private long mSessionStart;
 	private ExerciseDetectionAlgorithm mExerciseDetection;
-
+	
 	private SensorListener() {
 	}
 
@@ -114,7 +114,7 @@ public class SensorListener implements SensorEventListener,
 
 		// rework this (if false is returned no file should be created)
 		return mSensorManager.registerListener(this, mSensor,
-				SensorManager.SENSOR_DELAY_FASTEST);
+				SensorManager.SENSOR_DELAY_NORMAL);
 	}
 
 	public boolean stop() {
@@ -126,6 +126,7 @@ public class SensorListener implements SensorEventListener,
 		mDetectedTimestampsWriter.close();
 
 		mExerciseDetection.removeExerciseDetectionListener(this);
+		mSessionStart = 0;
 
 		// this API is created with future implementations in mind (making it
 		// and interface and allowing
