@@ -28,7 +28,7 @@ public class SensorProcessor implements SensorInterpolatorListener, ExerciseDete
 	
 	private Queue<SensorValue> mWorkingQueue = new ConcurrentLinkedQueue<SensorValue>();
 	
-	private static final int SAMPLING_MS = 10;
+	private static final int SAMPLING_MS = 20;
 	private static final double PLA_ERROR = 3;
 
 	private static final float LAZY_FILTER_COEF = 0.8F;
@@ -40,6 +40,8 @@ public class SensorProcessor implements SensorInterpolatorListener, ExerciseDete
 	private static final int STEP_MAIN = 160;
 	private static final int MEAN_DISTANCE_THRESHOLD = 2;
 	private static final int WINDOW_REMOVE = 1;
+	
+	private static final int PROCESSING_SLEEP_MS = 30;
 
 	// TODO those writers here are only used for testing
 	// purposes and should be deleted
@@ -61,10 +63,23 @@ public class SensorProcessor implements SensorInterpolatorListener, ExerciseDete
 		@Override
 		public void run() {
 			while(mIsProcessing){
+				Log.d(TAG, "SensorProcessor.toProcess: " + Integer.toString(mWorkingQueue.size()));
 				SensorValue newValue = mWorkingQueue.poll();
 				if(newValue == null){
+					try {
+						Thread.sleep(PROCESSING_SLEEP_MS);
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
 					continue;
 				}
+				
+				// TODO: the problem is that accelerometer values are
+				// not delivered when the acceleromter is not working
+				// (a possible solution for this would be to check the 
+				// current timestamp in this thread and generate empty
+				// accelerometer values
 				
 				mSensorInterpolator.push(newValue);
 				mOutputWriter.println(newValue.getCsvString());

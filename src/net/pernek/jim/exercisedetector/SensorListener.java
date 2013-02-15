@@ -30,6 +30,8 @@ import android.util.Log;
 public class SensorListener implements SensorEventListener {
 	private static final String TAG = Utils.getApplicationTag();
 	
+	private static final int SAMPLING_SLEEP_MS = 20;
+	
 	private SensorManager mSensorManager;
 	private Sensor mSensor;
 	private SensorProcessor mSensorProcessor;
@@ -99,6 +101,12 @@ public class SensorListener implements SensorEventListener {
 					(event.timestamp - mSessionStart) / 1000000);
 			
 			mSensorProcessor.push(val);
+			try {
+				Thread.sleep(SAMPLING_SLEEP_MS);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			//Log.d(TAG, "SensorListener.onSensorChanged: " + Long.toString(Thread.currentThread().getId()));
 		}
 	}
