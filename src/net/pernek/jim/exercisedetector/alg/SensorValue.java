@@ -1,6 +1,16 @@
 package net.pernek.jim.exercisedetector.alg;
 
+import java.util.Stack;
+
 public class SensorValue {
+	
+	private static Stack<SensorValue> sensorValuePool = new Stack<SensorValue>();
+	
+	public static void storeToReuse(SensorValue sensorVal){
+		if(sensorVal != null){
+			sensorValuePool.push(sensorVal);
+		}
+	}
 	
 	public enum SensorType {
 		ACCELEROMETER_BUILTIN
@@ -15,22 +25,32 @@ public class SensorValue {
 	private SensorValue(){}
 	
 	public static SensorValue create(SensorType sensorType, Float[] values, long timestamp){
+				// we are now sure our object will contain only legal values so we do not have to
+		// check them later
+		
+		SensorValue retVal = null;
+		if(sensorValuePool.size() > 0) {
+			retVal = sensorValuePool.pop();
+		} else {
+			retVal = new SensorValue();
+		}
+									
+		return SensorValue.attach(retVal, sensorType, values, timestamp);
+	}
+	
+	private static SensorValue attach(SensorValue sensorValue, SensorType sensorType, Float[] values, long timestamp){
 		if(sensorType == null || values == null 
 				|| values.length == 0 || timestamp < 0){
 			throw new IllegalArgumentException("Illegal arguments supplied to SensorValue.");
 		}
-		// we are now sure our object will contain only legal values so we do not have to
-		// check them later
 		
-		SensorValue retVal = new SensorValue();
-		
-		retVal.mSensorType = sensorType;
-		retVal.mValues = values;
-		retVal.mTimestamp = timestamp;
-		
-		return retVal;
+		sensorValue.mSensorType = sensorType;
+		sensorValue.mValues = values;
+		sensorValue.mTimestamp = timestamp;
+
+		return sensorValue;
 	}
-	
+		
 	// an array of objects to be able to hold NULL if a sensor value is missing
 	public Float[] getValues(){
 		return mValues;

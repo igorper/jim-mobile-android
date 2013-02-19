@@ -116,6 +116,12 @@ public class ExerciseDetectorActivity extends Activity {
 					public void onCheckedChanged(CompoundButton buttonView,
 							boolean isChecked) {
 						if (isChecked) {
+							
+							// run GC before starting the service
+							// this will be memory intensive
+							System.gc();
+							
+							
 							startService(new Intent(
 									ExerciseDetectorActivity.this,
 									DetectorService.class));

@@ -56,6 +56,7 @@ public class LinearSensorInterpolator implements SensorInterpolator {
 			}
 		}	
 		
+		SensorValue.storeToReuse(mLastSensorValue);
 		mLastSensorValue = sensorValue;
 	}
 

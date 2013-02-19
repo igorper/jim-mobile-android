@@ -3,8 +3,11 @@ package net.pernek.jim.exercisedetector.alg;
 import java.util.AbstractQueue;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.Stack;
 
 public class LimitedSizeQueue<T> extends AbstractQueue<T> {
+	
+	private static Stack objectPool = new Stack();
 
 	private int mMaxSize;
 	
@@ -23,7 +26,7 @@ public class LimitedSizeQueue<T> extends AbstractQueue<T> {
 		boolean res = mQueue.add(e);
 		
 		while(mQueue.size() > mMaxSize){
-			mQueue.remove();
+			objectPool.push(mQueue.remove());
 		}
 		
 		return res;

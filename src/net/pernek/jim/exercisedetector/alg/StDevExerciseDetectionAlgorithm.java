@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Stack;
 
 import android.util.Log;
 
@@ -33,7 +34,7 @@ public class StDevExerciseDetectionAlgorithm implements
 	private LimitedSizeQueue<Long> mTstmpsQueue;
 	private LimitedSizeQueue<Boolean> mCandidatesQueue;
 	private LimitedSizeQueue<Float> mMeanQueue;
-	
+		
 	private long mPossibleActivityStart = -1;
 	
 	private StDevExerciseDetectionAlgorithm() {
@@ -98,6 +99,9 @@ public class StDevExerciseDetectionAlgorithm implements
 			mBufferY.add(newValue.getValues()[1]);
 			mBufferZ.add(newValue.getValues()[2]);
 			mBufferTstmp.add(newValue.getTimestamp());
+					
+			SensorValue.storeToReuse(newValue);
+			
 			return;
 		}
 		
@@ -110,9 +114,9 @@ public class StDevExerciseDetectionAlgorithm implements
 		mBufferZ.add(filtZ);
 		mBufferTstmp.add(newValue.getTimestamp());
 		
+		SensorValue.storeToReuse(newValue);
+		
 		if(mBufferX.isFull()){
-
-			Log.d(TAG, "Alg.XisFull: " + Long.toString(Thread.currentThread().getId()));
 			double curSdX = Statistics.stDev(new ArrayList<Float>(mBufferX));
 			double curSdY = Statistics.stDev(new ArrayList<Float>(mBufferY));
 			double curSdZ = Statistics.stDev(new ArrayList<Float>(mBufferZ));
@@ -132,7 +136,6 @@ public class StDevExerciseDetectionAlgorithm implements
 			boolean binaryCandidate = binaryZ && (!binaryX || !binaryY);
 			
 			if(mCandidatesQueue.isFull()){
-				Log.d(TAG, String.format("Alg.candIsFull. sdx: %.2f sdy: %.2f sdz: %.2f", curSdX, curSdY, curSdZ));
 				boolean lastCandidate = mCandidatesQueue.poll();
 				mCandidatesQueue.add(binaryCandidate);
 				mTstmpsQueue.add(curTstmp);
