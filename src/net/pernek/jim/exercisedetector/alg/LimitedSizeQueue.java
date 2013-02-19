@@ -53,8 +53,10 @@ public class LimitedSizeQueue<T> extends AbstractQueue<T> {
 		return mMaxSize;
 	}
 	
+	// imporatant difference from LinkedList getLast
+	// null is returned if list is empty
 	public T getLast(){
-		return mQueue.getLast();
+		return mQueue.size() == 0 ? null : mQueue.getLast();
 	}
 	
 	public boolean isFull(){

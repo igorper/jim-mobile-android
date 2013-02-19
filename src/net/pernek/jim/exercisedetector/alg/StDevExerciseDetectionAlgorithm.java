@@ -132,7 +132,7 @@ public class StDevExerciseDetectionAlgorithm implements
 			boolean binaryCandidate = binaryZ && (!binaryX || !binaryY);
 			
 			if(mCandidatesQueue.isFull()){
-				Log.d(TAG, "Alg.candIsFull: " + Long.toString(Thread.currentThread().getId()));
+				Log.d(TAG, String.format("Alg.candIsFull. sdx: %.2f sdy: %.2f sdz: %.2f", curSdX, curSdY, curSdZ));
 				boolean lastCandidate = mCandidatesQueue.poll();
 				mCandidatesQueue.add(binaryCandidate);
 				mTstmpsQueue.add(curTstmp);
@@ -174,5 +174,20 @@ public class StDevExerciseDetectionAlgorithm implements
 	public List<Long> getTimestamps() {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	@Override
+	public void checkIfProcessingIdle(Long currentTstmp) {
+		if(currentTstmp - mTstmpsQueue.getLast() > 1000){
+			// we could generate idle acc values here
+			// this would be the cleanest approach for maintaining the alg
+			
+		}
+		
+	}
+
+	@Override
+	public Long getLastTimestamp() {
+		return mTstmpsQueue == null ? null : mTstmpsQueue.getLast();
 	}
 }

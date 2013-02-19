@@ -13,4 +13,8 @@ public interface ExerciseDetectionAlgorithm {
 	void addExerciseDetectionListener(ExerciseDetectionAlgorithmListener listener);
 	
 	void removeExerciseDetectionListener(ExerciseDetectionAlgorithmListener listener);
+	
+	void checkIfProcessingIdle(Long currentTstmp);
+	
+	Long getLastTimestamp();
 }

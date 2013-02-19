@@ -7,6 +7,9 @@ public class LimitedSizeQueueTest extends TestCase {
 
 	public void testBasicOperations(){
 		LimitedSizeQueue<Integer> queue = LimitedSizeQueue.<Integer>create(5);
+		assertEquals(queue.getLast(), null);
+		
+		
 		assertEquals(0, queue.size());
 		
 		queue.add(1);
