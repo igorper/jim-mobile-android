@@ -1,12 +1,12 @@
 package net.pernek.jim.exercisedetector.test;
 
 import junit.framework.TestCase;
-import net.pernek.jim.exercisedetector.alg.CircularArrayFloat;
+import net.pernek.jim.exercisedetector.alg.CircularArrayInt;
 
 public class CircularArrayTest extends TestCase {
 
 	public void testBasicOperations() throws Exception {
-		CircularArrayFloat queue = new CircularArrayFloat(5);
+		CircularArrayInt queue = new CircularArrayInt(5);
 
 		assertEquals(0, queue.size());
 
@@ -17,25 +17,25 @@ public class CircularArrayTest extends TestCase {
 		queue.enqueue(4);
 		assertFalse(queue.isFull());
 		queue.enqueue(5);
-		assertEquals(1f, queue.first());
+		assertEquals(1, queue.first());
 		assertTrue(queue.isFull());
 
-		assertEquals(1f, queue.first());
+		assertEquals(1, queue.first());
 		queue.enqueue(6);
-		assertEquals(2f, queue.first());
-		assertEquals(6f, queue.last());
+		assertEquals(2, queue.first());
+		assertEquals(6, queue.last());
 		queue.enqueue(7);
-		assertEquals(7f, queue.last());
+		assertEquals(7, queue.last());
 		queue.enqueue(8);
-		assertEquals(8f, queue.last());
+		assertEquals(8, queue.last());
 		queue.enqueue(9);
-		assertEquals(9f, queue.last());
+		assertEquals(9, queue.last());
 		queue.enqueue(10);
-		assertEquals(10f, queue.last());
+		assertEquals(10, queue.last());
 		queue.enqueue(11);
-		assertEquals(11f, queue.last());
+		assertEquals(11, queue.last());
 		queue.enqueue(12);
-		assertEquals(12f, queue.last());
+		assertEquals(12, queue.last());
 		//queue.removeFromHead(4);
 		//assertEquals(1, queue.size());
 		//queue.removeFromHead(10);

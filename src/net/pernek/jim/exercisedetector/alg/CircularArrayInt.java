@@ -1,16 +1,16 @@
 package net.pernek.jim.exercisedetector.alg;
 
 
-public class CircularArrayLong{
+public class CircularArrayInt{
 	private int front, rear, count;
-	private long[] queue;
+	private int[] queue;
 
-	public CircularArrayLong(int size) {
+	public CircularArrayInt(int size) {
 		front = rear = count = 0;
-		queue = new long[size];
+		queue = new int[size];
 	}
 
-	public void enqueue(long element) {
+	public void enqueue(int element) {
 		if (size() == queue.length){
 			front = (front + 1) % queue.length;
 			count--;
@@ -22,11 +22,11 @@ public class CircularArrayLong{
 		count++;
 	}
 
-	public long dequeue() throws Exception {
+	public int dequeue() throws Exception {
 		if (isEmpty())
 			throw new Exception("empty");
 
-		long result = queue[front];
+		int result = queue[front];
 		front = (front + 1) % queue.length;
 
 		count--;
@@ -34,14 +34,14 @@ public class CircularArrayLong{
 		return result;
 	}
 
-	public long first() throws Exception {
+	public int first() throws Exception {
 		if (isEmpty())
 			throw new Exception("empty");
 
 		return queue[front];
 	}
 	
-	public long last() throws Exception {
+	public int last() throws Exception {
 		if (isEmpty())
 			throw new Exception("empty");
 
@@ -60,11 +60,11 @@ public class CircularArrayLong{
 		return count == queue.length;
 	}
 	
-	public long[] getFullValues() throws Exception{
+	public int[] getFullValues() throws Exception{
 		if(!isFull()){
 			throw new Exception("Array has to be full for this operation");
 		}
-		
+						
 		return queue;
 	}
 	

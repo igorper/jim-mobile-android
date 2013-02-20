@@ -6,9 +6,6 @@ import java.util.LinkedList;
 import java.util.Stack;
 
 public class LimitedSizeQueue<T> extends AbstractQueue<T> {
-	
-	private static Stack objectPool = new Stack();
-
 	private int mMaxSize;
 	
 	private LinkedList<T> mQueue;
@@ -26,7 +23,7 @@ public class LimitedSizeQueue<T> extends AbstractQueue<T> {
 		boolean res = mQueue.add(e);
 		
 		while(mQueue.size() > mMaxSize){
-			objectPool.push(mQueue.remove());
+			mQueue.remove();
 		}
 		
 		return res;

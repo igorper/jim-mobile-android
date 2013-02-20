@@ -1,6 +1,5 @@
 package net.pernek.jim.exercisedetector;
 
-import net.pernek.jim.exercisedetector.alg.ExerciseState;
 import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
@@ -188,14 +187,13 @@ public class ExerciseDetectorActivity extends Activity {
 		@Override
 		public void onReceive(Context context, Intent intent) {
 
-			ExerciseState newState = ExerciseState.values()[intent.getExtras()
-					.getInt(PARAM_STATE)];
-			long timestamp = intent.getExtras().getLong(PARAM_TIMESTAMP);
+			boolean isExercise = intent.getExtras().getBoolean(PARAM_STATE);
+			int timestamp = intent.getExtras().getInt(PARAM_TIMESTAMP);
 			
 			
 			// reset timer to 0 to start counting time again
 			mSettings.saveStartTimestamp(System.currentTimeMillis());
-			mTvExerciseState.setText(newState.toString());
+			mTvExerciseState.setText(isExercise ? "EXERCISE" : "REST");
 		}
 	}
 
