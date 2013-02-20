@@ -4,7 +4,7 @@ import java.util.List;
 
 public interface ExerciseDetectionAlgorithm {
 	
-	void push(SensorValue newValue);
+	void push(SensorValue newValue) throws Exception;
 	
 	List<Boolean> getDetectedExercises();
 	
@@ -16,5 +16,5 @@ public interface ExerciseDetectionAlgorithm {
 	
 	void checkIfProcessingIdle(Long currentTstmp);
 	
-	Long getLastTimestamp();
+	Long getLastTimestamp() throws Exception;
 }

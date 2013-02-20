@@ -27,13 +27,13 @@ public class StDevExerciseDetectionAlgorithm implements
 	private int mMeanDistanceThreshold;
 	private int mWindowRemove;
 	
-	private LimitedSizeQueue<Float> mBufferX;
-	private LimitedSizeQueue<Float> mBufferY;
-	private LimitedSizeQueue<Float> mBufferZ;
-	private LimitedSizeQueue<Long> mBufferTstmp;
-	private LimitedSizeQueue<Long> mTstmpsQueue;
-	private LimitedSizeQueue<Boolean> mCandidatesQueue;
-	private LimitedSizeQueue<Float> mMeanQueue;
+	private CircularArrayFloat mBufferX;
+	private CircularArrayFloat mBufferY;
+	private CircularArrayFloat mBufferZ;
+	private CircularArrayLong mBufferTstmp;
+	private CircularArrayLong mTstmpsQueue;
+	private CircularArrayBoolean mCandidatesQueue;
+	private CircularArrayFloat mMeanQueue;
 		
 	private long mPossibleActivityStart = -1;
 	
@@ -55,13 +55,13 @@ public class StDevExerciseDetectionAlgorithm implements
 		retVal.mWindowRemove = windowRemove;
 		
 		// initialize buffers
-		retVal.mBufferX = LimitedSizeQueue.<Float>create(windowMain);
-		retVal.mBufferY = LimitedSizeQueue.<Float>create(windowMain);
-		retVal.mBufferZ = LimitedSizeQueue.<Float>create(windowMain);
-		retVal.mBufferTstmp = LimitedSizeQueue.<Long>create(windowMain);
-		retVal.mTstmpsQueue = LimitedSizeQueue.<Long>create(windowRemove);
-		retVal.mCandidatesQueue = LimitedSizeQueue.<Boolean>create(windowRemove);
-		retVal.mMeanQueue = LimitedSizeQueue.<Float>create(windowRemove);
+		retVal.mBufferX = new CircularArrayFloat(windowMain);
+		retVal.mBufferY = new CircularArrayFloat(windowMain);
+		retVal.mBufferZ = new CircularArrayFloat(windowMain);
+		retVal.mBufferTstmp = new CircularArrayLong(windowMain);
+		retVal.mTstmpsQueue = new CircularArrayLong(windowRemove);
+		retVal.mCandidatesQueue = new CircularArrayBoolean(windowRemove);
+		retVal.mMeanQueue = new CircularArrayFloat(windowRemove);
 		
 		return retVal;
 	}
@@ -92,37 +92,37 @@ public class StDevExerciseDetectionAlgorithm implements
 	
 	// TODO: Test this algorithm
 	@Override
-	public void push(SensorValue newValue) {
+	public void push(SensorValue newValue) throws Exception {
 		//Log.d(TAG, "Alg.push: " + Long.toString(newValue.getTimestamp()));
 		if(mBufferX.isEmpty()){
-			mBufferX.add(newValue.getValues()[0]);
-			mBufferY.add(newValue.getValues()[1]);
-			mBufferZ.add(newValue.getValues()[2]);
-			mBufferTstmp.add(newValue.getTimestamp());
+			mBufferX.enqueue(newValue.getValues()[0]);
+			mBufferY.enqueue(newValue.getValues()[1]);
+			mBufferZ.enqueue(newValue.getValues()[2]);
+			mBufferTstmp.enqueue(newValue.getTimestamp());
 					
 			SensorValue.storeToReuse(newValue);
 			
 			return;
 		}
 		
-		float filtX = mFilterCoeff * mBufferX.getLast() + (1 - mFilterCoeff) * newValue.getValues()[0];
-		float filtY = mFilterCoeff * mBufferY.getLast() + (1 - mFilterCoeff) * newValue.getValues()[1];
-		float filtZ = mFilterCoeff * mBufferZ.getLast() + (1 - mFilterCoeff) * newValue.getValues()[2];
+		float filtX = mFilterCoeff * mBufferX.last() + (1 - mFilterCoeff) * newValue.getValues()[0];
+		float filtY = mFilterCoeff * mBufferY.last() + (1 - mFilterCoeff) * newValue.getValues()[1];
+		float filtZ = mFilterCoeff * mBufferZ.last() + (1 - mFilterCoeff) * newValue.getValues()[2];
 		
-		mBufferX.add(filtX);
-		mBufferY.add(filtY);
-		mBufferZ.add(filtZ);
-		mBufferTstmp.add(newValue.getTimestamp());
+		mBufferX.enqueue(filtX);
+		mBufferY.enqueue(filtY);
+		mBufferZ.enqueue(filtZ);
+		mBufferTstmp.enqueue(newValue.getTimestamp());
 		
 		SensorValue.storeToReuse(newValue);
 		
 		if(mBufferX.isFull()){
-			double curSdX = Statistics.stDev(new ArrayList<Float>(mBufferX));
-			double curSdY = Statistics.stDev(new ArrayList<Float>(mBufferY));
-			double curSdZ = Statistics.stDev(new ArrayList<Float>(mBufferZ));
-			long curTstmp = (long)Statistics.mean(new ArrayList<Long>(mBufferTstmp));
+			double curSdX = Statistics.stDev(mBufferX.getFullValues());
+			double curSdY = Statistics.stDev(mBufferY.getFullValues());
+			double curSdZ = Statistics.stDev(mBufferZ.getFullValues());
+			long curTstmp = Statistics.mean(mBufferTstmp.getFullValues());
 			
-			mMeanQueue.add((float)Statistics.mean(new ArrayList<Float>(mBufferZ)));
+			mMeanQueue.enqueue(Statistics.mean(mBufferZ.getFullValues()));
 			
 			mBufferX.removeFromHead(mStepMain);
 			mBufferY.removeFromHead(mStepMain);
@@ -136,26 +136,27 @@ public class StDevExerciseDetectionAlgorithm implements
 			boolean binaryCandidate = binaryZ && (!binaryX || !binaryY);
 			
 			if(mCandidatesQueue.isFull()){
-				boolean lastCandidate = mCandidatesQueue.poll();
-				mCandidatesQueue.add(binaryCandidate);
-				mTstmpsQueue.add(curTstmp);
+				boolean lastCandidate = mCandidatesQueue.dequeue();
+				mCandidatesQueue.enqueue(binaryCandidate);
+				mTstmpsQueue.enqueue(curTstmp);
 				
-				if(!lastCandidate && mCandidatesQueue.peek()){
-					Boolean[] tempCand = mCandidatesQueue.toArray(new Boolean[0]);
+				if(!lastCandidate && mCandidatesQueue.first()){
+					boolean[] tempCand = mCandidatesQueue.getFullValues();
 					int detectedPositives = 0;
-					for (Boolean val : tempCand) {
-						detectedPositives += val ? 1 : 0;
+					for (int i = tempCand.length - 1; i >= 0; i--){
+						detectedPositives += tempCand[i] ? 1 : 0;
 					}
-					double meanZ = Statistics.mean(new ArrayList<Float>(mMeanQueue));
-					if(detectedPositives == mCandidatesQueue.getMaxSize() && 
+				
+					float meanZ = Statistics.mean(mMeanQueue.getFullValues());
+					if(detectedPositives == mCandidatesQueue.size() && 
 							(Math.abs(meanZ - mExpectedMean) < mMeanDistanceThreshold)){
 						mPossibleActivityStart = 1;
-						notifyExerciseDetectionListeners(ExerciseStateChange.create(ExerciseState.EXERCISE, mTstmpsQueue.peek()));
+						notifyExerciseDetectionListeners(ExerciseStateChange.create(ExerciseState.EXERCISE, mTstmpsQueue.first()));
 					}
 				}
 			} else {
-				mCandidatesQueue.add(binaryCandidate);
-				mTstmpsQueue.add(curTstmp);
+				mCandidatesQueue.enqueue(binaryCandidate);
+				mTstmpsQueue.enqueue(curTstmp);
 			}
 			
 			if(mPossibleActivityStart >= 0 && !binaryCandidate){
@@ -181,16 +182,16 @@ public class StDevExerciseDetectionAlgorithm implements
 
 	@Override
 	public void checkIfProcessingIdle(Long currentTstmp) {
-		if(currentTstmp - mTstmpsQueue.getLast() > 1000){
+		/*if(currentTstmp - mTstmpsQueue.getLast() > 1000){
 			// we could generate idle acc values here
 			// this would be the cleanest approach for maintaining the alg
 			
-		}
+		}*/
 		
 	}
 
 	@Override
-	public Long getLastTimestamp() {
-		return mTstmpsQueue == null ? null : mTstmpsQueue.getLast();
+	public Long getLastTimestamp() throws Exception {
+		return mTstmpsQueue == null ? null : mTstmpsQueue.last();
 	}
 }

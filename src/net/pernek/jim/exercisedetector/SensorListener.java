@@ -146,18 +146,18 @@ public class SensorListener implements SensorEventListener,
 				if (w == 1131) {
 					long currentTimestamp = System.currentTimeMillis()
 							- mSessionStart;
-					Long lastTimestamp = mExerciseDetection.getLastTimestamp();
+					/*Long lastTimestamp = mExerciseDetection.getLastTimestamp();
 					if (lastTimestamp != null
 							&& currentTimestamp - lastTimestamp > 500) {
-						/*
+						
 						 * mSensorInterpolator.push(
 						 * SensorValue.create(SensorType.ACCELEROMETER_BUILTIN,
 						 * new Float[]{0f, 0f, 0f}, lastTimestamp + 1));
 						 * mSensorInterpolator.push(
 						 * SensorValue.create(SensorType.ACCELEROMETER_BUILTIN,
 						 * new Float[]{0f, 0f, 0f}, currentTimestamp));
-						 */
-					}
+						 
+					}*/
 				}
 
 				// repeat
@@ -291,7 +291,12 @@ public class SensorListener implements SensorEventListener,
 
 	@Override
 	public void onNewInterpolatedValue(SensorValue newValue) {
-		mExerciseDetection.push(newValue);
+		try {
+			mExerciseDetection.push(newValue);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		mInterpolatedWriter.println(newValue.getCsvString());
 		mPlaWritter.process(newValue);
 		// Log.d(TAG, "SensorProcessor.onNewInterpVal: " +

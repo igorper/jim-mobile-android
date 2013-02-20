@@ -5,36 +5,54 @@ import java.util.List;
 // create unit tests for this functions
 public class Statistics {
 
-	public static double sum(List<? extends Number> input) {
-		double sum = 0.0;
-		for (Number val : input) {
-			sum += val.doubleValue();
+	public static float sum(float[] input) {
+		float sum = 0f;
+		for (int i=input.length - 1; i >= 0 ; i--){
+			sum += input[i];
+		}
+
+		return sum;
+	}
+	
+	public static long sum(long[] input) {
+		long sum = 0l;
+		for (int i=input.length - 1; i >= 0 ; i--){
+			sum += input[i];
 		}
 
 		return sum;
 	}
 
-	public static double mean(List<? extends Number> input) {
-		if (input.size() == 0)
-			return Double.NaN;
+	public static float mean(float[] input) throws Exception {
+		if (input.length == 0)
+			throw new Exception("Empty input");
 
-		double sum = sum(input);
-		return sum / input.size();
+		float sum = sum(input);
+		return sum / input.length;
+	}
+	
+	public static long mean(long[] input) throws Exception {
+		if (input.length == 0)
+			throw new Exception("Empty input");
+
+		long sum = sum(input);
+		return sum / input.length;
 	}
 
-	public static double var(List<? extends Number> input) {
-		if (input.size() == 0)
-			return Double.NaN;
-		double avg = mean(input);
-		double sum = 0.0;
-		for (Number val : input) {
-			sum += (val.doubleValue() - avg) * (val.doubleValue() - avg);
+	public static float var(float[] input) throws Exception {
+		if (input.length == 0)
+			throw new Exception("Empty input");
+		
+		float avg = mean(input);
+		float sum = 0f;
+		for (int i = input.length - 1; i >= 0; i--) {
+			sum += (input[i] - avg) * (input[i] - avg);
 		}
 
-		return sum / (input.size() - 1);
+		return sum / (input.length - 1);
 	}
 
-	public static double stDev(List<? extends Number> input) {
-		return Math.sqrt(var(input));
+	public static float stDev(float[] input) throws Exception {
+		return (float)Math.sqrt(var(input));
 	}
 }
