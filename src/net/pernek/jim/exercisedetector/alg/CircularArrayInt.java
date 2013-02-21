@@ -60,6 +60,8 @@ public class CircularArrayInt{
 		return count == queue.length;
 	}
 	
+	// careful!! Those values are not ordered from head to tail
+	// their order is set by the underlying array
 	public int[] getFullValues() throws Exception{
 		if(!isFull()){
 			throw new Exception("Array has to be full for this operation");

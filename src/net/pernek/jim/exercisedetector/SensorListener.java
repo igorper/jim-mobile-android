@@ -7,11 +7,9 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Stack;
 
 import net.pernek.jim.exercisedetector.alg.CircularArrayBoolean;
 import net.pernek.jim.exercisedetector.alg.CircularArrayInt;
-import net.pernek.jim.exercisedetector.alg.SensorValue;
 import android.content.Context;
 import android.content.Intent;
 import android.hardware.Sensor;
@@ -20,23 +18,18 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Handler;
 import android.os.HandlerThread;
-import android.os.Message;
 import android.util.Log;
 
 public class SensorListener implements SensorEventListener {
 	private static final String TAG = Utils.getApplicationTag();
 
-	private static final int SAMPLING_SLEEP_MS = 20;
-
 	private SensorManager mSensorManager;
 	private Sensor mSensor;
 
 	private long mSessionStart;
+	
+	private static final int PRECISION = 100000;
 
-	private static final int SAMPLING_MS = 10;
-	private static final double PLA_ERROR = 3;
-
-	private static final float LAZY_FILTER_COEF = 0.8F;
 	private static final int THRESHOLD_ACTIVE = 50000;//8000;
 	private static final int THRESHOLD_INACTIVE = 200000;//15000; // 0.3 real; 5.3
 															// testing
@@ -51,7 +44,6 @@ public class SensorListener implements SensorEventListener {
 	private PrintWriter mDetectedTimestampsWriter;
 	private PrintWriter mInterpolatedWriter;
 	private PrintWriter mOutputWriter;
-	private PrintWriter mFullWriter;
 
 	private File mOutputFile;
 	private Context mApplicationContext;
@@ -59,11 +51,20 @@ public class SensorListener implements SensorEventListener {
 	private HandlerThread mProcessThread;
 	private Handler mThreadHandler;
 
-	private boolean mIsProcessing;
-
 	private int mSamplingInterval = 10;
 	private int[] mLastSensorValues;
 	private int mLastTimestamp;
+	
+	int mPossibleActivityStart = -1;
+
+	private CircularArrayInt mBufferX = new CircularArrayInt(WINDOW_MAIN);
+	private CircularArrayInt mBufferY = new CircularArrayInt(WINDOW_MAIN);
+	private CircularArrayInt mBufferZ = new CircularArrayInt(WINDOW_MAIN);
+	private CircularArrayInt mBufferTstmp = new CircularArrayInt(WINDOW_MAIN);
+	private CircularArrayInt mTstmpsQueue = new CircularArrayInt(WINDOW_REMOVE);
+	private CircularArrayInt mMeanQueue = new CircularArrayInt(WINDOW_REMOVE);
+	private CircularArrayBoolean mCandidatesQueue = new CircularArrayBoolean(
+			WINDOW_REMOVE);
 
 	private SensorListener() {
 	}
@@ -94,19 +95,13 @@ public class SensorListener implements SensorEventListener {
 				mOutputFile, true)));
 		String interpolatedFile = mOutputFile.getParent() + "/"
 				+ mOutputFile.getName() + "_i";
-		String fullFile = mOutputFile.getParent() + "/" + mOutputFile.getName()
-				+ "_f";
 		String detectedTimestampsFile = mOutputFile.getParent() + "/"
 				+ mOutputFile.getName() + "_tstmps";
 
-		mFullWriter = new PrintWriter(new BufferedWriter(new FileWriter(
-				fullFile, true)));
 		mInterpolatedWriter = new PrintWriter(new BufferedWriter(
 				new FileWriter(interpolatedFile, true)));
 		mDetectedTimestampsWriter = new PrintWriter(new BufferedWriter(
 				new FileWriter(detectedTimestampsFile, true)));
-
-		mIsProcessing = true;
 
 		// rework this (if false is returned no file should be created)
 		return mSensorManager.registerListener(this, mSensor,
@@ -116,13 +111,8 @@ public class SensorListener implements SensorEventListener {
 	public boolean stop() {
 		mSensorManager.unregisterListener(this);
 
-		mIsProcessing = false;
 		if (mOutputWriter != null) {
 			mOutputWriter.close();
-		}
-
-		if (mFullWriter != null) {
-			mFullWriter.close();
 		}
 
 		if (mInterpolatedWriter != null) {
@@ -238,8 +228,6 @@ public class SensorListener implements SensorEventListener {
 								&& (Math.abs(meanZ - EXPECTED_MEAN) < MEAN_DISTANCE_THRESHOLD)) {
 							mPossibleActivityStart = 1;
 							exerciseStateChanged(true, mTstmpsQueue.first());
-							mDetectedTimestampsWriter.printf(String.format(
-									"EX: %d", mTstmpsQueue.first()));
 						}
 					}
 				} else {
@@ -300,20 +288,10 @@ public class SensorListener implements SensorEventListener {
 		}
 	}
 
-	int mPossibleActivityStart = -1;
-
-	CircularArrayInt mBufferX = new CircularArrayInt(WINDOW_MAIN);
-	CircularArrayInt mBufferY = new CircularArrayInt(WINDOW_MAIN);
-	CircularArrayInt mBufferZ = new CircularArrayInt(WINDOW_MAIN);
-	CircularArrayInt mBufferTstmp = new CircularArrayInt(WINDOW_MAIN);
-	CircularArrayInt mTstmpsQueue = new CircularArrayInt(WINDOW_REMOVE);
-	CircularArrayInt mMeanQueue = new CircularArrayInt(WINDOW_REMOVE);
-	CircularArrayBoolean mCandidatesQueue = new CircularArrayBoolean(
-			WINDOW_REMOVE);
-
 	private void exerciseStateChanged(boolean isExercise, int timestamp) {
 		mDetectedTimestampsWriter.println(Boolean.toString(isExercise) + ", "
 				+ Integer.toString(timestamp));
+		
 		// broadcast current state to change the UI
 		Intent broadcastIntent = new Intent();
 		broadcastIntent
