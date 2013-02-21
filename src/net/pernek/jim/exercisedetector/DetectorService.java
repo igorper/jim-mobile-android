@@ -65,16 +65,18 @@ public class DetectorService extends Service {
 		folder.mkdir();
 
 		// hand testing values
-		mSensorListener = SensorListener.create(
+		/*mSensorListener = SensorListener.create(
 				new File(folder, mSettings.getOutputFile()),
 				getApplicationContext(), 50000, 200000, 1000000, 180, 100,
-				200000, 3);
+				200000, 4);*/
+		
+		// gym detection values
+		mSensorListener = SensorListener.create(
+				new File(folder, mSettings.getOutputFile()),
+				getApplicationContext(), 8000, 30000, 1000000, 600, 200,
+				200000, 14);
 		try {
 			boolean status = mSensorListener.start();
-
-			// gym detection values
-			// boolean status = mSensorListener.start(8000, 15000, 1000000, 180,
-			// 100, 200000, 3);
 
 			if (!status) {
 				// do this more gracefully -> the app simply does not need to
