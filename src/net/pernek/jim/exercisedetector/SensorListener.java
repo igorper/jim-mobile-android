@@ -37,14 +37,14 @@ public class SensorListener implements SensorEventListener {
 	private static final double PLA_ERROR = 3;
 
 	private static final float LAZY_FILTER_COEF = 0.8F;
-	private static final int THRESHOLD_ACTIVE = 8000;
-	private static final int THRESHOLD_INACTIVE = 15000; // 0.3 real; 5.3
+	private static final int THRESHOLD_ACTIVE = 50000;//8000;
+	private static final int THRESHOLD_INACTIVE = 200000;//15000; // 0.3 real; 5.3
 															// testing
 	private static final int EXPECTED_MEAN = 1000000;
-	private static final int WINDOW_MAIN = 160;
-	private static final int STEP_MAIN = 80;
+	private static final int WINDOW_MAIN = 180;
+	private static final int STEP_MAIN = 100;
 	private static final int MEAN_DISTANCE_THRESHOLD = 200000;
-	private static final int WINDOW_REMOVE = 4;
+	private static final int WINDOW_REMOVE = 2;
 
 	private Stack<SensorValue> mObjectPool;
 
