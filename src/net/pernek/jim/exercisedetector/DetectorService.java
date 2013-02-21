@@ -68,7 +68,13 @@ public class DetectorService extends Service {
 				new File(folder, mSettings.getOutputFile()),
 				getApplicationContext());
 		try {
-			if (!mSensorListener.start()) {
+			// hand testing values
+			boolean status = mSensorListener.start(50000, 200000, 1000000, 180, 100, 200000, 3);
+			
+			// gym detection values
+			//boolean status = mSensorListener.start(8000, 15000, 1000000, 180, 100, 200000, 3);
+						
+			if (!status) {
 				// do this more gracefully -> the app simply does not need to
 				// offer automated functionalities if the sensors are not
 				// present

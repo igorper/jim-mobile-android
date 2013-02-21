@@ -27,17 +27,16 @@ public class SensorListener implements SensorEventListener {
 	private Sensor mSensor;
 
 	private long mSessionStart;
-	
+
 	private static final int PRECISION = 100000;
 
-	private static final int THRESHOLD_ACTIVE = 50000;//8000;
-	private static final int THRESHOLD_INACTIVE = 200000;//15000; // 0.3 real; 5.3
-															// testing
-	private static final int EXPECTED_MEAN = 1000000;
-	private static final int WINDOW_MAIN = 180;
-	private static final int STEP_MAIN = 100;
-	private static final int MEAN_DISTANCE_THRESHOLD = 200000;
-	private static final int WINDOW_REMOVE = 2;
+	private int mThresholdActive;
+	private int mThresholdInactive;
+	private int mExpectedMean;
+	private int mWindowMain;
+	private int mStepMain;
+	private int mMeanDistanceThreshold;
+	private int mWindowRemove;
 
 	// TODO those writers here are only used for testing
 	// purposes and should be deleted
@@ -54,17 +53,16 @@ public class SensorListener implements SensorEventListener {
 	private int mSamplingInterval = 10;
 	private int[] mLastSensorValues;
 	private int mLastTimestamp;
-	
+
 	int mPossibleActivityStart = -1;
 
-	private CircularArrayInt mBufferX = new CircularArrayInt(WINDOW_MAIN);
-	private CircularArrayInt mBufferY = new CircularArrayInt(WINDOW_MAIN);
-	private CircularArrayInt mBufferZ = new CircularArrayInt(WINDOW_MAIN);
-	private CircularArrayInt mBufferTstmp = new CircularArrayInt(WINDOW_MAIN);
-	private CircularArrayInt mTstmpsQueue = new CircularArrayInt(WINDOW_REMOVE);
-	private CircularArrayInt mMeanQueue = new CircularArrayInt(WINDOW_REMOVE);
-	private CircularArrayBoolean mCandidatesQueue = new CircularArrayBoolean(
-			WINDOW_REMOVE);
+	private CircularArrayInt mBufferX;
+	private CircularArrayInt mBufferY;
+	private CircularArrayInt mBufferZ;
+	private CircularArrayInt mBufferTstmp;
+	private CircularArrayInt mTstmpsQueue;
+	private CircularArrayInt mMeanQueue;
+	private CircularArrayBoolean mCandidatesQueue;
 
 	private SensorListener() {
 	}
@@ -79,6 +77,7 @@ public class SensorListener implements SensorEventListener {
 		retVal.mOutputFile = outputFile;
 		retVal.mProcessThread = new HandlerThread("ProcessThread",
 				Thread.MAX_PRIORITY);
+		
 		if (retVal.mSensor == null) {
 			// this could actually be changed so the app will offer only limited
 			// functionality - without automation
@@ -90,7 +89,9 @@ public class SensorListener implements SensorEventListener {
 		return retVal;
 	}
 
-	public boolean start() throws IOException {
+	public boolean start(int thresholdActive, int thresholdInactive,
+			int expectedMean, int windowMain, int stepMain,
+			int meanDistanceThreshold, int windowRemove) throws IOException {
 		mOutputWriter = new PrintWriter(new BufferedWriter(new FileWriter(
 				mOutputFile, true)));
 		String interpolatedFile = mOutputFile.getParent() + "/"
@@ -103,9 +104,29 @@ public class SensorListener implements SensorEventListener {
 		mDetectedTimestampsWriter = new PrintWriter(new BufferedWriter(
 				new FileWriter(detectedTimestampsFile, true)));
 
-		// rework this (if false is returned no file should be created)
+		mThresholdActive = thresholdActive;
+		mThresholdInactive = thresholdInactive;
+		mExpectedMean = expectedMean;
+		mWindowMain = windowMain;
+		mStepMain = stepMain;
+		mMeanDistanceThreshold = meanDistanceThreshold;
+		mWindowRemove = windowRemove;
+		
+		initializeAlgorithmStructures();
+
+		// TODO: rework this (if false is returned no file should be created)
 		return mSensorManager.registerListener(this, mSensor,
 				SensorManager.SENSOR_DELAY_FASTEST, mThreadHandler);
+	}
+
+	private void initializeAlgorithmStructures() {
+		mBufferX = new CircularArrayInt(mWindowMain);
+		mBufferY = new CircularArrayInt(mWindowMain);
+		mBufferZ = new CircularArrayInt(mWindowMain);
+		mBufferTstmp = new CircularArrayInt(mWindowMain);
+		mTstmpsQueue = new CircularArrayInt(mWindowRemove);
+		mMeanQueue = new CircularArrayInt(mWindowRemove);
+		mCandidatesQueue = new CircularArrayBoolean(mWindowRemove);
 	}
 
 	public boolean stop() {
@@ -138,8 +159,8 @@ public class SensorListener implements SensorEventListener {
 		// TODO Auto-generated method stub
 
 	}
-	
-	public List<int[]> interpolate(int[] values, int timestamp){
+
+	public List<int[]> interpolate(int[] values, int timestamp) {
 		int valSize = values.length;
 		// interpolate values
 		List<int[]> processingBuffer = new ArrayList<int[]>();
@@ -165,80 +186,83 @@ public class SensorListener implements SensorEventListener {
 				x += mSamplingInterval;
 			}
 		}
-		
+
 		mLastSensorValues = values;
 		mLastTimestamp = timestamp;
-		
+
 		return processingBuffer;
 	}
 
 	public void onSensorChanged(int[] values, int timestamp) throws Exception {
-			if (mBufferX.isEmpty()) {
-				mBufferX.enqueue(values[0]);
-				mBufferY.enqueue(values[1]);
-				mBufferZ.enqueue(values[2]);
-				mBufferTstmp.enqueue(timestamp);
-
-				return;
-			}
-
-			int filtX = values[0];//(int)(LAZY_FILTER_COEF * mBufferX.last() + (1 - LAZY_FILTER_COEF) * value[0]);
-			int filtY = values[1];//(int)(LAZY_FILTER_COEF * mBufferY.last() + (1 - LAZY_FILTER_COEF) * value[1]);
-			int filtZ = values[2];//(int)(LAZY_FILTER_COEF * mBufferZ.last() + (1 - LAZY_FILTER_COEF) * value[2]);
-
-			mBufferX.enqueue(filtX);
-			mBufferY.enqueue(filtY);
-			mBufferZ.enqueue(filtZ);
+		if (mBufferX.isEmpty()) {
+			mBufferX.enqueue(values[0]);
+			mBufferY.enqueue(values[1]);
+			mBufferZ.enqueue(values[2]);
 			mBufferTstmp.enqueue(timestamp);
 
-			if (mBufferX.isFull()) {
-				int curSdX = (int)Statistics.stDev(mBufferX.getFullValues());
-				int curSdY = (int)Statistics.stDev(mBufferY.getFullValues());
-				int curSdZ = (int)Statistics.stDev(mBufferZ.getFullValues());
-				int curTstmp = (int)Statistics.mean(mBufferTstmp.getFullValues());
+			return;
+		}
 
-				mMeanQueue.enqueue((int)Statistics.mean(mBufferZ.getFullValues()));
+		int filtX = values[0];// (int)(LAZY_FILTER_COEF * mBufferX.last() + (1 -
+								// LAZY_FILTER_COEF) * value[0]);
+		int filtY = values[1];// (int)(LAZY_FILTER_COEF * mBufferY.last() + (1 -
+								// LAZY_FILTER_COEF) * value[1]);
+		int filtZ = values[2];// (int)(LAZY_FILTER_COEF * mBufferZ.last() + (1 -
+								// LAZY_FILTER_COEF) * value[2]);
 
-				mBufferX.removeFromHead(STEP_MAIN);
-				mBufferY.removeFromHead(STEP_MAIN);
-				mBufferZ.removeFromHead(STEP_MAIN);
-				mBufferTstmp.removeFromHead(STEP_MAIN);
+		mBufferX.enqueue(filtX);
+		mBufferY.enqueue(filtY);
+		mBufferZ.enqueue(filtZ);
+		mBufferTstmp.enqueue(timestamp);
 
-				boolean binaryX = curSdX >= THRESHOLD_INACTIVE;
-				boolean binaryY = curSdY >= THRESHOLD_INACTIVE;
-				boolean binaryZ = curSdZ >= THRESHOLD_ACTIVE;
+		if (mBufferX.isFull()) {
+			int curSdX = (int) Statistics.stDev(mBufferX.getFullValues());
+			int curSdY = (int) Statistics.stDev(mBufferY.getFullValues());
+			int curSdZ = (int) Statistics.stDev(mBufferZ.getFullValues());
+			int curTstmp = (int) Statistics.mean(mBufferTstmp.getFullValues());
 
-				boolean binaryCandidate = binaryZ && (!binaryX || !binaryY);
+			mMeanQueue.enqueue((int) Statistics.mean(mBufferZ.getFullValues()));
 
-				if (mCandidatesQueue.isFull()) {
-					boolean lastCandidate = mCandidatesQueue.dequeue();
-					mCandidatesQueue.enqueue(binaryCandidate);
-					mTstmpsQueue.enqueue(curTstmp);
+			mBufferX.removeFromHead(mStepMain);
+			mBufferY.removeFromHead(mStepMain);
+			mBufferZ.removeFromHead(mStepMain);
+			mBufferTstmp.removeFromHead(mStepMain);
 
-					if (!lastCandidate && mCandidatesQueue.first()) {
-						boolean[] tempCand = mCandidatesQueue.getFullValues();
-						int detectedPositives = 0;
-						for (int i = tempCand.length - 1; i >= 0; i--) {
-							detectedPositives += tempCand[i] ? 1 : 0;
-						}
+			boolean binaryX = curSdX >= mThresholdInactive;
+			boolean binaryY = curSdY >= mThresholdInactive;
+			boolean binaryZ = curSdZ >= mThresholdActive;
 
-						int meanZ = (int)Statistics.mean(mMeanQueue
-								.getFullValues());
-						if (detectedPositives == mCandidatesQueue.size()
-								&& (Math.abs(meanZ - EXPECTED_MEAN) < MEAN_DISTANCE_THRESHOLD)) {
-							mPossibleActivityStart = 1;
-							exerciseStateChanged(true, mTstmpsQueue.first());
-						}
+			boolean binaryCandidate = binaryZ && (!binaryX || !binaryY);
+
+			if (mCandidatesQueue.isFull()) {
+				boolean lastCandidate = mCandidatesQueue.dequeue();
+				mCandidatesQueue.enqueue(binaryCandidate);
+				mTstmpsQueue.enqueue(curTstmp);
+
+				if (!lastCandidate && mCandidatesQueue.first()) {
+					boolean[] tempCand = mCandidatesQueue.getFullValues();
+					int detectedPositives = 0;
+					for (int i = tempCand.length - 1; i >= 0; i--) {
+						detectedPositives += tempCand[i] ? 1 : 0;
 					}
-				} else {
-					mCandidatesQueue.enqueue(binaryCandidate);
-					mTstmpsQueue.enqueue(curTstmp);
-				}
 
-				if (mPossibleActivityStart >= 0 && !binaryCandidate) {
-					exerciseStateChanged(false, curTstmp);
-					mPossibleActivityStart = -1;
+					int meanZ = (int) Statistics.mean(mMeanQueue
+							.getFullValues());
+					if (detectedPositives == mCandidatesQueue.size()
+							&& (Math.abs(meanZ - mExpectedMean) < mMeanDistanceThreshold)) {
+						mPossibleActivityStart = 1;
+						exerciseStateChanged(true, mTstmpsQueue.first());
+					}
 				}
+			} else {
+				mCandidatesQueue.enqueue(binaryCandidate);
+				mTstmpsQueue.enqueue(curTstmp);
+			}
+
+			if (mPossibleActivityStart >= 0 && !binaryCandidate) {
+				exerciseStateChanged(false, curTstmp);
+				mPossibleActivityStart = -1;
+			}
 		}
 
 		//
@@ -260,26 +284,27 @@ public class SensorListener implements SensorEventListener {
 				int valSize = event.values.length;
 				int[] values = new int[valSize];
 				for (int i = 0; i < valSize; i++) {
-					values[i] = (int) (event.values[i] * 100000);
+					values[i] = (int) (event.values[i] * PRECISION);
 				}
 				int timestamp = (int) ((event.timestamp - mSessionStart) / 1000000);
-				
+
 				// first save the value without any interpolation
 				mOutputWriter.println(String.format("%d,%d,%d,%d", values[0],
 						values[1], values[2], timestamp));
-				
+
 				List<int[]> processingBuffer = interpolate(values, timestamp);
-				
+
 				while (!processingBuffer.isEmpty()) {
-					int[] value = processingBuffer.get(processingBuffer.size() - 1);
+					int[] value = processingBuffer
+							.get(processingBuffer.size() - 1);
 					processingBuffer.remove(processingBuffer.size() - 1);
-					
-					mInterpolatedWriter.println(String.format("%d,%d,%d,%d", value[0],
-							value[1], value[2], value[3]));
-					
+
+					mInterpolatedWriter.println(String.format("%d,%d,%d,%d",
+							value[0], value[1], value[2], value[3]));
+
 					int[] sensorValues = new int[3];
 					System.arraycopy(value, 0, sensorValues, 0, 3);
-					
+
 					onSensorChanged(sensorValues, value[3]);
 				}
 			}
@@ -291,7 +316,7 @@ public class SensorListener implements SensorEventListener {
 	private void exerciseStateChanged(boolean isExercise, int timestamp) {
 		mDetectedTimestampsWriter.println(Boolean.toString(isExercise) + ", "
 				+ Integer.toString(timestamp));
-		
+
 		// broadcast current state to change the UI
 		Intent broadcastIntent = new Intent();
 		broadcastIntent
