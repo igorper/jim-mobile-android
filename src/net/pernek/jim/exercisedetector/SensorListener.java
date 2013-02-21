@@ -46,8 +46,6 @@ public class SensorListener implements SensorEventListener {
 	private static final int MEAN_DISTANCE_THRESHOLD = 200000;
 	private static final int WINDOW_REMOVE = 2;
 
-	private Stack<SensorValue> mObjectPool;
-
 	// TODO those writers here are only used for testing
 	// purposes and should be deleted
 	private PrintWriter mDetectedTimestampsWriter;
@@ -78,7 +76,6 @@ public class SensorListener implements SensorEventListener {
 				.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
 		retVal.mApplicationContext = context;
 		retVal.mOutputFile = outputFile;
-		retVal.mObjectPool = new Stack<SensorValue>();
 		retVal.mProcessThread = new HandlerThread("ProcessThread",
 				Thread.MAX_PRIORITY);
 		if (retVal.mSensor == null) {
@@ -109,62 +106,6 @@ public class SensorListener implements SensorEventListener {
 		mDetectedTimestampsWriter = new PrintWriter(new BufferedWriter(
 				new FileWriter(detectedTimestampsFile, true)));
 
-		// this values are hardcoded for now (should be made more flexible
-		// later)
-		/*
-		 * mExerciseDetection = StDevExerciseDetectionAlgorithm.create(
-		 * LAZY_FILTER_COEF, THRESHOLD_ACTIVE, THRESHOLD_INACTIVE,
-		 * EXPECTED_MEAN, WINDOW_MAIN, STEP_MAIN, MEAN_DISTANCE_THRESHOLD,
-		 * WINDOW_REMOVE);
-		 */
-		// mExerciseDetection.addExerciseDetectionListener(this);
-
-		mProcessThread.start();
-
-		mThreadHandler = new Handler(mProcessThread.getLooper()) {
-			public void handleMessage(Message msg) {
-				int w = msg.what;
-				// check here when the last acceleration was sampled
-
-				Log.d(TAG, "SensorListener.pingHandle: " + Integer.toString(w)
-						+ " " + Long.toString(Thread.currentThread().getId()));
-
-				// check how those 'what' work
-				if (w == 1131) {
-					long currentTimestamp = System.currentTimeMillis()
-							- mSessionStart;
-					/*
-					 * Long lastTimestamp =
-					 * mExerciseDetection.getLastTimestamp(); if (lastTimestamp
-					 * != null && currentTimestamp - lastTimestamp > 500) {
-					 * 
-					 * mSensorInterpolator.push(
-					 * SensorValue.create(SensorType.ACCELEROMETER_BUILTIN, new
-					 * Float[]{0f, 0f, 0f}, lastTimestamp + 1));
-					 * mSensorInterpolator.push(
-					 * SensorValue.create(SensorType.ACCELEROMETER_BUILTIN, new
-					 * Float[]{0f, 0f, 0f}, currentTimestamp));
-					 * 
-					 * }
-					 */
-
-					// TODO: after we are in rest state and no acceleration is
-					// collected we
-					// can call garbage collector from time to time (this is the
-					// appropriate
-					// time for GC calls)
-
-					// TODO: actually, if there is no activity for some time
-					// here, we do not need to
-					// interpolate acceleration values for that time
-				}
-
-				// repeat
-				sendEmptyMessageDelayed(1131, 1000);
-			};
-		};
-		mThreadHandler.sendEmptyMessageDelayed(1131, 1000);
-
 		mIsProcessing = true;
 
 		// rework this (if false is returned no file should be created)
@@ -193,8 +134,6 @@ public class SensorListener implements SensorEventListener {
 		}
 
 		mProcessThread.quit();
-
-		// mExerciseDetection.removeExerciseDetectionListener(this);
 
 		mSessionStart = 0;
 
@@ -301,8 +240,6 @@ public class SensorListener implements SensorEventListener {
 							exerciseStateChanged(true, mTstmpsQueue.first());
 							mDetectedTimestampsWriter.printf(String.format(
 									"EX: %d", mTstmpsQueue.first()));
-							// notifyExerciseDetectionListeners(ExerciseStateChange.create(ExerciseState.EXERCISE,
-							// mTstmpsQueue.first()));
 						}
 					}
 				} else {
@@ -311,8 +248,6 @@ public class SensorListener implements SensorEventListener {
 				}
 
 				if (mPossibleActivityStart >= 0 && !binaryCandidate) {
-					// notifyExerciseDetectionListeners(ExerciseStateChange.create(ExerciseState.REST,
-					// curTstmp));
 					exerciseStateChanged(false, curTstmp);
 					mPossibleActivityStart = -1;
 				}

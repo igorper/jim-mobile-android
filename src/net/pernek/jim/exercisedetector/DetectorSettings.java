@@ -10,7 +10,8 @@ public class DetectorSettings {
 	
 	private static final String KEY_SERVICE_RUNNING = "service_running";
 	private static final String KEY_OUTPUT_FILE = "output_file";
-	private static final String KEY_START_TIMESTAMP = "start_timestamp"; 
+	private static final String KEY_START_TIMESTAMP = "start_timestamp";
+	private static final String KEY_IS_EXERCISE_STATE = "is_exercise_state";
 
 	private SharedPreferences mPreferences;
 	
@@ -59,6 +60,16 @@ public class DetectorSettings {
 	
 	public String getOutputFile(){
 		return mPreferences.getString(KEY_OUTPUT_FILE, "");
+	}
+	
+	public void saveIsExerciseState(boolean isExerciseState){
+		SharedPreferences.Editor editor = mPreferences.edit();
+        editor.putBoolean(KEY_IS_EXERCISE_STATE, isExerciseState);
+        editor.commit();
+	}
+	
+	public boolean isExerciseState(){
+		return mPreferences.getBoolean(KEY_IS_EXERCISE_STATE, false);
 	}
 	 
 }

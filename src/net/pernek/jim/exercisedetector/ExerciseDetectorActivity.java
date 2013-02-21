@@ -31,12 +31,11 @@ public class ExerciseDetectorActivity extends Activity {
 	private DetectorSettings mSettings;
 	private DetectorService mDetectorService;
 
-	private Handler mTimerHandler = new Handler();
+	private Handler mUiHandler = new Handler();
 	private Runnable mRunTimerUpdate = new Runnable() {
 
 		@Override
 		public void run() {
-			// TODO Auto-generated method stub
 			long millis = System.currentTimeMillis() - mSettings.getStartTimestamp();
 			int seconds = (int) (millis / 1000);
 			int minutes = seconds / 60;
@@ -44,7 +43,7 @@ public class ExerciseDetectorActivity extends Activity {
 
 			mTvTimer.setText(String.format("%d:%02d", minutes, seconds));
 
-			mTimerHandler.postDelayed(this, TIMER_UPDATE_MS);
+			mUiHandler.postDelayed(this, TIMER_UPDATE_MS);
 		}
 	};
 
@@ -119,14 +118,15 @@ public class ExerciseDetectorActivity extends Activity {
 							// run GC before starting the service
 							// this will be memory intensive
 							System.gc();
-							
-							
+														
 							startService(new Intent(
 									ExerciseDetectorActivity.this,
 									DetectorService.class));
 							
 							mSettings.saveStartTimestamp(System.currentTimeMillis());
-							//mTimerHandler.postDelayed(mRunTimerUpdate, TIMER_UPDATE_MS);
+							
+							
+							mUiHandler.postDelayed(mRunTimerUpdate, TIMER_UPDATE_MS);
 
 							// NOTE: we will never unbind the service as binding was
 							// performed with 0 flag meaning the service had to
@@ -140,7 +140,7 @@ public class ExerciseDetectorActivity extends Activity {
 								mDetectorService.stopDataCollection();
 							}
 							
-							mTimerHandler.removeCallbacks(mRunTimerUpdate);
+							mUiHandler.removeCallbacks(mRunTimerUpdate);
 							
 							stopService(new Intent(
 									ExerciseDetectorActivity.this,
@@ -167,15 +167,25 @@ public class ExerciseDetectorActivity extends Activity {
 	
 	// this method resurrects everything, that should be running or visible but was killed by onDestroy 
 	private void resurrectDestroyed() {
+		// ressurect current exercise state
+		mTvExerciseState.setText(getExerciseString(mSettings.isExerciseState()));
+		
+		
+		// resurrect the timer
 		if (mSettings.isServiceRunning()){
-			//mTimerHandler.postDelayed(mRunTimerUpdate, TIMER_UPDATE_MS);
+			mUiHandler.postDelayed(mRunTimerUpdate, TIMER_UPDATE_MS);
 		}
 		
+		// rebind the service
 		if (mSettings.isServiceRunning() && mDetectorService == null) {
 			getApplication().bindService(
 					new Intent(ExerciseDetectorActivity.this,
 							DetectorService.class), mDetectorConnection, 0);
 		}
+	}
+	
+	private String getExerciseString(boolean isExercise){
+		return isExercise ? "EXERCISE" : "REST";
 	}
 
 	class ResponseReceiver extends BroadcastReceiver {
@@ -190,10 +200,18 @@ public class ExerciseDetectorActivity extends Activity {
 			boolean isExercise = intent.getExtras().getBoolean(PARAM_STATE);
 			int timestamp = intent.getExtras().getInt(PARAM_TIMESTAMP);
 			
+			mSettings.saveIsExerciseState(isExercise);
+			
+			mUiHandler.post(new Runnable() {
+				
+				@Override
+				public void run() {
+					mTvExerciseState.setText(getExerciseString(mSettings.isExerciseState()));
+				}
+			});
 			
 			// reset timer to 0 to start counting time again
 			mSettings.saveStartTimestamp(System.currentTimeMillis());
-			mTvExerciseState.setText(isExercise ? "EXERCISE" : "REST");
 		}
 	}
 
@@ -229,7 +247,7 @@ public class ExerciseDetectorActivity extends Activity {
 	@Override
 	protected void onDestroy() {
 		unregisterReceiver(receiver);
-		mTimerHandler.removeCallbacks(mRunTimerUpdate);
+		mUiHandler.removeCallbacks(mRunTimerUpdate);
 		super.onDestroy();
 	}
 }
