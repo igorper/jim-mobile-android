@@ -64,16 +64,18 @@ public class DetectorService extends Service {
 				Utils.getDataFolder());
 		folder.mkdir();
 
+		// hand testing values
 		mSensorListener = SensorListener.create(
 				new File(folder, mSettings.getOutputFile()),
-				getApplicationContext());
+				getApplicationContext(), 50000, 200000, 1000000, 180, 100,
+				200000, 3);
 		try {
-			// hand testing values
-			boolean status = mSensorListener.start(50000, 200000, 1000000, 180, 100, 200000, 3);
-			
+			boolean status = mSensorListener.start();
+
 			// gym detection values
-			//boolean status = mSensorListener.start(8000, 15000, 1000000, 180, 100, 200000, 3);
-						
+			// boolean status = mSensorListener.start(8000, 15000, 1000000, 180,
+			// 100, 200000, 3);
+
 			if (!status) {
 				// do this more gracefully -> the app simply does not need to
 				// offer automated functionalities if the sensors are not
@@ -83,7 +85,7 @@ public class DetectorService extends Service {
 						this,
 						"Unable to start accelerometer service. Is the sensor really present?",
 						Toast.LENGTH_SHORT).show();
-				return false;	
+				return false;
 			}
 		} catch (IOException e) {
 			// this happens when creating a file fails

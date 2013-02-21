@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import net.pernek.jim.exercisedetector.alg.DetectedEvent;
+
 import au.com.bytecode.opencsv.CSVReader;
 
 public class TestHelpers {
@@ -27,15 +29,15 @@ public class TestHelpers {
 		return testValues;
 	}
 	
-	public static HashMap<Long, Boolean> readExpectedExercises(InputStreamReader input) throws NumberFormatException, IOException{
-		HashMap<Long, Boolean> expectedExercises = new HashMap<Long, Boolean>();
+	public static List<DetectedEvent> readExerciseStates(InputStreamReader input) throws NumberFormatException, IOException{
+		List<DetectedEvent> expectedExercises = new ArrayList<DetectedEvent>();
 		
 		CSVReader reader = new CSVReader(input);
 		String[] nextLine;
 		while ((nextLine = reader.readNext()) != null) {
-			Long timestamp = Long.parseLong(nextLine[0]);
-			Boolean isExercise = Integer.parseInt(nextLine[1]) == 1;
-			expectedExercises.put(timestamp, isExercise);
+			Integer timestamp = Integer.parseInt(nextLine[1]);
+			Boolean isExercise = Boolean.parseBoolean(nextLine[0]);
+			expectedExercises.add(new DetectedEvent(isExercise, timestamp));
 		}
 		reader.close();
 		

@@ -6,12 +6,15 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 
 import net.pernek.jim.exercisedetector.alg.CircularArrayBoolean;
 import net.pernek.jim.exercisedetector.alg.CircularArrayInt;
+import net.pernek.jim.exercisedetector.alg.DetectedEvent;
 import android.content.Context;
 import android.content.Intent;
 import android.hardware.Sensor;
@@ -66,10 +69,15 @@ public class SensorListener implements SensorEventListener {
 	private CircularArrayInt mMeanQueue;
 	private CircularArrayBoolean mCandidatesQueue;
 
+	private List<DetectedEvent> mDetectedEvents;
+
 	private SensorListener() {
 	}
 
-	public static SensorListener create(File outputFile, Context context) {
+	public static SensorListener create(File outputFile, Context context,
+			int thresholdActive, int thresholdInactive, int expectedMean,
+			int windowMain, int stepMain, int meanDistanceThreshold,
+			int windowRemove) {
 		SensorListener retVal = new SensorListener();
 		retVal.mSensorManager = (SensorManager) context
 				.getSystemService(Context.SENSOR_SERVICE);
@@ -79,7 +87,18 @@ public class SensorListener implements SensorEventListener {
 		retVal.mOutputFile = outputFile;
 		retVal.mProcessThread = new HandlerThread("ProcessThread",
 				Thread.MAX_PRIORITY);
-		
+
+		retVal.mThresholdActive = thresholdActive;
+		retVal.mThresholdInactive = thresholdInactive;
+		retVal.mExpectedMean = expectedMean;
+		retVal.mWindowMain = windowMain;
+		retVal.mStepMain = stepMain;
+		retVal.mMeanDistanceThreshold = meanDistanceThreshold;
+		retVal.mWindowRemove = windowRemove;
+		retVal.mDetectedEvents = new ArrayList<DetectedEvent>();
+
+		retVal.initializeAlgorithmStructures();
+
 		if (retVal.mSensor == null) {
 			// this could actually be changed so the app will offer only limited
 			// functionality - without automation
@@ -91,11 +110,11 @@ public class SensorListener implements SensorEventListener {
 		return retVal;
 	}
 
-	public boolean start(int thresholdActive, int thresholdInactive,
-			int expectedMean, int windowMain, int stepMain,
-			int meanDistanceThreshold, int windowRemove) throws IOException {
+	public boolean start() throws IOException {
+
 		mSessionStart = 0;
-		
+		mDetectedEvents.clear();
+
 		mOutputWriter = new PrintWriter(new BufferedWriter(new FileWriter(
 				mOutputFile, true)));
 		String interpolatedFile = mOutputFile.getParent() + "/"
@@ -107,16 +126,6 @@ public class SensorListener implements SensorEventListener {
 				new FileWriter(interpolatedFile, true)));
 		mDetectedTimestampsWriter = new PrintWriter(new BufferedWriter(
 				new FileWriter(detectedTimestampsFile, true)));
-
-		mThresholdActive = thresholdActive;
-		mThresholdInactive = thresholdInactive;
-		mExpectedMean = expectedMean;
-		mWindowMain = windowMain;
-		mStepMain = stepMain;
-		mMeanDistanceThreshold = meanDistanceThreshold;
-		mWindowRemove = windowRemove;
-		
-		initializeAlgorithmStructures();
 
 		// TODO: rework this (if false is returned no file should be created)
 		return mSensorManager.registerListener(this, mSensor,
@@ -188,12 +197,12 @@ public class SensorListener implements SensorEventListener {
 				// store those values to a buffer as well
 				x += mSamplingInterval;
 			}
-		} 
-		
+		}
+
 		int[] lastElementToAdd = new int[valSize + 1];
 		System.arraycopy(values, 0, lastElementToAdd, 0, valSize);
-		lastElementToAdd[valSize] = timestamp; 
-		
+		lastElementToAdd[valSize] = timestamp;
+
 		processingBuffer.add(lastElementToAdd);
 
 		mLastSensorValues = values;
@@ -304,9 +313,8 @@ public class SensorListener implements SensorEventListener {
 				Queue<int[]> processingBuffer = interpolate(values, timestamp);
 
 				while (!processingBuffer.isEmpty()) {
-					int[] value = processingBuffer
-							.poll();
-					//processingBuffer.remove(processingBuffer.size() - 1);
+					int[] value = processingBuffer.poll();
+					// processingBuffer.remove(processingBuffer.size() - 1);
 
 					mInterpolatedWriter.println(String.format("%d,%d,%d,%d",
 							value[0], value[1], value[2], value[3]));
@@ -322,9 +330,24 @@ public class SensorListener implements SensorEventListener {
 		}
 	}
 
+	public List<DetectedEvent> getDetectedEvents() {
+		return Collections.unmodifiableList(mDetectedEvents);
+	}
+
 	private void exerciseStateChanged(boolean isExercise, int timestamp) {
-		mDetectedTimestampsWriter.println(Boolean.toString(isExercise) + ", "
-				+ Integer.toString(timestamp));
+
+		// save to memory
+		mDetectedEvents.add(new DetectedEvent(isExercise, timestamp));
+
+		// write to file
+		// TODO: this if is only used because unit testing fails without
+		// it (start is never called during unit testing as we don't want the
+		// accelerometer data to be collected) - in the future I should think this
+		// through one more time
+		if (mDetectedTimestampsWriter != null) {
+			mDetectedTimestampsWriter.println(Boolean.toString(isExercise)
+					+ "," + Integer.toString(timestamp));
+		}
 
 		// broadcast current state to change the UI
 		Intent broadcastIntent = new Intent();
