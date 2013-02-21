@@ -6,7 +6,9 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 
 import net.pernek.jim.exercisedetector.alg.CircularArrayBoolean;
 import net.pernek.jim.exercisedetector.alg.CircularArrayInt;
@@ -92,6 +94,8 @@ public class SensorListener implements SensorEventListener {
 	public boolean start(int thresholdActive, int thresholdInactive,
 			int expectedMean, int windowMain, int stepMain,
 			int meanDistanceThreshold, int windowRemove) throws IOException {
+		mSessionStart = 0;
+		
 		mOutputWriter = new PrintWriter(new BufferedWriter(new FileWriter(
 				mOutputFile, true)));
 		String interpolatedFile = mOutputFile.getParent() + "/"
@@ -146,8 +150,6 @@ public class SensorListener implements SensorEventListener {
 
 		mProcessThread.quit();
 
-		mSessionStart = 0;
-
 		// this API is created with future implementations in mind (making it
 		// and interface and allowing
 		// implementations where stop can fail)
@@ -160,17 +162,18 @@ public class SensorListener implements SensorEventListener {
 
 	}
 
-	public List<int[]> interpolate(int[] values, int timestamp) {
+	public Queue<int[]> interpolate(int[] values, int timestamp) {
 		int valSize = values.length;
 		// interpolate values
-		List<int[]> processingBuffer = new ArrayList<int[]>();
+		Queue<int[]> processingBuffer = new LinkedList<int[]>();
 		if (mLastSensorValues != null) {
 			int x = mLastTimestamp / mSamplingInterval * mSamplingInterval;
 			if (x == mLastTimestamp) {
 				x += mSamplingInterval;
 			}
 
-			while (x <= timestamp) {
+			while (x < timestamp) {
+				// val + 1: timestamp added as well
 				int[] newValues = new int[valSize + 1];
 				int i;
 				for (i = 0; i < valSize; i++) {
@@ -185,7 +188,13 @@ public class SensorListener implements SensorEventListener {
 				// store those values to a buffer as well
 				x += mSamplingInterval;
 			}
-		}
+		} 
+		
+		int[] lastElementToAdd = new int[valSize + 1];
+		System.arraycopy(values, 0, lastElementToAdd, 0, valSize);
+		lastElementToAdd[valSize] = timestamp; 
+		
+		processingBuffer.add(lastElementToAdd);
 
 		mLastSensorValues = values;
 		mLastTimestamp = timestamp;
@@ -203,6 +212,7 @@ public class SensorListener implements SensorEventListener {
 			return;
 		}
 
+		// TODO: lazy integrator could be used here for some filtering
 		int filtX = values[0];// (int)(LAZY_FILTER_COEF * mBufferX.last() + (1 -
 								// LAZY_FILTER_COEF) * value[0]);
 		int filtY = values[1];// (int)(LAZY_FILTER_COEF * mBufferY.last() + (1 -
@@ -265,7 +275,6 @@ public class SensorListener implements SensorEventListener {
 			}
 		}
 
-		//
 		Log.d(TAG,
 				"SensorListener.onSensorChanged: "
 						+ Long.toString(Thread.currentThread().getId()));
@@ -292,12 +301,12 @@ public class SensorListener implements SensorEventListener {
 				mOutputWriter.println(String.format("%d,%d,%d,%d", values[0],
 						values[1], values[2], timestamp));
 
-				List<int[]> processingBuffer = interpolate(values, timestamp);
+				Queue<int[]> processingBuffer = interpolate(values, timestamp);
 
 				while (!processingBuffer.isEmpty()) {
 					int[] value = processingBuffer
-							.get(processingBuffer.size() - 1);
-					processingBuffer.remove(processingBuffer.size() - 1);
+							.poll();
+					//processingBuffer.remove(processingBuffer.size() - 1);
 
 					mInterpolatedWriter.println(String.format("%d,%d,%d,%d",
 							value[0], value[1], value[2], value[3]));

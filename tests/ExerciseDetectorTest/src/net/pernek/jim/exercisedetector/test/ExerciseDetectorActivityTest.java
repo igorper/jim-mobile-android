@@ -1,19 +1,13 @@
 package net.pernek.jim.exercisedetector.test;
 
-import java.util.ArrayList;
-
-import com.jayway.android.robotium.solo.Solo;
-
 import net.pernek.jim.exercisedetector.ExerciseDetectorActivity;
-import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.ActivityManager.RunningServiceInfo;
 import android.content.Context;
-import android.preference.CheckBoxPreference;
 import android.test.ActivityInstrumentationTestCase2;
 import android.util.Log;
-import android.view.View;
-import android.widget.CheckBox;
+
+import com.jayway.android.robotium.solo.Solo;
 
 public class ExerciseDetectorActivityTest extends
 		ActivityInstrumentationTestCase2<ExerciseDetectorActivity> {

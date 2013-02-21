@@ -36,9 +36,5 @@ public class CircularArrayTest extends TestCase {
 		assertEquals(11, queue.last());
 		queue.enqueue(12);
 		assertEquals(12, queue.last());
-		//queue.removeFromHead(4);
-		//assertEquals(1, queue.size());
-		//queue.removeFromHead(10);
-		//assertEquals(0, queue.size());
 	}
 }
