@@ -43,6 +43,7 @@ import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpParams;
 import org.apache.http.params.HttpProtocolParams;
 import org.apache.http.protocol.HTTP;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import android.app.IntentService;
@@ -57,15 +58,18 @@ public class DataUploaderService extends IntentService {
 
 	public static final String ACTION_UPLOAD = "action-upload";
 	public static final String ACTION_GET_TRAINING_LIST = "action-get-training-list";
+	public static final String ACTION_GET_TRAINING = "action-get-training";
 
 	public static final String INTENT_KEY_ACTION = "action";
 	public static final String INTENT_KEY_FILE = "file";
+	public static final String INTENT_KEY_TRAINING_ID = "training-id";
 
 	// those should be moved to settings
 	private static final String TESTING_EMAIL = "igor.pernek@gmail.com";
 	private static final String TESTING_PASSWORD = "307 Lakih_Pet";
 	private static final String UPLOAD_URL = "https://trainerjim.banda.si/measurements/upload";
 	private static final String TRAINING_LIST_URL = "https://dev.trainerjim.com/mapi/training/list";
+	private static final String TRAINING_GET_URL = "https://dev.trainerjim.com/mapi/training/get";
 
 	private static final String INPUT_EMAIL_NAME = "measurement_submission[email]";
 	private static final String INPUT_PASSWORD_NAME = "measurement_submission[password]";
@@ -163,19 +167,31 @@ public class DataUploaderService extends IntentService {
 
 			uploadFile(path);
 		} else if (action.equals(ACTION_GET_TRAINING_LIST)) {
+			getTrainingList();
+			
+		} else if(action.equalsIgnoreCase(ACTION_GET_TRAINING)){
+			int trainingId = intent.getExtras().getInt(INTENT_KEY_TRAINING_ID);
+			
 			HttpClient httpClient = getDangerousHttpClient();
 
 			try {
 				List<NameValuePair> params = new ArrayList<NameValuePair>();
 				params.add(new BasicNameValuePair("email", TESTING_EMAIL));
 				params.add(new BasicNameValuePair("password", TESTING_PASSWORD));
+				params.add(new BasicNameValuePair("id", Integer.toString(trainingId)));
 
 				HttpGet httpget = new HttpGet(String.format("%s?%s",
-						TRAINING_LIST_URL,
+						TRAINING_GET_URL,
 						URLEncodedUtils.format(params, "utf-8")));
 
 				HttpResponse response = httpClient.execute(httpget);
 				int status = response.getStatusLine().getStatusCode();
+				
+				Intent broadcastIntent = new Intent();
+				broadcastIntent
+						.setAction(ExerciseDetectorActivity.ResponseReceiver.ACTION_TRAINING_PLAN_DOWNLOADED);
+				broadcastIntent.addCategory(Intent.CATEGORY_DEFAULT);
+				broadcastIntent.putExtra(UploadSessionActivity.ResponseReceiver.PARAM_STATUS, status);
 
 				if (status == 200) {
 					HttpEntity entity = response.getEntity();
@@ -188,13 +204,46 @@ public class DataUploaderService extends IntentService {
 						builder.append(line);
 					}
 					String jsonString = builder.toString();
+					
+					broadcastIntent.putExtra(ExerciseDetectorActivity.ResponseReceiver.PARAM_TRAINING_PLAN, jsonString);
 				}
 
-				// the file could be also deleted here
+				sendBroadcast(broadcastIntent);
 			} catch (Exception e) {
 				Log.e(TAG, e.getLocalizedMessage());
 			}
+		}
+	}
+	
+	private void getTrainingList(){
+		HttpClient httpClient = getDangerousHttpClient();
 
+		try {
+			List<NameValuePair> params = new ArrayList<NameValuePair>();
+			params.add(new BasicNameValuePair("email", TESTING_EMAIL));
+			params.add(new BasicNameValuePair("password", TESTING_PASSWORD));
+
+			HttpGet httpget = new HttpGet(String.format("%s?%s",
+					TRAINING_LIST_URL,
+					URLEncodedUtils.format(params, "utf-8")));
+
+			HttpResponse response = httpClient.execute(httpget);
+			int status = response.getStatusLine().getStatusCode();
+			
+			if (status == 200) {
+				HttpEntity entity = response.getEntity();
+				InputStream content = entity.getContent();
+				BufferedReader reader = new BufferedReader(
+						new InputStreamReader(content));
+				String line;
+			    StringBuilder builder = new StringBuilder();
+				while ((line = reader.readLine()) != null) {
+					builder.append(line);
+				}
+				String jsonString = builder.toString();
+			}
+		} catch (Exception e) {
+			Log.e(TAG, e.getLocalizedMessage());
 		}
 	}
 

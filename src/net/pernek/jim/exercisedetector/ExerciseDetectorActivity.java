@@ -17,16 +17,18 @@ import android.view.MenuItem;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class ExerciseDetectorActivity extends Activity {
 
 	private static final String TAG = Utils.getApplicationTag();
 
 	private final static int MENU_UPLOAD = 1;
-	private final static int MENU_DOWNLOAD_TRAINING = 2;
-	
+	private final static int MENU_GET_TRAINING_LIST = 2;
+	private final static int MENU_GET_TRAINING = 3;
+
 	private static final int TIMER_UPDATE_MS = 500;
-	
+
 	private CheckBox mChbToggleService;
 	private TextView mTvExerciseState;
 	private TextView mTvTimer;
@@ -38,7 +40,8 @@ public class ExerciseDetectorActivity extends Activity {
 
 		@Override
 		public void run() {
-			long millis = System.currentTimeMillis() - mSettings.getStartTimestamp();
+			long millis = System.currentTimeMillis()
+					- mSettings.getStartTimestamp();
 			int seconds = (int) (millis / 1000);
 			int minutes = seconds / 60;
 			seconds = seconds % 60;
@@ -76,27 +79,44 @@ public class ExerciseDetectorActivity extends Activity {
 
 	public boolean onCreateOptionsMenu(android.view.Menu menu) {
 		menu.add(1, MENU_UPLOAD, 1, "Upload");
-		menu.add(1, MENU_DOWNLOAD_TRAINING, 1, "Download");
+		menu.add(1, MENU_GET_TRAINING_LIST, 1, "Get training list");
+		menu.add(1, MENU_GET_TRAINING, 1, "Get training");
 		return true;
 	};
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
-		case MENU_UPLOAD:{
+		case MENU_UPLOAD: {
 			Log.d(TAG, "on menu upload click");
 
 			Intent intent = new Intent(this, UploadSessionActivity.class);
 			startActivity(intent);
 			break;
 		}
-		case MENU_DOWNLOAD_TRAINING:{
-			Log.d(TAG, "on download training");
+		case MENU_GET_TRAINING_LIST: {
+			Log.d(TAG, "get training list");
 
 			Intent intent = new Intent(this, DataUploaderService.class);
-			intent.putExtra(DataUploaderService.INTENT_KEY_ACTION, DataUploaderService.ACTION_GET_TRAINING_LIST);
+			intent.putExtra(DataUploaderService.INTENT_KEY_ACTION,
+					DataUploaderService.ACTION_GET_TRAINING_LIST);
 			startService(intent);
-			
+
+			break;
+		}
+		case MENU_GET_TRAINING: {
+			Log.d(TAG, "get training");
+
+			// TODO: Hardcoded, should be picked by the person exercising
+			int trainingId = 1;
+
+			Intent intent = new Intent(this, DataUploaderService.class);
+			intent.putExtra(DataUploaderService.INTENT_KEY_ACTION,
+					DataUploaderService.ACTION_GET_TRAINING);
+			intent.putExtra(DataUploaderService.INTENT_KEY_TRAINING_ID,
+					trainingId);
+			startService(intent);
+
 			break;
 		}
 		default:
@@ -126,21 +146,23 @@ public class ExerciseDetectorActivity extends Activity {
 					public void onCheckedChanged(CompoundButton buttonView,
 							boolean isChecked) {
 						if (isChecked) {
-							
+
 							// run GC before starting the service
 							// this will be memory intensive
 							System.gc();
-														
+
 							startService(new Intent(
 									ExerciseDetectorActivity.this,
 									DetectorService.class));
-							
-							mSettings.saveStartTimestamp(System.currentTimeMillis());
-							
-							
-							mUiHandler.postDelayed(mRunTimerUpdate, TIMER_UPDATE_MS);
 
-							// NOTE: we will never unbind the service as binding was
+							mSettings.saveStartTimestamp(System
+									.currentTimeMillis());
+
+							mUiHandler.postDelayed(mRunTimerUpdate,
+									TIMER_UPDATE_MS);
+
+							// NOTE: we will never unbind the service as binding
+							// was
 							// performed with 0 flag meaning the service had to
 							// be started before with start service
 							getApplicationContext().bindService(
@@ -151,9 +173,9 @@ public class ExerciseDetectorActivity extends Activity {
 							if (mDetectorService != null) {
 								mDetectorService.stopDataCollection();
 							}
-							
+
 							mUiHandler.removeCallbacks(mRunTimerUpdate);
-							
+
 							stopService(new Intent(
 									ExerciseDetectorActivity.this,
 									DetectorService.class));
@@ -163,31 +185,39 @@ public class ExerciseDetectorActivity extends Activity {
 
 		resurrectDestroyed();
 
-		IntentFilter filter = new IntentFilter(
-				ResponseReceiver.ACTION_EXERCISE_STATE_CHANGED);
-		filter.addCategory(Intent.CATEGORY_DEFAULT);
 		receiver = new ResponseReceiver();
-		registerReceiver(receiver, filter);
+
+		IntentFilter stateChangedfilter = new IntentFilter(
+				ResponseReceiver.ACTION_EXERCISE_STATE_CHANGED);
+		stateChangedfilter.addCategory(Intent.CATEGORY_DEFAULT);
+
+		IntentFilter planDownloadedfilter = new IntentFilter(
+				ResponseReceiver.ACTION_TRAINING_PLAN_DOWNLOADED);
+		planDownloadedfilter.addCategory(Intent.CATEGORY_DEFAULT);
+
+		registerReceiver(receiver, stateChangedfilter);
+		registerReceiver(receiver, planDownloadedfilter);
 
 		Log.w(TAG, "OnCreate");
 	}
 
 	// we could have a method start service, which could call startService again
 	// if mSettings.isServiceRunning == true && mDetectorService == null
-	// this should be done when we try to to da call to the service but the service is still null
-	
-	
-	// this method resurrects everything, that should be running or visible but was killed by onDestroy 
+	// this should be done when we try to to da call to the service but the
+	// service is still null
+
+	// this method resurrects everything, that should be running or visible but
+	// was killed by onDestroy
 	private void resurrectDestroyed() {
 		// ressurect current exercise state
-		mTvExerciseState.setText(getExerciseString(mSettings.isExerciseState()));
-		
-		
+		mTvExerciseState
+				.setText(getExerciseString(mSettings.isExerciseState()));
+
 		// resurrect the timer
-		if (mSettings.isServiceRunning()){
+		if (mSettings.isServiceRunning()) {
 			mUiHandler.postDelayed(mRunTimerUpdate, TIMER_UPDATE_MS);
 		}
-		
+
 		// rebind the service
 		if (mSettings.isServiceRunning() && mDetectorService == null) {
 			getApplication().bindService(
@@ -195,35 +225,52 @@ public class ExerciseDetectorActivity extends Activity {
 							DetectorService.class), mDetectorConnection, 0);
 		}
 	}
-	
-	private String getExerciseString(boolean isExercise){
+
+	private String getExerciseString(boolean isExercise) {
 		return isExercise ? "EXERCISE" : "REST";
 	}
 
 	class ResponseReceiver extends BroadcastReceiver {
 		public static final String ACTION_EXERCISE_STATE_CHANGED = "exercise.state.changed";
+		public static final String ACTION_TRAINING_PLAN_DOWNLOADED = "training.plan.downloaded";
 
 		public static final String PARAM_STATE = "state";
 		public static final String PARAM_TIMESTAMP = "timestamp";
+		public static final String PARAM_TRAINING_PLAN = "training.plan";
 
 		@Override
 		public void onReceive(Context context, Intent intent) {
 
-			boolean isExercise = intent.getExtras().getBoolean(PARAM_STATE);
-			int timestamp = intent.getExtras().getInt(PARAM_TIMESTAMP);
-			
-			mSettings.saveIsExerciseState(isExercise);
-			
-			mUiHandler.post(new Runnable() {
+			String action = intent.getAction();
+			if (action.equals(ACTION_EXERCISE_STATE_CHANGED)) {
+
+				boolean isExercise = intent.getExtras().getBoolean(PARAM_STATE);
+				int timestamp = intent.getExtras().getInt(PARAM_TIMESTAMP);
+
+				mSettings.saveIsExerciseState(isExercise);
+
+				mUiHandler.post(new Runnable() {
+
+					@Override
+					public void run() {
+						mTvExerciseState.setText(getExerciseString(mSettings
+								.isExerciseState()));
+					}
+				});
+
+				// reset timer to 0 to start counting time again
+				mSettings.saveStartTimestamp(System.currentTimeMillis());
+			} else if(action.equals(ACTION_TRAINING_PLAN_DOWNLOADED)){
+				int status = intent.getExtras().getInt(UploadSessionActivity.ResponseReceiver.PARAM_STATUS);
 				
-				@Override
-				public void run() {
-					mTvExerciseState.setText(getExerciseString(mSettings.isExerciseState()));
+				if(status == 200){
+					String trainingPlan = intent.getExtras().getString(PARAM_TRAINING_PLAN);
+					mSettings.saveCurrentTrainingPlan(trainingPlan);
+					// refresh training plan on screen
+				} else {
+					Toast.makeText(getApplicationContext(), "Download training status " + Integer.toString(status), Toast.LENGTH_SHORT).show();
 				}
-			});
-			
-			// reset timer to 0 to start counting time again
-			mSettings.saveStartTimestamp(System.currentTimeMillis());
+			}
 		}
 	}
 

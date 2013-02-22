@@ -12,6 +12,7 @@ public class DetectorSettings {
 	private static final String KEY_OUTPUT_FILE = "output_file";
 	private static final String KEY_START_TIMESTAMP = "start_timestamp";
 	private static final String KEY_IS_EXERCISE_STATE = "is_exercise_state";
+	private static final String KEY_CURRENT_TRAINING_PLAN = "current_training_plan";
 
 	private SharedPreferences mPreferences;
 	
@@ -70,6 +71,17 @@ public class DetectorSettings {
 	
 	public boolean isExerciseState(){
 		return mPreferences.getBoolean(KEY_IS_EXERCISE_STATE, false);
+	}
+	
+	public void saveCurrentTrainingPlan(String jsonString){
+		SharedPreferences.Editor editor = mPreferences.edit();
+        editor.putString(KEY_CURRENT_TRAINING_PLAN, jsonString);
+        editor.commit();
+	}
+	
+	// returns current training plan encoded as json string
+	public String getCurrentTrainingPlan(){
+		return mPreferences.getString(KEY_CURRENT_TRAINING_PLAN, "");
 	}
 	 
 }
