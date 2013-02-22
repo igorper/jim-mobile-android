@@ -13,6 +13,8 @@ public class DetectorSettings {
 	private static final String KEY_START_TIMESTAMP = "start_timestamp";
 	private static final String KEY_IS_EXERCISE_STATE = "is_exercise_state";
 	private static final String KEY_CURRENT_TRAINING_PLAN = "current_training_plan";
+	private static final String KEY_CURRENT_EXERCISE = "current_exercise";
+	private static final String KEY_CURRENT_SERIES = "current_series";
 
 	private SharedPreferences mPreferences;
 	
@@ -83,5 +85,26 @@ public class DetectorSettings {
 	public String getCurrentTrainingPlan(){
 		return mPreferences.getString(KEY_CURRENT_TRAINING_PLAN, "");
 	}
-	 
+	
+	public void saveCurrentExerciseName(String exerciseName){
+		SharedPreferences.Editor editor = mPreferences.edit();
+        editor.putString(KEY_CURRENT_EXERCISE, exerciseName);
+        editor.commit();
+	}
+	
+	// returns current exercise name
+	public String getCurrentExerciseName(){
+		return mPreferences.getString(KEY_CURRENT_EXERCISE, "");
+	}
+	
+	public void saveCurrentSeriesIndex(int seriesIndex){
+		SharedPreferences.Editor editor = mPreferences.edit();
+        editor.putInt(KEY_CURRENT_SERIES, seriesIndex);
+        editor.commit();
+	}
+	
+	// returns current series as the position inside the series array of exercise
+	public int getCurrentSeriesIndex(){
+		return mPreferences.getInt(KEY_CURRENT_SERIES, -1);
+	}
 }
