@@ -67,7 +67,7 @@ public class DataUploaderService extends IntentService {
 	// those should be moved to settings
 	private static final String TESTING_EMAIL = "igor.pernek@gmail.com";
 	private static final String TESTING_PASSWORD = "307 Lakih_Pet";
-	private static final String UPLOAD_URL = "https://trainerjim.banda.si/measurements/upload";
+	private static final String UPLOAD_URL = "https://dev.trainerjim.com/measurements/upload";
 	private static final String TRAINING_LIST_URL = "https://dev.trainerjim.com/mapi/training/list";
 	private static final String TRAINING_GET_URL = "https://dev.trainerjim.com/mapi/training/get";
 

@@ -65,12 +65,4 @@ public class TrainingPlan {
 		// TODO make immutable
 		return mExercises;
 	}
-	
-	class ExerciseSeries{
-		int exercise;
-		int series;
-		
-		int getExercise(){return exercise;}
-		int getSeries(){return series;}
-	}
 }

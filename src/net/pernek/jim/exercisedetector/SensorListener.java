@@ -49,7 +49,8 @@ public class SensorListener implements SensorEventListener {
 	private PrintWriter mInterpolatedWriter;
 	private PrintWriter mOutputWriter;
 
-	private File mOutputFile;
+	private String mAccelerationOutputFile;
+	private String mDetectedTimestampsFile;
 	private Context mApplicationContext;
 
 	private HandlerThread mProcessThread;
@@ -58,6 +59,10 @@ public class SensorListener implements SensorEventListener {
 	private int mSamplingInterval = 10;
 	private int[] mLastSensorValues;
 	private int mLastTimestamp;
+
+	// we start with exercise and series 0
+	private int mCurrentExerciseIdx = 0;
+	private int mCurrentSeriesIdx = 0;
 
 	int mPossibleActivityStart = -1;
 
@@ -74,7 +79,13 @@ public class SensorListener implements SensorEventListener {
 	private SensorListener() {
 	}
 
-	public static SensorListener create(File outputFile, Context context,
+	public void updateCurrentExerciseInfo(int currentExerciseIdx,
+			int currentSeriesIdx) {
+		mCurrentExerciseIdx = currentExerciseIdx;
+		mCurrentSeriesIdx = currentSeriesIdx;
+	}
+
+	public static SensorListener create(String accelerationOutputFile, String detectedTimestampsFile, Context context,
 			int thresholdActive, int thresholdInactive, int expectedMean,
 			int windowMain, int stepMain, int meanDistanceThreshold,
 			int windowRemove) {
@@ -84,7 +95,8 @@ public class SensorListener implements SensorEventListener {
 		retVal.mSensor = retVal.mSensorManager
 				.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
 		retVal.mApplicationContext = context;
-		retVal.mOutputFile = outputFile;
+		retVal.mAccelerationOutputFile = accelerationOutputFile;
+		retVal.mDetectedTimestampsFile = detectedTimestampsFile;
 		retVal.mProcessThread = new HandlerThread("ProcessThread",
 				Thread.MAX_PRIORITY);
 
@@ -116,17 +128,17 @@ public class SensorListener implements SensorEventListener {
 		mDetectedEvents.clear();
 
 		mOutputWriter = new PrintWriter(new BufferedWriter(new FileWriter(
-				mOutputFile, true)));
-		String interpolatedFile = mOutputFile.getParent() + "/"
-				+ mOutputFile.getName() + "_i";
-		String detectedTimestampsFile = mOutputFile.getParent() + "/"
-				+ mOutputFile.getName() + "_tstmps";
+				mAccelerationOutputFile, true)));
+		
+		mDetectedTimestampsWriter = new PrintWriter(new BufferedWriter(
+				new FileWriter(mDetectedTimestampsFile, true)));
 
+		// TODO: this one is only kept for debugging
+		String interpolatedFile = mAccelerationOutputFile + "_i";
 		mInterpolatedWriter = new PrintWriter(new BufferedWriter(
 				new FileWriter(interpolatedFile, true)));
-		mDetectedTimestampsWriter = new PrintWriter(new BufferedWriter(
-				new FileWriter(detectedTimestampsFile, true)));
-
+		
+		
 		// TODO: rework this (if false is returned no file should be created)
 		return mSensorManager.registerListener(this, mSensor,
 				SensorManager.SENSOR_DELAY_FASTEST, mThreadHandler);
@@ -342,11 +354,14 @@ public class SensorListener implements SensorEventListener {
 		// write to file
 		// TODO: this if is only used because unit testing fails without
 		// it (start is never called during unit testing as we don't want the
-		// accelerometer data to be collected) - in the future I should think this
+		// accelerometer data to be collected) - in the future I should think
+		// this
 		// through one more time
 		if (mDetectedTimestampsWriter != null) {
 			mDetectedTimestampsWriter.println(Boolean.toString(isExercise)
-					+ "," + Integer.toString(timestamp));
+					+ "," + Integer.toString(timestamp) + ","
+					+ Integer.toString(mCurrentExerciseIdx) + ","
+					+ Integer.toString(mCurrentSeriesIdx));
 		}
 
 		// broadcast current state to change the UI

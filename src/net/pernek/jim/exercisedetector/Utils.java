@@ -13,6 +13,10 @@ public class Utils {
 		return "jimdata";
 	}
 	
+	public static String getUploadDataFolder(){
+		return "jimdata/upload";
+	}
+	
 	public static String generateFileName(){
 		return new SimpleDateFormat("yyyyMMddHHmmss").format(Calendar.getInstance().getTime());
 	}

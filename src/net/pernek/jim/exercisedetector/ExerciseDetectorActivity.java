@@ -171,6 +171,9 @@ public class ExerciseDetectorActivity extends Activity {
 	 	    }
 	    }
 	    
+	    if(mDetectorService != null){
+	    	mDetectorService.updateCurrentExerciseInfo(curExercise, curSeries);
+	    }
 	    updateExerciseInfoUI();
 	}
 
@@ -238,7 +241,7 @@ public class ExerciseDetectorActivity extends Activity {
 							if (mDetectorService != null) {
 								mDetectorService.stopDataCollection();
 							}
-
+							
 							mUiHandler.removeCallbacks(mRunTimerUpdate);
 
 							stopService(new Intent(

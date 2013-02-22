@@ -1,7 +1,15 @@
 package net.pernek.jim.exercisedetector;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.zip.ZipOutputStream;
+
+import net.pernek.jim.exercisedetector.alg.Compress;
 
 import android.app.Notification;
 import android.app.PendingIntent;
@@ -24,6 +32,9 @@ public class DetectorService extends Service {
 
 	private SensorListener mSensorListener;
 	private DetectorSettings mSettings;
+	
+	private String mAccelerationFile;
+	private String mDetectedTimestampsFile;
 
 	public class DetectorServiceBinder extends Binder {
 		DetectorService getService() {
@@ -63,10 +74,13 @@ public class DetectorService extends Service {
 		File folder = new File(Environment.getExternalStorageDirectory(),
 				Utils.getDataFolder());
 		folder.mkdir();
+		
+		mAccelerationFile = new File(folder, mSettings.getOutputFile()).getPath();
+		mDetectedTimestampsFile = new File(folder, mSettings.getOutputFile() + "_tstmps").getPath();
 
 		// hand testing values
 		mSensorListener = SensorListener.create(
-				new File(folder, mSettings.getOutputFile()),
+				mAccelerationFile, mDetectedTimestampsFile,
 				getApplicationContext(), 50000, 200000, 1000000, 180, 100,
 				200000, 4);
 		
@@ -102,12 +116,26 @@ public class DetectorService extends Service {
 	// this method should only be called when we want to legally stop sampling
 	public boolean stopDataCollection() {
 		mIsCollectingData = false;
-
+		
+		// save the id we used for saving our data
+		String outputId = mSettings.getOutputFile();
+		
 		// only here we can remove the output file (when the users manually
 		// selects that he wants to stop)
 		mSettings.saveOutputFile("");
+		
+		mSensorListener.stop();
+		
+		// TODO: compile all collected data to one JSON file
+		// this file will be visible in upload activity
+		File uploadFolder = new File(Environment.getExternalStorageDirectory(),
+				Utils.getUploadDataFolder());
+		uploadFolder.mkdir();
+		
+		// we are sure exercise files were created and are closed here
+		Compress comp = new Compress(new String[] {mAccelerationFile, mDetectedTimestampsFile}, new File(uploadFolder, outputId).getPath());
 
-		return mSensorListener.stop();
+		return comp.zip();
 	}
 
 	@Override
@@ -117,6 +145,10 @@ public class DetectorService extends Service {
 		pushServiceToForeground();
 
 		return START_STICKY;
+	}
+	
+	public void updateCurrentExerciseInfo(int currentExerciseIdx, int currentSeriesIdx){
+		mSensorListener.updateCurrentExerciseInfo(currentExerciseIdx, currentSeriesIdx);
 	}
 
 	private void pushServiceToForeground() {

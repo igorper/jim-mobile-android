@@ -19,22 +19,23 @@ import android.widget.Toast;
 public class UploadSessionActivity extends ListActivity {
 
 	private ResponseReceiver receiver;
-	
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
 		updateUi();
-		
-		IntentFilter filter = new IntentFilter(ResponseReceiver.ACTION_UPLOAD_DONE);
-        filter.addCategory(Intent.CATEGORY_DEFAULT);
-        receiver = new ResponseReceiver();
-        registerReceiver(receiver, filter);
+
+		IntentFilter filter = new IntentFilter(
+				ResponseReceiver.ACTION_UPLOAD_DONE);
+		filter.addCategory(Intent.CATEGORY_DEFAULT);
+		receiver = new ResponseReceiver();
+		registerReceiver(receiver, filter);
 	}
 
 	private void updateUi() {
 		File f = new File(Environment.getExternalStorageDirectory(),
-				Utils.getDataFolder());
+				Utils.getUploadDataFolder());
 
 		File[] files = f.listFiles();
 		List<String> fileList = new ArrayList<String>(files.length);
@@ -54,27 +55,29 @@ public class UploadSessionActivity extends ListActivity {
 		String file = (String) l.getItemAtPosition(position);
 
 		Intent intent = new Intent(this, DataUploaderService.class);
-		intent.putExtra(DataUploaderService.INTENT_KEY_ACTION, DataUploaderService.ACTION_UPLOAD);
+		intent.putExtra(DataUploaderService.INTENT_KEY_ACTION,
+				DataUploaderService.ACTION_UPLOAD);
 		intent.putExtra(DataUploaderService.INTENT_KEY_FILE,
-				Environment.getExternalStorageDirectory() + "/jimdata/" + file);
+				new File(new File(Environment.getExternalStorageDirectory(),
+						Utils.getUploadDataFolder()), file).getPath());
 		startService(intent);
 	}
 
 	class ResponseReceiver extends BroadcastReceiver {
 		public static final String ACTION_UPLOAD_DONE = "upload_done";
-		
+
 		public static final String PARAM_STATUS = "status";
 
 		@Override
 		public void onReceive(Context context, Intent intent) {
 			int status = intent.getExtras().getInt(PARAM_STATUS);
-			Toast.makeText(getApplicationContext(), 
-					"Upload finnished with code " + Integer.toString(status), 
+			Toast.makeText(getApplicationContext(),
+					"Upload finnished with code " + Integer.toString(status),
 					Toast.LENGTH_SHORT).show();
 			updateUi();
 		}
 	}
-	
+
 	@Override
 	protected void onDestroy() {
 		unregisterReceiver(receiver);
