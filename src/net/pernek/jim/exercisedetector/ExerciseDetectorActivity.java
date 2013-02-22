@@ -1,5 +1,7 @@
 package net.pernek.jim.exercisedetector;
 
+import net.pernek.jim.exercisedetector.alg.TrainingPlan;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -285,7 +287,7 @@ public class ExerciseDetectorActivity extends Activity {
 					String trainingPlan = intent.getExtras().getString(
 							PARAM_TRAINING_PLAN);
 					mSettings.saveCurrentTrainingPlan(trainingPlan);
-
+					
 					updateExerciseInfoUI();
 				} else {
 					Toast.makeText(
