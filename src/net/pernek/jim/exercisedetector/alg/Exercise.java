@@ -22,5 +22,13 @@ public class Exercise {
 	public void addSeries(Series newSeries){
 		mSeries.add(newSeries);
 	}
+	
+	public String getName(){
+		return mName;
+	}
+	
+	public List<Series> getSeries(){
+		return mSeries;
+	}
 
 }

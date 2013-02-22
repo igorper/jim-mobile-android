@@ -86,15 +86,16 @@ public class DetectorSettings {
 		return mPreferences.getString(KEY_CURRENT_TRAINING_PLAN, "");
 	}
 	
-	public void saveCurrentExerciseName(String exerciseName){
+	public void saveCurrentExerciseIndex(int exerciseIndex){
 		SharedPreferences.Editor editor = mPreferences.edit();
-        editor.putString(KEY_CURRENT_EXERCISE, exerciseName);
+        editor.putInt(KEY_CURRENT_EXERCISE, exerciseIndex);
         editor.commit();
 	}
 	
 	// returns current exercise name
-	public String getCurrentExerciseName(){
-		return mPreferences.getString(KEY_CURRENT_EXERCISE, "");
+	public int getCurrentExerciseIndex(){
+		// 0 because we start with exercise on index zero
+		return mPreferences.getInt(KEY_CURRENT_EXERCISE, 0);
 	}
 	
 	public void saveCurrentSeriesIndex(int seriesIndex){
@@ -105,6 +106,7 @@ public class DetectorSettings {
 	
 	// returns current series as the position inside the series array of exercise
 	public int getCurrentSeriesIndex(){
-		return mPreferences.getInt(KEY_CURRENT_SERIES, -1);
+		// 0 because we start with series on index zero
+		return mPreferences.getInt(KEY_CURRENT_SERIES, 0);
 	}
 }

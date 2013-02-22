@@ -1,5 +1,7 @@
 package net.pernek.jim.exercisedetector;
 
+import net.pernek.jim.exercisedetector.alg.Exercise;
+import net.pernek.jim.exercisedetector.alg.Series;
 import net.pernek.jim.exercisedetector.alg.TrainingPlan;
 
 import org.json.JSONArray;
@@ -14,12 +16,13 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.Handler;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.TextView;
@@ -43,6 +46,7 @@ public class ExerciseDetectorActivity extends Activity {
 	private TextView mTvCurrentSeries;
 	private TextView mTvExpectedRepetitions;
 	private TextView mTvExpectedWeight;
+	private Button mBtnNext;
 
 	private DetectorSettings mSettings;
 	private DetectorService mDetectorService;
@@ -137,6 +141,38 @@ public class ExerciseDetectorActivity extends Activity {
 
 		return super.onOptionsItemSelected(item);
 	}
+	
+	public void onNextClick(View v) {
+		TrainingPlan tp = null;
+		try {
+			tp = TrainingPlan.parseFromJson(mSettings.getCurrentTrainingPlan());
+		} catch (JSONException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			Toast.makeText(getApplicationContext(),
+					"JSON problem.", Toast.LENGTH_LONG)
+					.show();
+		}
+		
+	    int curExercise = mSettings.getCurrentExerciseIndex();
+	    int curSeries = mSettings.getCurrentSeriesIndex();
+	    
+	    if(curSeries + 1 < tp.getExercises().get(curExercise).getSeries().size()){
+	    	mSettings.saveCurrentSeriesIndex(curSeries + 1);
+	    } else {
+	    	mSettings.saveCurrentSeriesIndex(0);
+	    	
+	    	// we have move to the next exercise
+	    	if(curExercise + 1 < tp.getExercises().size()){
+	 	    	mSettings.saveCurrentExerciseIndex(curExercise + 1);
+	 	    } else {
+	 	    	// last exercise done
+	 	    	mBtnNext.setEnabled(false);
+	 	    }
+	    }
+	    
+	    updateExerciseInfoUI();
+	}
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -146,6 +182,7 @@ public class ExerciseDetectorActivity extends Activity {
 		mSettings = DetectorSettings.create(PreferenceManager
 				.getDefaultSharedPreferences(this));
 
+		mBtnNext = (Button)findViewById(R.id.btnNext);		
 		mTvCurrentTraining = (TextView) findViewById(R.id.tvCurrentTraining);
 		mTvCurrentExercise = (TextView) findViewById(R.id.tvCurrentExercise);
 		mTvCurrentSeries = (TextView) findViewById(R.id.tvCurrentSeries);
@@ -162,11 +199,22 @@ public class ExerciseDetectorActivity extends Activity {
 					@Override
 					public void onCheckedChanged(CompoundButton buttonView,
 							boolean isChecked) {
+						// this is simulates the start training action
 						if (isChecked) {
-
 							// run GC before starting the service
-							// this will be memory intensive
+							// as it will be memory intensive
+							// might be this can be improved
 							System.gc();
+							
+							// reset training plan pointers
+							mSettings.saveCurrentExerciseIndex(0);
+							mSettings.saveCurrentSeriesIndex(0);
+							
+							if(mSettings.getCurrentTrainingPlan().equals("")){
+								// open popup to download a training plan
+							}
+							
+							updateExerciseInfoUI();
 
 							startService(new Intent(
 									ExerciseDetectorActivity.this,
@@ -302,69 +350,29 @@ public class ExerciseDetectorActivity extends Activity {
 
 	private void updateExerciseInfoUI() {
 		if (mSettings.getCurrentTrainingPlan().equals("")) {
+			// just show such an interface that it's clear no training plan was downloaded yet
 			Toast.makeText(getApplicationContext(),
 					"No training plan downloaded yet.", Toast.LENGTH_LONG)
 					.show();
 		} else {
 			try {
-				// TODO: right now we assume that a training plan is in legal
-				// format
-				// (has more than zero exercises, series, no data is missing,
-				// etc.)
-
-				// this does not need to be performed every time
-				// settings object could return the JSON object directly
-				// and cache it on first access
-				JSONObject trainingPlan = new JSONObject(
-						mSettings.getCurrentTrainingPlan());
-				JSONArray exercises = trainingPlan.getJSONArray("exercises");
-				JSONObject currentExercise = null;
-
-				// field names can be specified somewhere externally, so you can
-				// easily change the
-				// names if our JSON format changes
-
-				// if no exercises is set yet we pick the first one
-				if (mSettings.getCurrentExerciseName().equals("")) {
-					currentExercise = exercises.getJSONObject(0);
-					mSettings.saveCurrentExerciseName(currentExercise
-							.getString("name"));
-				} else {
-					// select the current exercise information based on stored
-					// exercise name
-					for (int i = 0; i < exercises.length(); i++) {
-						JSONObject exercise = exercises.getJSONObject(i);
-						if (exercise.getString("name").equals(
-								mSettings.getCurrentExerciseName())) {
-							currentExercise = exercise;
-							break;
-						}
-					}
-				}
-
-				JSONArray series = currentExercise.getJSONArray("series");
-
-				if (mSettings.getCurrentSeriesIndex() == -1) {
-					mSettings.saveCurrentSeriesIndex(0);
-				}
-
-				JSONObject currentSeries = series.getJSONObject(mSettings
-						.getCurrentSeriesIndex());
-
-				mTvCurrentTraining.setText(trainingPlan.getString("name"));
-				mTvCurrentExercise.setText(mSettings.getCurrentExerciseName());
-				mTvCurrentSeries.setText(Integer.toString(mSettings
-						.getCurrentSeriesIndex() + 1));
-				mTvExpectedRepetitions.setText(Integer.toString(currentSeries
-						.getInt("repeat_count")));
-				mTvExpectedWeight.setText(Integer.toString(currentSeries
-						.getInt("weight")));
+				TrainingPlan curTraining = TrainingPlan.parseFromJson(mSettings.getCurrentTrainingPlan());
+				Exercise curExercise = curTraining.getExercises().get(mSettings.getCurrentExerciseIndex());
+				Series curSeries = curExercise.getSeries().get(mSettings.getCurrentSeriesIndex());
+				mTvCurrentTraining.setText(curTraining.getName());
+				mTvCurrentExercise.setText(curExercise.getName());
+				mTvCurrentSeries.setText(Integer.toString(mSettings.getCurrentSeriesIndex()));
+				mTvExpectedRepetitions.setText(Integer.toString(curSeries.getNumRepetitions()));
+				mTvExpectedWeight.setText(Integer.toString(curSeries.getWeight()));
+				
 			} catch (JSONException e) {
-				Log.d(TAG, e.getMessage());
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 				Toast.makeText(getApplicationContext(),
-						"JSON error while parsing the training plan.",
-						Toast.LENGTH_SHORT).show();
+						"JSON problem.", Toast.LENGTH_LONG)
+						.show();
 			}
+			
 		}
 	}
 
