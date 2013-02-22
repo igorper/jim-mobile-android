@@ -54,6 +54,7 @@ public class UploadSessionActivity extends ListActivity {
 		String file = (String) l.getItemAtPosition(position);
 
 		Intent intent = new Intent(this, DataUploaderService.class);
+		intent.putExtra(DataUploaderService.INTENT_KEY_ACTION, DataUploaderService.ACTION_UPLOAD);
 		intent.putExtra(DataUploaderService.INTENT_KEY_FILE,
 				Environment.getExternalStorageDirectory() + "/jimdata/" + file);
 		startService(intent);

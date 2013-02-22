@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
@@ -22,6 +23,7 @@ public class ExerciseDetectorActivity extends Activity {
 	private static final String TAG = Utils.getApplicationTag();
 
 	private final static int MENU_UPLOAD = 1;
+	private final static int MENU_DOWNLOAD_TRAINING = 2;
 	
 	private static final int TIMER_UPDATE_MS = 500;
 	
@@ -74,19 +76,29 @@ public class ExerciseDetectorActivity extends Activity {
 
 	public boolean onCreateOptionsMenu(android.view.Menu menu) {
 		menu.add(1, MENU_UPLOAD, 1, "Upload");
+		menu.add(1, MENU_DOWNLOAD_TRAINING, 1, "Download");
 		return true;
 	};
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
-		case MENU_UPLOAD:
+		case MENU_UPLOAD:{
 			Log.d(TAG, "on menu upload click");
 
 			Intent intent = new Intent(this, UploadSessionActivity.class);
 			startActivity(intent);
 			break;
+		}
+		case MENU_DOWNLOAD_TRAINING:{
+			Log.d(TAG, "on download training");
 
+			Intent intent = new Intent(this, DataUploaderService.class);
+			intent.putExtra(DataUploaderService.INTENT_KEY_ACTION, DataUploaderService.ACTION_GET_TRAINING_LIST);
+			startService(intent);
+			
+			break;
+		}
 		default:
 			break;
 		}
