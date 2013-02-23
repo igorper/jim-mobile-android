@@ -33,6 +33,7 @@ public class ExerciseDetectorActivity extends Activity {
 	private final static int MENU_UPLOAD = 1;
 	private final static int MENU_GET_TRAINING_LIST = 2;
 	private final static int MENU_GET_TRAINING = 3;
+	private final static int MENU_EXERCISE_MANIFEST = 4;
 
 	private static final int TIMER_UPDATE_MS = 500;
 
@@ -102,6 +103,7 @@ public class ExerciseDetectorActivity extends Activity {
 		menu.add(1, MENU_UPLOAD, 1, "Upload");
 		menu.add(1, MENU_GET_TRAINING_LIST, 1, "Get training list");
 		menu.add(1, MENU_GET_TRAINING, 1, "Get training");
+		menu.add(1, MENU_EXERCISE_MANIFEST, 1, "Show exercises");
 		return true;
 	};
 
@@ -138,6 +140,13 @@ public class ExerciseDetectorActivity extends Activity {
 					trainingId);
 			startService(intent);
 
+			break;
+		}
+		case MENU_EXERCISE_MANIFEST:{
+			Log.d(TAG, "exercise manifest selected");
+			
+			startActivity(new Intent(this, ExpandableListDemo.class));
+			
 			break;
 		}
 		default:

@@ -20,15 +20,15 @@
             android:name="net.pernek.jim.exercisedetector.ExerciseDetectorActivity"
             android:label="@string/app_name"
             android:launchMode="singleTop" >
-        </activity>
-        <activity
-            android:name=".ExpandableListDemo"
-            android:label="Expandable LV" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+        </activity>
+        <activity
+            android:name="net.pernek.jim.exercisedetector.ExpandableListDemo"
+            android:label="Expandable LV" >
         </activity>
 
         <service android:name="net.pernek.jim.exercisedetector.DetectorService" />

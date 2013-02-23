@@ -40,8 +40,12 @@ public class ExpandableListDemo extends ExpandableListActivity {
 			Toast.makeText(getApplicationContext(), "JSON problem", Toast.LENGTH_SHORT).show();
 			return;
 		}
-
-		SimpleExpandableListAdapter expListAdapter = new SimpleExpandableListAdapter(
+ 
+		setListAdapter(createTrainingData());
+	}
+	
+	private SimpleExpandableListAdapter createTrainingData(){
+		return new SimpleExpandableListAdapter(
 				this, createGroupList(), // Creating group List.
 				R.layout.group_row, // Group item layout XML.
 				new String[] { EXERCISE_ITEM }, // the key of group item.
@@ -57,7 +61,6 @@ public class ExpandableListDemo extends ExpandableListActivity {
 				new int[] { R.id.grp_child } // Data under the keys above go
 												// into these TextViews.
 		);
-		setListAdapter(expListAdapter); // setting the adapter in the list.
 	}
 
 	private List<HashMap<String, String>> createGroupList() {
@@ -110,7 +113,10 @@ public class ExpandableListDemo extends ExpandableListActivity {
 		Series seriesClicked = mTrainingPlan.getExercises().get(groupPosition).getSeries().get(childPosition);
 		seriesClicked.setNumRepetitions(seriesClicked.getNumRepetitions() + 10);
 		seriesClicked.setWeight(seriesClicked.getWeight() + 10);
-						
+		
+		// refresh activity adapter
+		setListAdapter(createTrainingData());
+		
 		return true;
 	}
 
