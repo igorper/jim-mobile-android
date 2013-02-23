@@ -1,16 +1,12 @@
 package net.pernek.jim.exercisedetector;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.zip.ZipOutputStream;
+
+import org.json.JSONException;
 
 import net.pernek.jim.exercisedetector.alg.Compress;
-
+import net.pernek.jim.exercisedetector.alg.TrainingPlan;
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
@@ -32,9 +28,11 @@ public class DetectorService extends Service {
 
 	private SensorListener mSensorListener;
 	private DetectorSettings mSettings;
-	
+
 	private String mAccelerationFile;
 	private String mDetectedTimestampsFile;
+
+	private TrainingPlan mCurrentTrainingPlan;
 
 	public class DetectorServiceBinder extends Binder {
 		DetectorService getService() {
@@ -63,32 +61,37 @@ public class DetectorService extends Service {
 		return mIsCollectingData;
 	}
 
-	public boolean startDataCollection() {
+	public boolean startDataCollection() throws JSONException {
 		// if there is no output file we should create one
 		// (this means we are starting a new sampling session)
 		if (mSettings.getOutputFile().equals("")) {
 			mSettings.saveOutputFile(Utils.generateFileName());
 		}
 
+		mCurrentTrainingPlan = TrainingPlan.parseFromJson(mSettings
+				.getCurrentTrainingPlan());
+
 		// check if the folder exists and create it if it doesn't
 		File folder = new File(Environment.getExternalStorageDirectory(),
 				Utils.getDataFolder());
 		folder.mkdir();
-		
-		mAccelerationFile = new File(folder, mSettings.getOutputFile()).getPath();
-		mDetectedTimestampsFile = new File(folder, mSettings.getOutputFile() + "_tstmps").getPath();
+
+		mAccelerationFile = new File(folder, mSettings.getOutputFile())
+				.getPath();
+		mDetectedTimestampsFile = new File(folder, mSettings.getOutputFile()
+				+ "_tstmps").getPath();
 
 		// hand testing values
-		mSensorListener = SensorListener.create(
-				mAccelerationFile, mDetectedTimestampsFile,
-				getApplicationContext(), 50000, 200000, 1000000, 180, 100,
-				200000, 4);
-		
+		mSensorListener = SensorListener.create(mAccelerationFile,
+				mDetectedTimestampsFile, getApplicationContext(), 50000,
+				200000, 1000000, 180, 100, 200000, 4);
+
 		// gym detection values
-		/*mSensorListener = SensorListener.create(
-				new File(folder, mSettings.getOutputFile()),
-				getApplicationContext(), 8000, 30000, 1000000, 600, 200,
-				200000, 14);*/
+		/*
+		 * mSensorListener = SensorListener.create( new File(folder,
+		 * mSettings.getOutputFile()), getApplicationContext(), 8000, 30000,
+		 * 1000000, 600, 200, 200000, 14);
+		 */
 		try {
 			boolean status = mSensorListener.start();
 
@@ -116,24 +119,26 @@ public class DetectorService extends Service {
 	// this method should only be called when we want to legally stop sampling
 	public boolean stopDataCollection() {
 		mIsCollectingData = false;
-		
+
 		// save the id we used for saving our data
 		String outputId = mSettings.getOutputFile();
-		
+
 		// only here we can remove the output file (when the users manually
 		// selects that he wants to stop)
 		mSettings.saveOutputFile("");
-		
+
 		mSensorListener.stop();
-		
+
 		// TODO: compile all collected data to one JSON file
 		// this file will be visible in upload activity
 		File uploadFolder = new File(Environment.getExternalStorageDirectory(),
 				Utils.getUploadDataFolder());
 		uploadFolder.mkdir();
-		
+
 		// we are sure exercise files were created and are closed here
-		Compress comp = new Compress(new String[] {mAccelerationFile, mDetectedTimestampsFile}, new File(uploadFolder, outputId).getPath());
+		Compress comp = new Compress(new String[] { mAccelerationFile,
+				mDetectedTimestampsFile },
+				new File(uploadFolder, outputId).getPath());
 
 		return comp.zip();
 	}
@@ -146,9 +151,38 @@ public class DetectorService extends Service {
 
 		return START_STICKY;
 	}
-	
-	public void updateCurrentExerciseInfo(int currentExerciseIdx, int currentSeriesIdx){
-		mSensorListener.updateCurrentExerciseInfo(currentExerciseIdx, currentSeriesIdx);
+
+	public void updateCurrentExerciseInfo(int currentExerciseIdx,
+			int currentSeriesIdx) {
+		mSensorListener.updateCurrentExerciseInfo(currentExerciseIdx,
+				currentSeriesIdx);
+	}
+
+	// TODO: data can be returned in a custom object later
+	// retVal[0] - new exercise id
+	// retVal[1] - new series id
+	// returns null if this was the last exercise/series to perform
+	public int[] moveToNextActivity() {
+		int curExercise = mSettings.getCurrentExerciseIndex();
+		int curSeries = mSettings.getCurrentSeriesIndex();
+
+		if (curSeries + 1 < mCurrentTrainingPlan.getExercises()
+				.get(curExercise).getSeries().size()) {
+			mSettings.saveCurrentSeriesIndex(curSeries + 1);
+		} else {
+			mSettings.saveCurrentSeriesIndex(0);
+
+			// we have move to the next exercise
+			if (curExercise + 1 < mCurrentTrainingPlan.getExercises().size()) {
+				mSettings.saveCurrentExerciseIndex(curExercise + 1);
+			} else {
+				// last exercise done
+				return null;
+			}
+		}
+
+		return new int[] { mSettings.getCurrentExerciseIndex(),
+				mSettings.getCurrentSeriesIndex() };
 	}
 
 	private void pushServiceToForeground() {

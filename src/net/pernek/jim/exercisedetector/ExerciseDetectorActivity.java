@@ -4,9 +4,7 @@ import net.pernek.jim.exercisedetector.alg.Exercise;
 import net.pernek.jim.exercisedetector.alg.Series;
 import net.pernek.jim.exercisedetector.alg.TrainingPlan;
 
-import org.json.JSONArray;
 import org.json.JSONException;
-import org.json.JSONObject;
 
 import android.app.Activity;
 import android.content.BroadcastReceiver;
@@ -84,8 +82,15 @@ public class ExerciseDetectorActivity extends Activity {
 			mDetectorService = ((DetectorService.DetectorServiceBinder) service)
 					.getService();
 			if (!mDetectorService.isCollectingData()) {
-				if (!mDetectorService.startDataCollection()) {
-					mChbToggleService.setChecked(false);
+				try {
+					if (!mDetectorService.startDataCollection()) {
+						mChbToggleService.setChecked(false);
+						Toast.makeText(getApplicationContext(), "Unable to start data collection - sd card problem?", Toast.LENGTH_SHORT).show();
+					}
+				} catch (JSONException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+					Toast.makeText(getApplicationContext(), "JSON exception", Toast.LENGTH_SHORT).show();
 				}
 			}
 
@@ -143,38 +148,15 @@ public class ExerciseDetectorActivity extends Activity {
 	}
 	
 	public void onNextClick(View v) {
-		TrainingPlan tp = null;
-		try {
-			tp = TrainingPlan.parseFromJson(mSettings.getCurrentTrainingPlan());
-		} catch (JSONException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			Toast.makeText(getApplicationContext(),
-					"JSON problem.", Toast.LENGTH_LONG)
-					.show();
+		if(mDetectorService != null){
+			int[] newExerciseInfo = mDetectorService.moveToNextActivity();
+			if(newExerciseInfo != null){
+				updateExerciseInfoUI(newExerciseInfo[0], newExerciseInfo[1]);
+			} else {
+				// disable the button as there are no more exercises to perform
+				mBtnNext.setEnabled(false);
+			}
 		}
-		
-	    int curExercise = mSettings.getCurrentExerciseIndex();
-	    int curSeries = mSettings.getCurrentSeriesIndex();
-	    
-	    if(curSeries + 1 < tp.getExercises().get(curExercise).getSeries().size()){
-	    	mSettings.saveCurrentSeriesIndex(curSeries + 1);
-	    } else {
-	    	mSettings.saveCurrentSeriesIndex(0);
-	    	
-	    	// we have move to the next exercise
-	    	if(curExercise + 1 < tp.getExercises().size()){
-	 	    	mSettings.saveCurrentExerciseIndex(curExercise + 1);
-	 	    } else {
-	 	    	// last exercise done
-	 	    	mBtnNext.setEnabled(false);
-	 	    }
-	    }
-	    
-	    if(mDetectorService != null){
-	    	mDetectorService.updateCurrentExerciseInfo(curExercise, curSeries);
-	    }
-	    updateExerciseInfoUI();
 	}
 
 	@Override
@@ -217,7 +199,7 @@ public class ExerciseDetectorActivity extends Activity {
 								// open popup to download a training plan
 							}
 							
-							updateExerciseInfoUI();
+							updateExerciseInfoUI(mSettings.getCurrentExerciseIndex(), mSettings.getCurrentSeriesIndex());
 
 							startService(new Intent(
 									ExerciseDetectorActivity.this,
@@ -253,7 +235,10 @@ public class ExerciseDetectorActivity extends Activity {
 
 		resurrectDestroyed();
 		
-		updateExerciseInfoUI();
+		// - we could actually not show any training information until the training service is not 
+		// running (training information should only be accessed through detector service and not 
+		// through settings in this activity)
+		updateExerciseInfoUI(mSettings.getCurrentExerciseIndex(), mSettings.getCurrentSeriesIndex());
 
 		receiver = new ResponseReceiver();
 
@@ -339,7 +324,7 @@ public class ExerciseDetectorActivity extends Activity {
 							PARAM_TRAINING_PLAN);
 					mSettings.saveCurrentTrainingPlan(trainingPlan);
 					
-					updateExerciseInfoUI();
+					updateExerciseInfoUI(mSettings.getCurrentExerciseIndex(), mSettings.getCurrentSeriesIndex());
 				} else {
 					Toast.makeText(
 							getApplicationContext(),
@@ -351,7 +336,7 @@ public class ExerciseDetectorActivity extends Activity {
 		}
 	}
 
-	private void updateExerciseInfoUI() {
+	private void updateExerciseInfoUI(int exerciseIndex, int seriesIndex) {
 		if (mSettings.getCurrentTrainingPlan().equals("")) {
 			// just show such an interface that it's clear no training plan was downloaded yet
 			Toast.makeText(getApplicationContext(),

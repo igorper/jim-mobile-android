@@ -1,9 +1,7 @@
 package net.pernek.jim.exercisedetector.alg;
 
-import android.util.Log;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.util.zip.ZipEntry;
