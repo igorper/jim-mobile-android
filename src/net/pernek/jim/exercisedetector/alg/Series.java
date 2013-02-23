@@ -14,6 +14,14 @@ public class Series {
 		return retVal;
 	}
 	
+	public void setNumRepetitions(int numRepetitions){
+		mNumRepetitions = numRepetitions;
+	}
+	
+	public void setWeight(int weight){
+		mWeight = weight;
+	}
+	
 	public int getNumRepetitions() {
 		return mNumRepetitions;
 	}

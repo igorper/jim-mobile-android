@@ -4,5 +4,14 @@
     <string name="app_name">ExerciseDetector</string>
     <string name="hello_world">Hello world!</string>
     <string name="menu_settings">Settings</string>
-
+	<!-- From demo -->
+    <drawable name="white">#ffffff</drawable>
+	<drawable name="blue">#2554C7</drawable>
+	<drawable name="green">#347C2C</drawable>
+	<drawable name="orange">#ff9900</drawable>
+	<drawable name="pink">#FF00FF</drawable>
+	<drawable name="violet">#a020f0</drawable>
+	<drawable name="gray">#778899</drawable>
+	<drawable name="red">#C11B17</drawable>
+	<!-- END from demo -->
 </resources>
