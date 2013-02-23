@@ -17,14 +17,17 @@ public class SensorListenerTest extends InstrumentationTestCase {
 
 	public void testInterpolation() {
 		File folder = new File(Environment.getExternalStorageDirectory(),
-				Utils.getDataFolder());
+				Utils.getDataFolder() + "/test");
 		folder.mkdir();
 
-		File output = new File(folder, "test2");
+		String accelerationFile = new File(folder, "interpolation").getPath();
+		String detectedTimestampsFile = new File(folder, "interpolation_tstmps")
+				.getPath();
 
-		SensorListener mSensorListener = SensorListener.create(output,
-				getInstrumentation().getContext(), 50000, 200000, 1000000, 180,
-				100, 200000, 3);
+		SensorListener mSensorListener = SensorListener.create(
+				accelerationFile, detectedTimestampsFile, getInstrumentation()
+						.getContext(), 50000, 200000, 1000000, 180, 100,
+				200000, 3);
 
 		List<int[]> allResults = new ArrayList<int[]>();
 
@@ -80,11 +83,14 @@ public class SensorListenerTest extends InstrumentationTestCase {
 				Utils.getDataFolder());
 		folder.mkdir();
 
-		File output = new File(folder, "test2");
+		String accelerationFile = new File(folder, "interpolation").getPath();
+		String detectedTimestampsFile = new File(folder, "interpolation_tstmps")
+				.getPath();
 
-		SensorListener mSensorListener = SensorListener.create(output,
-				getInstrumentation().getContext(), 50000, 200000, 1000000, 180,
-				100, 200000, 3);
+		SensorListener mSensorListener = SensorListener.create(
+				accelerationFile, detectedTimestampsFile, getInstrumentation()
+						.getContext(), 50000, 200000, 1000000, 180, 100,
+				200000, 3);
 
 		for (int i = 0; i < testValues.size(); i++) {
 			int values[] = new int[3];
@@ -102,16 +108,18 @@ public class SensorListenerTest extends InstrumentationTestCase {
 
 		List<DetectedEvent> detectedEvents = mSensorListener
 				.getDetectedEvents();
-		
+
 		for (DetectedEvent detectedEvent : detectedEvents) {
 			DetectedEvent toDelete = null;
 			for (DetectedEvent expectedEvent : expectedExerciseStates) {
-				if(expectedEvent.getTimestamp() == detectedEvent.getTimestamp()
-						&& expectedEvent.isExercise() == detectedEvent.isExercise()){
+				if (expectedEvent.getTimestamp() == detectedEvent
+						.getTimestamp()
+						&& expectedEvent.isExercise() == detectedEvent
+								.isExercise()) {
 					toDelete = expectedEvent;
 					break;
 				}
-				
+
 			}
 			expectedExerciseStates.remove(toDelete);
 		}
