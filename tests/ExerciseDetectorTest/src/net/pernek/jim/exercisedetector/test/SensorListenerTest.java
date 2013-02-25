@@ -1,6 +1,8 @@
 package net.pernek.jim.exercisedetector.test;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
@@ -70,6 +72,71 @@ public class SensorListenerTest extends InstrumentationTestCase {
 	
 	// test move to next (break down in the middle)
 	public void testRessurect(){
+		try {
+			mSensorListener.openOutputFiles();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			fail("Failed to start.");
+		}
+		
+		mSensorListener.onSensorChanged(new int[] { 10, 10,
+				10 }, 10);
+		mSensorListener.onSensorChanged(new int[] { 150, 150, 150 }, 150);
+				
+		// CRASH! here the service has crashed and had to be reinitialized
+		
+		// create a new sensor listener
+		mSensorListener = SensorListener.create(testId,
+				getInstrumentation().getContext(), 50000, 200000, 1000000, 180,
+				100, 200000, 3, SAMPLE_JSON_TRAINING,  0, 0);
+		try {
+			mSensorListener.openOutputFiles();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			fail("Failed to start.");
+		}
+		mSensorListener.onSensorChanged(new int[] { 300, 300,
+				300 }, 300);
+		mSensorListener.onSensorChanged(new int[] { 400, 400, 400 }, 400);
+		mSensorListener.closeOutputFiles();
+		
+		// output files should contain interpolated values between those values
+		try {
+			List<int[]> interpolatedValues = TestHelpers.readAccelerationCsv(new InputStreamReader(new FileInputStream(mInterpolationFile)));
+			
+			// test values from before the CRASH
+			for(int i=0; i < 15; i++){
+				int[] currentValue = interpolatedValues.get(i);
+
+				// we are using a simple expected value which can be easily
+				// calculated
+				int expectedValue = (i + 1) * 10;
+
+				assertEquals(expectedValue, currentValue[0]);
+				assertEquals(expectedValue, currentValue[1]);
+				assertEquals(expectedValue, currentValue[2]);
+				assertEquals(expectedValue, currentValue[3]);
+			}
+			
+			// test values from after the crash
+			for(int i=0; i < 10; i++){
+				int[] currentValue = interpolatedValues.get(i + 15);
+
+				// we are using a simple expected value which can be easily
+				// calculated
+				int expectedValue = (i + 1) * 10 + 290;
+
+				assertEquals(expectedValue, currentValue[0]);
+				assertEquals(expectedValue, currentValue[1]);
+				assertEquals(expectedValue, currentValue[2]);
+				assertEquals(expectedValue, currentValue[3]);
+			}
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			fail("Unable to open interpolated values file.");
+		}
+		
 		
 	}
 	
@@ -167,7 +234,7 @@ public class SensorListenerTest extends InstrumentationTestCase {
 			int timestamp = testValues.get(i)[3];
 
 			try {
-				mSensorListener.onSensorChanged(values, timestamp);
+				mSensorListener.detectExerciseState(values, timestamp);
 			} catch (Exception e) {
 				fail();
 			}

@@ -76,9 +76,9 @@ public class SensorListener implements SensorEventListener {
 	private CircularArrayBoolean mCandidatesQueue;
 
 	private List<DetectedEvent> mDetectedEvents;
-	
+
 	private String mSessionId;
-	
+
 	private TrainingPlan mCurrentTrainingPlan;
 
 	private SensorListener() {
@@ -87,41 +87,46 @@ public class SensorListener implements SensorEventListener {
 	public static SensorListener create(String sessionId, Context context,
 			int thresholdActive, int thresholdInactive, int expectedMean,
 			int windowMain, int stepMain, int meanDistanceThreshold,
-			int windowRemove, String jsonEncodedTrainingPlan, int currentExerciseIdx, int currentSeriesIdx) {
+			int windowRemove, String jsonEncodedTrainingPlan,
+			int currentExerciseIdx, int currentSeriesIdx) {
 		SensorListener retVal = new SensorListener();
 		// initialize sensor
 		retVal.mSensorManager = (SensorManager) context
 				.getSystemService(Context.SENSOR_SERVICE);
 		retVal.mSensor = retVal.mSensorManager
 				.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-		
+
 		// store context for sending intents
 		retVal.mApplicationContext = context;
-		
-		// store the exercise id used for specifying the underlying 
+
+		// store the exercise id used for specifying the underlying
 		// files for saving the data
 		retVal.mSessionId = sessionId;
-		
+
 		// create or read the training manifest
-		String tempTrainingMainfestPath = Utils.getTrainingManifestFile(sessionId).getPath();
-		
+		String tempTrainingMainfestPath = Utils.getTrainingManifestFile(
+				sessionId).getPath();
+
 		if (new File(tempTrainingMainfestPath).exists()) {
 			// if the training file is already stored on the reload it
 			// (this happened when the service was killed and recovered)
-			retVal.mCurrentTrainingPlan = TrainingPlan.readFromFile(tempTrainingMainfestPath);
+			retVal.mCurrentTrainingPlan = TrainingPlan
+					.readFromFile(tempTrainingMainfestPath);
 		} else {
 			// create the current training from the shared preferences
 			try {
-				retVal.mCurrentTrainingPlan = TrainingPlan.parseFromJson(jsonEncodedTrainingPlan);
+				retVal.mCurrentTrainingPlan = TrainingPlan
+						.parseFromJson(jsonEncodedTrainingPlan);
 			} catch (JSONException e) {
 				e.printStackTrace();
 				return null;
 			}
-			
+
 			// save the file to disk as well (for the case the service crashes)
-			retVal.mCurrentTrainingPlan.saveToTempFile(tempTrainingMainfestPath);
+			retVal.mCurrentTrainingPlan
+					.saveToTempFile(tempTrainingMainfestPath);
 		}
-		
+
 		// create a handler thread to which sampled acceleration will
 		// be delivered
 		retVal.mProcessThread = new HandlerThread("ProcessThread",
@@ -136,7 +141,7 @@ public class SensorListener implements SensorEventListener {
 		retVal.mMeanDistanceThreshold = meanDistanceThreshold;
 		retVal.mWindowRemove = windowRemove;
 		retVal.mDetectedEvents = new ArrayList<DetectedEvent>();
-		
+
 		// set current series and exercise (for the ressurection case)
 		retVal.mCurrentExerciseIdx = currentExerciseIdx;
 		retVal.mCurrentSeriesIdx = currentSeriesIdx;
@@ -144,7 +149,8 @@ public class SensorListener implements SensorEventListener {
 		retVal.initializeAlgorithmStructures();
 
 		if (retVal.mSensor == null) {
-			// TODO: this could actually be changed so the app will offer only limited
+			// TODO: this could actually be changed so the app will offer only
+			// limited
 			// functionality - without automation
 			// (or functionality based on some other sensor)
 			Log.e(TAG, "No acceleration sensor present, the app can not run.");
@@ -153,22 +159,27 @@ public class SensorListener implements SensorEventListener {
 
 		return retVal;
 	}
-	
-	public void openOutputFiles() throws IOException{
-		mOutputWriter = new PrintWriter(new BufferedWriter(new FileWriter(
-				Utils.getAccelerationFile(mSessionId), true)));
+
+	public void openOutputFiles() throws IOException {
 		
+		// the files are initialized with autoflush on
+		// (if facing performance problems some optimizations can be performed
+		// here)
+		mOutputWriter = new PrintWriter(new BufferedWriter(new FileWriter(
+				Utils.getAccelerationFile(mSessionId), true)), true);
+
 		mDetectedTimestampsWriter = new PrintWriter(new BufferedWriter(
-				new FileWriter(Utils.getTimestampsFile(mSessionId), true)));
+				new FileWriter(Utils.getTimestampsFile(mSessionId), true)), true);
 
 		mInterpolatedWriter = new PrintWriter(new BufferedWriter(
-				new FileWriter(Utils.getInterpolatedAccelerationFile(mSessionId), true)));
+				new FileWriter(Utils
+						.getInterpolatedAccelerationFile(mSessionId), true)), true);
 	}
 
 	public boolean startAccelerationSampling() {
 		mSessionStart = 0;
-		mDetectedEvents.clear();	
-		
+		mDetectedEvents.clear();
+
 		// TODO: rework this (if false is returned no file should be created)
 		return mSensorManager.registerListener(this, mSensor,
 				SensorManager.SENSOR_DELAY_FASTEST, mThreadHandler);
@@ -183,8 +194,8 @@ public class SensorListener implements SensorEventListener {
 		mMeanQueue = new CircularArrayInt(mWindowRemove);
 		mCandidatesQueue = new CircularArrayBoolean(mWindowRemove);
 	}
-	
-	public void closeOutputFiles(){
+
+	public void closeOutputFiles() {
 		if (mOutputWriter != null) {
 			mOutputWriter.close();
 		}
@@ -255,7 +266,8 @@ public class SensorListener implements SensorEventListener {
 		return processingBuffer;
 	}
 
-	public void onSensorChanged(int[] values, int timestamp) throws Exception {
+	public void detectExerciseState(int[] values, int timestamp)
+			throws Exception {
 		if (mBufferX.isEmpty()) {
 			mBufferX.enqueue(values[0]);
 			mBufferY.enqueue(values[1]);
@@ -327,50 +339,52 @@ public class SensorListener implements SensorEventListener {
 				mPossibleActivityStart = -1;
 			}
 		}
+	}
 
-		/*Log.d(TAG,
-				"SensorListener.onSensorChanged: "
-						+ Long.toString(Thread.currentThread().getId()));*/
+	public void onSensorChanged(int[] values, int timestamp) {
+		try {
+			// first save the value without any interpolation
+			mOutputWriter.println(String.format("%d,%d,%d,%d", values[0],
+					values[1], values[2], timestamp));
+
+			Queue<int[]> processingBuffer = interpolate(values, timestamp);
+
+			while (!processingBuffer.isEmpty()) {
+				int[] value = processingBuffer.poll();
+
+				mInterpolatedWriter.println(String.format("%d,%d,%d,%d",
+						value[0], value[1], value[2], value[3]));
+
+				int[] sensorValues = new int[3];
+				System.arraycopy(value, 0, sensorValues, 0, 3);
+
+				detectExerciseState(sensorValues, value[3]);
+			}
+		} catch (Exception ex) {
+			Log.w(TAG, ex.getMessage());
+		}
 	}
 
 	@Override
 	public void onSensorChanged(SensorEvent event) {
-		try {
-			Sensor sensor = event.sensor;
-			if (sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
-				if (mSessionStart == 0) {
-					mSessionStart = event.timestamp;
-				}
 
-				// convert values to integers
-				int valSize = event.values.length;
-				int[] values = new int[valSize];
-				for (int i = 0; i < valSize; i++) {
-					values[i] = (int) (event.values[i] * PRECISION);
-				}
-				int timestamp = (int) ((event.timestamp - mSessionStart) / 1000000);
-
-				// first save the value without any interpolation
-				mOutputWriter.println(String.format("%d,%d,%d,%d", values[0],
-						values[1], values[2], timestamp));
-
-				Queue<int[]> processingBuffer = interpolate(values, timestamp);
-
-				while (!processingBuffer.isEmpty()) {
-					int[] value = processingBuffer.poll();
-					// processingBuffer.remove(processingBuffer.size() - 1);
-
-					mInterpolatedWriter.println(String.format("%d,%d,%d,%d",
-							value[0], value[1], value[2], value[3]));
-
-					int[] sensorValues = new int[3];
-					System.arraycopy(value, 0, sensorValues, 0, 3);
-
-					onSensorChanged(sensorValues, value[3]);
-				}
+		Sensor sensor = event.sensor;
+		if (sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
+			if (mSessionStart == 0) {
+				mSessionStart = event.timestamp;
 			}
-		} catch (Exception ex) {
-			Log.w(TAG, ex.getMessage());
+
+			// convert values to integers
+			int valSize = event.values.length;
+			int[] values = new int[valSize];
+			for (int i = 0; i < valSize; i++) {
+				values[i] = (int) (event.values[i] * PRECISION);
+			}
+
+			// convert timestamp to miliseconds
+			int timestamp = (int) ((event.timestamp - mSessionStart) / 1000000);
+
+			onSensorChanged(values, timestamp);
 		}
 	}
 
@@ -409,23 +423,26 @@ public class SensorListener implements SensorEventListener {
 				timestamp);
 		mApplicationContext.sendBroadcast(broadcastIntent);
 
-		/*Log.d(TAG,
-				"SensorProcessor.exerciseStatCh: "
-						+ Long.toString(Thread.currentThread().getId()));*/
+		/*
+		 * Log.d(TAG, "SensorProcessor.exerciseStatCh: " +
+		 * Long.toString(Thread.currentThread().getId()));
+		 */
 	}
-	
-	public boolean compileForUpload(String sessionId){
-		Compress comp = new Compress(new String[] { Utils.getAccelerationFile(sessionId).getPath(),
-				Utils.getTimestampsFile(sessionId).getPath() },
-				new File(Utils.getUploadDataFolderFile(), sessionId).getPath());
-		
+
+	public boolean compileForUpload(String sessionId) {
+		Compress comp = new Compress(new String[] {
+				Utils.getAccelerationFile(sessionId).getPath(),
+				Utils.getTimestampsFile(sessionId).getPath() }, new File(
+				Utils.getUploadDataFolderFile(), sessionId).getPath());
+
 		// TODO: when the compilation is finished compiled files can be deleted
 
 		return comp.zip();
 	}
 
 	public void updateTrainingPlan() {
-		mCurrentTrainingPlan = TrainingPlan.readFromFile(Utils.getTrainingManifestFile(mSessionId).getPath());
+		mCurrentTrainingPlan = TrainingPlan.readFromFile(Utils
+				.getTrainingManifestFile(mSessionId).getPath());
 	}
 
 	public int[] moveToNextActivity() {
@@ -436,7 +453,8 @@ public class SensorListener implements SensorEventListener {
 			mCurrentSeriesIdx = 0;
 
 			// we have move to the next exercise
-			if (mCurrentExerciseIdx + 1 < mCurrentTrainingPlan.getExercises().size()) {
+			if (mCurrentExerciseIdx + 1 < mCurrentTrainingPlan.getExercises()
+					.size()) {
 				mCurrentExerciseIdx++;
 			} else {
 				// last exercise done
@@ -444,7 +462,7 @@ public class SensorListener implements SensorEventListener {
 			}
 		}
 
-		return new int[] { mCurrentExerciseIdx, mCurrentSeriesIdx};
+		return new int[] { mCurrentExerciseIdx, mCurrentSeriesIdx };
 	}
 
 	public TrainingPlan getCurrentTrainingPlan() {
