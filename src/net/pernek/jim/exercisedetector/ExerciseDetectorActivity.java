@@ -8,6 +8,8 @@ import net.pernek.jim.exercisedetector.util.Utils;
 import org.json.JSONException;
 
 import android.app.Activity;
+import android.app.ActivityManager;
+import android.app.ActivityManager.RunningServiceInfo;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
@@ -69,6 +71,18 @@ public class ExerciseDetectorActivity extends Activity {
 	};
 
 	private ResponseReceiver receiver;
+
+	private boolean isDetectorServiceRunning() {
+		ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+		for (RunningServiceInfo service : manager
+				.getRunningServices(Integer.MAX_VALUE)) {
+			if (DetectorService.class.getName().equals(
+					service.service.getClassName())) {
+				return true;
+			}
+		}
+		return false;
+	}
 
 	private ServiceConnection mDetectorConnection = new ServiceConnection() {
 
@@ -153,8 +167,8 @@ public class ExerciseDetectorActivity extends Activity {
 		case MENU_EXERCISE_MANIFEST: {
 			Log.d(TAG, "exercise manifest selected");
 
-			startActivityForResult(new Intent(this, TrainingManifestActivity.class),
-					MENU_EXERCISE_MANIFEST);
+			startActivityForResult(new Intent(this,
+					TrainingManifestActivity.class), MENU_EXERCISE_MANIFEST);
 
 			break;
 		}
@@ -173,9 +187,11 @@ public class ExerciseDetectorActivity extends Activity {
 			if (mDetectorService != null) {
 				Log.d(TAG, "call update training plan");
 				mDetectorService.updateTrainingPlan();
-				
-				// current exercise and series index should always be obtained from the service
-				updateExerciseInfoUI(mSettings.getCurrentExerciseIndex(), mSettings.getCurrentSeriesIndex());
+
+				// current exercise and series index should always be obtained
+				// from the service
+				updateExerciseInfoUI(mSettings.getCurrentExerciseIndex(),
+						mSettings.getCurrentSeriesIndex());
 			}
 
 			break;
@@ -214,7 +230,7 @@ public class ExerciseDetectorActivity extends Activity {
 		mTvTimer = (TextView) findViewById(R.id.tvTimer);
 		mTvExerciseState = (TextView) findViewById(R.id.tvExerciseState);
 		mChbToggleService = (CheckBox) findViewById(R.id.chbToggleService);
-		mChbToggleService.setChecked(mSettings.isServiceRunning());
+		mChbToggleService.setChecked(isDetectorServiceRunning());
 
 		mChbToggleService
 				.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -276,8 +292,10 @@ public class ExerciseDetectorActivity extends Activity {
 		// running (training information should only be accessed through
 		// detector service and not
 		// through settings in this activity)
-		/*updateExerciseInfoUI(mSettings.getCurrentExerciseIndex(),
-				mSettings.getCurrentSeriesIndex());*/
+		/*
+		 * updateExerciseInfoUI(mSettings.getCurrentExerciseIndex(),
+		 * mSettings.getCurrentSeriesIndex());
+		 */
 
 		receiver = new ResponseReceiver();
 
@@ -307,13 +325,15 @@ public class ExerciseDetectorActivity extends Activity {
 		mTvExerciseState
 				.setText(getExerciseString(mSettings.isExerciseState()));
 
+		boolean isServiceRunning = isDetectorServiceRunning();
+
 		// resurrect the timer
-		if (mSettings.isServiceRunning()) {
+		if (isServiceRunning) {
 			mUiHandler.postDelayed(mRunTimerUpdate, TIMER_UPDATE_MS);
 		}
 
 		// rebind the service
-		if (mSettings.isServiceRunning() && mDetectorService == null) {
+		if (isServiceRunning && mDetectorService == null) {
 			getApplication().bindService(
 					new Intent(ExerciseDetectorActivity.this,
 							DetectorService.class), mDetectorConnection, 0);

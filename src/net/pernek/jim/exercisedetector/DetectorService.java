@@ -49,8 +49,6 @@ public class DetectorService extends Service {
 
 		mSettings = DetectorSettings.create(PreferenceManager
 				.getDefaultSharedPreferences(this));
-
-		mSettings.saveServiceRunning(true);
 	}
 
 	public boolean isCollectingData() {
@@ -85,13 +83,15 @@ public class DetectorService extends Service {
 			mSensorListener.openOutputFiles();
 		} catch (IOException e) {
 			// this happens when creating a file fails
-			Toast.makeText(this, "Unable to open output files.", Toast.LENGTH_SHORT).show();
+			Toast.makeText(this, "Unable to open output files.",
+					Toast.LENGTH_SHORT).show();
 			return false;
 		}
 
 		boolean status = mSensorListener.startAccelerationSampling();
 		if (!status) {
-			// can also do this more gracefully -> the app simply does not need to
+			// can also do this more gracefully -> the app simply does not need
+			// to
 			// offer automated functionalities if the sensors are not
 			// present
 			// (user can still swipe through the user interface)
@@ -122,7 +122,7 @@ public class DetectorService extends Service {
 		mSettings.saveOutputFile("");
 
 		mSensorListener.closeOutputFiles();
-		
+
 		mSensorListener.stopAccelerationSampling();
 
 		// compile all collected data to one JSON file
@@ -180,8 +180,6 @@ public class DetectorService extends Service {
 	@Override
 	public void onDestroy() {
 		Log.d(TAG, "DetectorService onDestroy");
-
-		mSettings.saveServiceRunning(false);
 
 		mSensorListener.stopAccelerationSampling();
 

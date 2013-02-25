@@ -44,7 +44,7 @@ public class DetectorSettings {
 	public long getStartTimestamp(){
 		return mPreferences.getLong(KEY_START_TIMESTAMP, 0);
 	}
-	
+	/*
 	public void saveServiceRunning(boolean running){
 		SharedPreferences.Editor editor = mPreferences.edit();
         editor.putBoolean(KEY_SERVICE_RUNNING, running);
@@ -53,7 +53,7 @@ public class DetectorSettings {
 	
 	public boolean isServiceRunning(){
 		return mPreferences.getBoolean(KEY_SERVICE_RUNNING, false);
-	}
+	}*/
 	
 	public void saveOutputFile(String output){
 		SharedPreferences.Editor editor = mPreferences.edit();
