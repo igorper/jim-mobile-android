@@ -8,7 +8,6 @@ import android.content.SharedPreferences;
 // this happens the service will simply be rerun with the 
 public class DetectorSettings {
 	
-	private static final String KEY_SERVICE_RUNNING = "service_running";
 	private static final String KEY_OUTPUT_FILE = "output_file";
 	private static final String KEY_START_TIMESTAMP = "start_timestamp";
 	private static final String KEY_IS_EXERCISE_STATE = "is_exercise_state";
@@ -44,16 +43,6 @@ public class DetectorSettings {
 	public long getStartTimestamp(){
 		return mPreferences.getLong(KEY_START_TIMESTAMP, 0);
 	}
-	/*
-	public void saveServiceRunning(boolean running){
-		SharedPreferences.Editor editor = mPreferences.edit();
-        editor.putBoolean(KEY_SERVICE_RUNNING, running);
-        editor.commit();
-	}
-	
-	public boolean isServiceRunning(){
-		return mPreferences.getBoolean(KEY_SERVICE_RUNNING, false);
-	}*/
 	
 	public void saveOutputFile(String output){
 		SharedPreferences.Editor editor = mPreferences.edit();

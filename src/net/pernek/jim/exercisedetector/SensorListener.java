@@ -447,7 +447,8 @@ public class SensorListener implements SensorEventListener {
 				.getTrainingManifestFile(mSessionId).getPath());
 	}
 
-	public int[] moveToNextActivity() {
+	// returns true if moving to the next activity is possible otherwise false
+	public boolean moveToNextActivity() {
 		if (mCurrentSeriesIdx + 1 < mCurrentTrainingPlan.getExercises()
 				.get(mCurrentExerciseIdx).getSeries().size()) {
 			mCurrentSeriesIdx++;
@@ -460,14 +461,22 @@ public class SensorListener implements SensorEventListener {
 				mCurrentExerciseIdx++;
 			} else {
 				// last exercise done
-				return null;
+				return false;
 			}
 		}
 
-		return new int[] { mCurrentExerciseIdx, mCurrentSeriesIdx };
+		return true;
 	}
 
 	public TrainingPlan getCurrentTrainingPlan() {
 		return mCurrentTrainingPlan;
+	}
+
+	public int getCurrentExerciseIdx() {
+		return mCurrentExerciseIdx;
+	}
+	
+	public int getCurrentSeriesIdx() {
+		return mCurrentSeriesIdx;
 	}
 }

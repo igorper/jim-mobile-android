@@ -146,17 +146,17 @@ public class DetectorService extends Service {
 	// retVal[0] - new exercise id
 	// retVal[1] - new series id
 	// returns null if this was the last exercise/series to perform
-	public int[] moveToNextActivity() {
-		int[] res = mSensorListener.moveToNextActivity();
+	public boolean moveToNextActivity() {
+		boolean status = mSensorListener.moveToNextActivity();
 
 		// update shared preferecenes (just for the case the application breaks
 		// down in the middle)
-		if (res != null) {
-			mSettings.saveCurrentExerciseIndex(res[0]);
-			mSettings.saveCurrentSeriesIndex(res[1]);
+		if (status) {
+			mSettings.saveCurrentExerciseIndex(mSensorListener.getCurrentExerciseIdx());
+			mSettings.saveCurrentSeriesIndex(mSensorListener.getCurrentSeriesIdx());
 		}
 
-		return res;
+		return status;
 	}
 
 	public TrainingPlan getCurrentTrainingPlan() {
@@ -175,6 +175,14 @@ public class DetectorService extends Service {
 		notification.setLatestEventInfo(this, "status", message, contentIntent);
 		notification.flags |= Notification.FLAG_NO_CLEAR;
 		startForeground(NOTIFICATION_ID, notification);
+	}
+	
+	public int getCurrentExerciseIdx(){
+		return mSensorListener.getCurrentExerciseIdx();
+	}
+	
+	public int getCurrentSeriesIdx(){
+		return mSensorListener.getCurrentSeriesIdx();
 	}
 
 	@Override

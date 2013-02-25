@@ -26,6 +26,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -40,6 +41,7 @@ public class ExerciseDetectorActivity extends Activity {
 
 	private static final int TIMER_UPDATE_MS = 500;
 
+	private LinearLayout mLlTrainingPlan;
 	private CheckBox mChbToggleService;
 	private TextView mTvExerciseState;
 	private TextView mTvTimer;
@@ -114,8 +116,7 @@ public class ExerciseDetectorActivity extends Activity {
 				}
 			}
 
-			updateExerciseInfoUI(mSettings.getCurrentExerciseIndex(),
-					mSettings.getCurrentSeriesIndex());
+			updateTrainingInfoUI();
 
 			Log.w(TAG, "MainActivity onServiceConnected");
 		}
@@ -190,8 +191,7 @@ public class ExerciseDetectorActivity extends Activity {
 
 				// current exercise and series index should always be obtained
 				// from the service
-				updateExerciseInfoUI(mSettings.getCurrentExerciseIndex(),
-						mSettings.getCurrentSeriesIndex());
+				updateTrainingInfoUI();
 			}
 
 			break;
@@ -203,9 +203,9 @@ public class ExerciseDetectorActivity extends Activity {
 
 	public void onNextClick(View v) {
 		if (mDetectorService != null) {
-			int[] newExerciseInfo = mDetectorService.moveToNextActivity();
-			if (newExerciseInfo != null) {
-				updateExerciseInfoUI(newExerciseInfo[0], newExerciseInfo[1]);
+			boolean status = mDetectorService.moveToNextActivity();
+			if (status) {
+				updateTrainingInfoUI();
 			} else {
 				// disable the button as there are no more exercises to perform
 				mBtnNext.setEnabled(false);
@@ -231,6 +231,8 @@ public class ExerciseDetectorActivity extends Activity {
 		mTvExerciseState = (TextView) findViewById(R.id.tvExerciseState);
 		mChbToggleService = (CheckBox) findViewById(R.id.chbToggleService);
 		mChbToggleService.setChecked(isDetectorServiceRunning());
+		mLlTrainingPlan = (LinearLayout)findViewById(R.id.llTrainingPlan);
+	
 
 		mChbToggleService
 				.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -274,6 +276,7 @@ public class ExerciseDetectorActivity extends Activity {
 						} else {
 							if (mDetectorService != null) {
 								mDetectorService.stopDataCollection();
+								mDetectorService = null;
 							}
 
 							mUiHandler.removeCallbacks(mRunTimerUpdate);
@@ -281,6 +284,8 @@ public class ExerciseDetectorActivity extends Activity {
 							stopService(new Intent(
 									ExerciseDetectorActivity.this,
 									DetectorService.class));
+							
+							updateTrainingInfoUI();
 						}
 					}
 				});
@@ -383,8 +388,7 @@ public class ExerciseDetectorActivity extends Activity {
 							PARAM_TRAINING_PLAN);
 					mSettings.saveCurrentTrainingPlan(trainingPlan);
 
-					updateExerciseInfoUI(mSettings.getCurrentExerciseIndex(),
-							mSettings.getCurrentSeriesIndex());
+					updateTrainingInfoUI();
 				} else {
 					Toast.makeText(
 							getApplicationContext(),
@@ -396,27 +400,29 @@ public class ExerciseDetectorActivity extends Activity {
 		}
 	}
 
-	private void updateExerciseInfoUI(int exerciseIndex, int seriesIndex) {
-		Log.d(TAG, "UpdateExerciseInfoUI");
+	private void updateTrainingInfoUI() {
 		if (mDetectorService != null) {
+			int exerciseIndex = mDetectorService.getCurrentExerciseIdx(); 
+			int seriesIndex = mDetectorService.getCurrentSeriesIdx();
 			TrainingPlan curTraining = mDetectorService
 					.getCurrentTrainingPlan();
 			Exercise curExercise = curTraining.getExercises()
 					.get(exerciseIndex);
 			Series curSeries = curExercise.getSeries().get(seriesIndex);
+			
 			mTvCurrentTraining.setText(curTraining.getName());
 			mTvCurrentExercise.setText(curExercise.getName());
 			mTvCurrentSeries.setText(Integer.toString(seriesIndex));
 			mTvExpectedRepetitions.setText(Integer.toString(curSeries
 					.getNumRepetitions()));
 			mTvExpectedWeight.setText(Integer.toString(curSeries.getWeight()));
-
+			
+			mLlTrainingPlan.setVisibility(View.VISIBLE);
 		} else {
-			Toast.makeText(getApplicationContext(), "No training started.",
-					Toast.LENGTH_SHORT).show();
+			mLlTrainingPlan.setVisibility(View.INVISIBLE);
 		}
 	}
-
+	
 	@Override
 	protected void onStart() {
 		// TODO Auto-generated method stub
