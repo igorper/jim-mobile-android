@@ -31,6 +31,7 @@ public class DetectorService extends Service {
 
 	private String mAccelerationFile;
 	private String mDetectedTimestampsFile;
+	private String mTrainingMainfestFile;
 
 	private TrainingPlan mCurrentTrainingPlan;
 
@@ -68,13 +69,25 @@ public class DetectorService extends Service {
 			mSettings.saveOutputFile(Utils.generateFileName());
 		}
 
-		mCurrentTrainingPlan = TrainingPlan.parseFromJson(mSettings
-				.getCurrentTrainingPlan());
-
 		// check if the folder exists and create it if it doesn't
-		File folder = new File(Environment.getExternalStorageDirectory(),
-				Utils.getDataFolder());
+		File folder = Utils.getFullDataFolder();
 		folder.mkdir();
+
+		// set training plan JSON file
+		mTrainingMainfestFile = new File(folder, Utils.getTrainingManifestFileName(mSettings.getOutputFile())).getPath();
+		
+		if (new File(mTrainingMainfestFile).exists()) {
+			// if the training file is already stored on the reload it
+			// (this happened when the service was killed and recovered)
+			mCurrentTrainingPlan = TrainingPlan.readFromFile(mTrainingMainfestFile);
+		} else {
+			// create the current training from the shared preferences
+			mCurrentTrainingPlan = TrainingPlan.parseFromJson(mSettings
+					.getCurrentTrainingPlan());
+			
+			// save the file to disk as well (for the case the service crashes)
+			mCurrentTrainingPlan.saveToTempFile(mTrainingMainfestFile);
+		}
 
 		mAccelerationFile = new File(folder, mSettings.getOutputFile())
 				.getPath();
@@ -115,6 +128,11 @@ public class DetectorService extends Service {
 		mIsCollectingData = true;
 		return true;
 	}
+	
+	public void updateTrainingPlan(){
+		mCurrentTrainingPlan = TrainingPlan.readFromFile(mTrainingMainfestFile);
+		Log.d(TAG, Integer.toString(mCurrentTrainingPlan.getExercises().get(0).getSeries().get(0).getWeight()));
+	}
 
 	// this method should only be called when we want to legally stop sampling
 	public boolean stopDataCollection() {
@@ -152,12 +170,6 @@ public class DetectorService extends Service {
 		return START_STICKY;
 	}
 
-	public void updateCurrentExerciseInfo(int currentExerciseIdx,
-			int currentSeriesIdx) {
-		mSensorListener.updateCurrentExerciseInfo(currentExerciseIdx,
-				currentSeriesIdx);
-	}
-
 	// TODO: data can be returned in a custom object later
 	// retVal[0] - new exercise id
 	// retVal[1] - new series id
@@ -181,8 +193,17 @@ public class DetectorService extends Service {
 			}
 		}
 
+		// update sensor listener - used to write to file
+		mSensorListener.updateCurrentExerciseInfo(
+				mSettings.getCurrentExerciseIndex(),
+				mSettings.getCurrentSeriesIndex());
+
 		return new int[] { mSettings.getCurrentExerciseIndex(),
 				mSettings.getCurrentSeriesIndex() };
+	}
+
+	public TrainingPlan getCurrentTrainingPlan() {
+		return mCurrentTrainingPlan;
 	}
 
 	private void pushServiceToForeground() {

@@ -86,14 +86,21 @@ public class ExerciseDetectorActivity extends Activity {
 				try {
 					if (!mDetectorService.startDataCollection()) {
 						mChbToggleService.setChecked(false);
-						Toast.makeText(getApplicationContext(), "Unable to start data collection - sd card problem?", Toast.LENGTH_SHORT).show();
+						Toast.makeText(
+								getApplicationContext(),
+								"Unable to start data collection - sd card problem?",
+								Toast.LENGTH_SHORT).show();
 					}
 				} catch (JSONException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
-					Toast.makeText(getApplicationContext(), "JSON exception", Toast.LENGTH_SHORT).show();
+					Toast.makeText(getApplicationContext(), "JSON exception",
+							Toast.LENGTH_SHORT).show();
 				}
 			}
+
+			updateExerciseInfoUI(mSettings.getCurrentExerciseIndex(),
+					mSettings.getCurrentSeriesIndex());
 
 			Log.w(TAG, "MainActivity onServiceConnected");
 		}
@@ -142,11 +149,12 @@ public class ExerciseDetectorActivity extends Activity {
 
 			break;
 		}
-		case MENU_EXERCISE_MANIFEST:{
+		case MENU_EXERCISE_MANIFEST: {
 			Log.d(TAG, "exercise manifest selected");
-			
-			startActivity(new Intent(this, ExpandableListDemo.class));
-			
+
+			startActivityForResult(new Intent(this, ExpandableListDemo.class),
+					MENU_EXERCISE_MANIFEST);
+
 			break;
 		}
 		default:
@@ -155,11 +163,31 @@ public class ExerciseDetectorActivity extends Activity {
 
 		return super.onOptionsItemSelected(item);
 	}
-	
+
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+		switch (requestCode) {
+		case MENU_EXERCISE_MANIFEST: {
+			// update service training plan
+			if (mDetectorService != null) {
+				Log.d(TAG, "call update training plan");
+				mDetectorService.updateTrainingPlan();
+				
+				// current exercise and series index should always be obtained from the service
+				updateExerciseInfoUI(mSettings.getCurrentExerciseIndex(), mSettings.getCurrentSeriesIndex());
+			}
+
+			break;
+		}
+		default:
+			break;
+		}
+	}
+
 	public void onNextClick(View v) {
-		if(mDetectorService != null){
+		if (mDetectorService != null) {
 			int[] newExerciseInfo = mDetectorService.moveToNextActivity();
-			if(newExerciseInfo != null){
+			if (newExerciseInfo != null) {
 				updateExerciseInfoUI(newExerciseInfo[0], newExerciseInfo[1]);
 			} else {
 				// disable the button as there are no more exercises to perform
@@ -176,7 +204,7 @@ public class ExerciseDetectorActivity extends Activity {
 		mSettings = DetectorSettings.create(PreferenceManager
 				.getDefaultSharedPreferences(this));
 
-		mBtnNext = (Button)findViewById(R.id.btnNext);		
+		mBtnNext = (Button) findViewById(R.id.btnNext);
 		mTvCurrentTraining = (TextView) findViewById(R.id.tvCurrentTraining);
 		mTvCurrentExercise = (TextView) findViewById(R.id.tvCurrentExercise);
 		mTvCurrentSeries = (TextView) findViewById(R.id.tvCurrentSeries);
@@ -199,16 +227,14 @@ public class ExerciseDetectorActivity extends Activity {
 							// as it will be memory intensive
 							// might be this can be improved
 							System.gc();
-							
+
 							// reset training plan pointers
 							mSettings.saveCurrentExerciseIndex(0);
 							mSettings.saveCurrentSeriesIndex(0);
-							
-							if(mSettings.getCurrentTrainingPlan().equals("")){
+
+							if (mSettings.getCurrentTrainingPlan().equals("")) {
 								// open popup to download a training plan
 							}
-							
-							updateExerciseInfoUI(mSettings.getCurrentExerciseIndex(), mSettings.getCurrentSeriesIndex());
 
 							startService(new Intent(
 									ExerciseDetectorActivity.this,
@@ -232,7 +258,7 @@ public class ExerciseDetectorActivity extends Activity {
 							if (mDetectorService != null) {
 								mDetectorService.stopDataCollection();
 							}
-							
+
 							mUiHandler.removeCallbacks(mRunTimerUpdate);
 
 							stopService(new Intent(
@@ -243,11 +269,14 @@ public class ExerciseDetectorActivity extends Activity {
 				});
 
 		resurrectDestroyed();
-		
-		// - we could actually not show any training information until the training service is not 
-		// running (training information should only be accessed through detector service and not 
+
+		// - we could actually not show any training information until the
+		// training service is not
+		// running (training information should only be accessed through
+		// detector service and not
 		// through settings in this activity)
-		updateExerciseInfoUI(mSettings.getCurrentExerciseIndex(), mSettings.getCurrentSeriesIndex());
+		/*updateExerciseInfoUI(mSettings.getCurrentExerciseIndex(),
+				mSettings.getCurrentSeriesIndex());*/
 
 		receiver = new ResponseReceiver();
 
@@ -332,8 +361,9 @@ public class ExerciseDetectorActivity extends Activity {
 					String trainingPlan = intent.getExtras().getString(
 							PARAM_TRAINING_PLAN);
 					mSettings.saveCurrentTrainingPlan(trainingPlan);
-					
-					updateExerciseInfoUI(mSettings.getCurrentExerciseIndex(), mSettings.getCurrentSeriesIndex());
+
+					updateExerciseInfoUI(mSettings.getCurrentExerciseIndex(),
+							mSettings.getCurrentSeriesIndex());
 				} else {
 					Toast.makeText(
 							getApplicationContext(),
@@ -346,30 +376,23 @@ public class ExerciseDetectorActivity extends Activity {
 	}
 
 	private void updateExerciseInfoUI(int exerciseIndex, int seriesIndex) {
-		if (mSettings.getCurrentTrainingPlan().equals("")) {
-			// just show such an interface that it's clear no training plan was downloaded yet
-			Toast.makeText(getApplicationContext(),
-					"No training plan downloaded yet.", Toast.LENGTH_LONG)
-					.show();
+		Log.d(TAG, "UpdateExerciseInfoUI");
+		if (mDetectorService != null) {
+			TrainingPlan curTraining = mDetectorService
+					.getCurrentTrainingPlan();
+			Exercise curExercise = curTraining.getExercises()
+					.get(exerciseIndex);
+			Series curSeries = curExercise.getSeries().get(seriesIndex);
+			mTvCurrentTraining.setText(curTraining.getName());
+			mTvCurrentExercise.setText(curExercise.getName());
+			mTvCurrentSeries.setText(Integer.toString(seriesIndex));
+			mTvExpectedRepetitions.setText(Integer.toString(curSeries
+					.getNumRepetitions()));
+			mTvExpectedWeight.setText(Integer.toString(curSeries.getWeight()));
+
 		} else {
-			try {
-				TrainingPlan curTraining = TrainingPlan.parseFromJson(mSettings.getCurrentTrainingPlan());
-				Exercise curExercise = curTraining.getExercises().get(mSettings.getCurrentExerciseIndex());
-				Series curSeries = curExercise.getSeries().get(mSettings.getCurrentSeriesIndex());
-				mTvCurrentTraining.setText(curTraining.getName());
-				mTvCurrentExercise.setText(curExercise.getName());
-				mTvCurrentSeries.setText(Integer.toString(mSettings.getCurrentSeriesIndex()));
-				mTvExpectedRepetitions.setText(Integer.toString(curSeries.getNumRepetitions()));
-				mTvExpectedWeight.setText(Integer.toString(curSeries.getWeight()));
-				
-			} catch (JSONException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-				Toast.makeText(getApplicationContext(),
-						"JSON problem.", Toast.LENGTH_LONG)
-						.show();
-			}
-			
+			Toast.makeText(getApplicationContext(), "No training started.",
+					Toast.LENGTH_SHORT).show();
 		}
 	}
 

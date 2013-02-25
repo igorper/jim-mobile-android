@@ -296,9 +296,9 @@ public class SensorListener implements SensorEventListener {
 			}
 		}
 
-		Log.d(TAG,
+		/*Log.d(TAG,
 				"SensorListener.onSensorChanged: "
-						+ Long.toString(Thread.currentThread().getId()));
+						+ Long.toString(Thread.currentThread().getId()));*/
 	}
 
 	@Override
@@ -377,8 +377,8 @@ public class SensorListener implements SensorEventListener {
 				timestamp);
 		mApplicationContext.sendBroadcast(broadcastIntent);
 
-		Log.d(TAG,
+		/*Log.d(TAG,
 				"SensorProcessor.exerciseStatCh: "
-						+ Long.toString(Thread.currentThread().getId()));
+						+ Long.toString(Thread.currentThread().getId()));*/
 	}
 }
