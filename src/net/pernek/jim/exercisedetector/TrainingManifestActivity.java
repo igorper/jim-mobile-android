@@ -18,7 +18,7 @@ import android.widget.ExpandableListView;
 import android.widget.SimpleExpandableListAdapter;
 import android.widget.Toast;
 
-public class ExpandableListDemo extends ExpandableListActivity {
+public class TrainingManifestActivity extends ExpandableListActivity {
 	private static final String TAG = Utils.getApplicationTag();
 
 	private static final String EXERCISE_ITEM = "exercise.item";

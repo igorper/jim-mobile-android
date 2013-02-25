@@ -27,7 +27,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name="net.pernek.jim.exercisedetector.ExpandableListDemo"
+            android:name="net.pernek.jim.exercisedetector.TrainingManifestActivity"
             android:label="Expandable LV" >
         </activity>
 

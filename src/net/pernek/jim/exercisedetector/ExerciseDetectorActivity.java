@@ -153,7 +153,7 @@ public class ExerciseDetectorActivity extends Activity {
 		case MENU_EXERCISE_MANIFEST: {
 			Log.d(TAG, "exercise manifest selected");
 
-			startActivityForResult(new Intent(this, ExpandableListDemo.class),
+			startActivityForResult(new Intent(this, TrainingManifestActivity.class),
 					MENU_EXERCISE_MANIFEST);
 
 			break;
