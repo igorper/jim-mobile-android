@@ -147,8 +147,10 @@ public class DetectorService extends Service {
 
 		// update shared preferecenes (just for the case the application breaks
 		// down in the middle)
-		mSettings.saveCurrentExerciseIndex(res[0]);
-		mSettings.saveCurrentSeriesIndex(res[1]);
+		if (res != null) {
+			mSettings.saveCurrentExerciseIndex(res[0]);
+			mSettings.saveCurrentSeriesIndex(res[1]);
+		}
 
 		return res;
 	}

@@ -30,16 +30,16 @@ public class SensorListenerTest extends InstrumentationTestCase {
 	protected void setUp() throws Exception {
 		super.setUp();
 		
+		removeFiles();
+		
 		// create folder if it doesn't exist yet
 		File folder = new File(Environment.getExternalStorageDirectory(),
 				Utils.getDataFolder());
 		folder.mkdir();
-		
+				
 		mSensorListener = SensorListener.create(testId,
 				getInstrumentation().getContext(), 50000, 200000, 1000000, 180,
 				100, 200000, 3, SAMPLE_JSON_TRAINING,  0, 0);
-		
-		removeFiles();
 	}
 	
 	@Override
@@ -61,6 +61,10 @@ public class SensorListenerTest extends InstrumentationTestCase {
 
 		if (mInterpolationFile.exists()) {
 			mInterpolationFile.delete();
+		}
+		
+		if (mTrainingManifestFile.exists()) {
+			mTrainingManifestFile.delete();
 		}
 	}
 	
@@ -95,7 +99,7 @@ public class SensorListenerTest extends InstrumentationTestCase {
 		mSensorListener.stop();
 
 		if (!mAccelerationFile.exists() || !mTimestampsFile.exists()
-				|| !mInterpolationFile.exists()) {
+				|| !mInterpolationFile.exists() || !mTrainingManifestFile.exists()) {
 			fail("All files should be created");
 		}
 	}
