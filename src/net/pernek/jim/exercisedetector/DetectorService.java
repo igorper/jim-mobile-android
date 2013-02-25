@@ -29,8 +29,6 @@ public class DetectorService extends Service {
 	private SensorListener mSensorListener;
 	private DetectorSettings mSettings;
 
-	private String mAccelerationFile;
-	private String mDetectedTimestampsFile;
 	private String mTrainingMainfestFile;
 
 	private TrainingPlan mCurrentTrainingPlan;
@@ -70,11 +68,11 @@ public class DetectorService extends Service {
 		}
 
 		// check if the folder exists and create it if it doesn't
-		File folder = Utils.getFullDataFolder();
+		File folder = Utils.getDataFolderFile();
 		folder.mkdir();
 
 		// set training plan JSON file
-		mTrainingMainfestFile = new File(folder, Utils.getTrainingManifestFileName(mSettings.getOutputFile())).getPath();
+		mTrainingMainfestFile = Utils.getTrainingManifestFile(mSettings.getOutputFile()).getPath();
 		
 		if (new File(mTrainingMainfestFile).exists()) {
 			// if the training file is already stored on the reload it
@@ -89,14 +87,8 @@ public class DetectorService extends Service {
 			mCurrentTrainingPlan.saveToTempFile(mTrainingMainfestFile);
 		}
 
-		mAccelerationFile = new File(folder, mSettings.getOutputFile())
-				.getPath();
-		mDetectedTimestampsFile = new File(folder, mSettings.getOutputFile()
-				+ "_tstmps").getPath();
-
 		// hand testing values
-		mSensorListener = SensorListener.create(mAccelerationFile,
-				mDetectedTimestampsFile, getApplicationContext(), 50000,
+		mSensorListener = SensorListener.create(mSettings.getOutputFile(), getApplicationContext(), 50000,
 				200000, 1000000, 180, 100, 200000, 4);
 
 		// gym detection values
@@ -147,18 +139,12 @@ public class DetectorService extends Service {
 
 		mSensorListener.stop();
 
-		// TODO: compile all collected data to one JSON file
+		// compile all collected data to one JSON file
 		// this file will be visible in upload activity
-		File uploadFolder = new File(Environment.getExternalStorageDirectory(),
-				Utils.getUploadDataFolder());
+		File uploadFolder = Utils.getUploadDataFolderFile();
 		uploadFolder.mkdir();
-
-		// we are sure exercise files were created and are closed here
-		Compress comp = new Compress(new String[] { mAccelerationFile,
-				mDetectedTimestampsFile },
-				new File(uploadFolder, outputId).getPath());
-
-		return comp.zip();
+		
+		return mSensorListener.compileForUpload();
 	}
 
 	@Override

@@ -14,20 +14,88 @@ import android.os.Environment;
 import android.test.InstrumentationTestCase;
 
 public class SensorListenerTest extends InstrumentationTestCase {
+	
+	private String testId = "TEST_ID";
+	
+	File mAccelerationFile = Utils.getAccelerationFile(testId);
+	File mTimestampsFile = Utils.getTimestampsFile(testId);
+	File mInterpolationFile = Utils.getInterpolatedAccelerationFile(testId);
+	
+	SensorListener mSensorListener;
+	
+	@Override
+	protected void setUp() throws Exception {
+		super.setUp();
+		
+		// create folder if it doesn't exist yet
+		File folder = new File(Environment.getExternalStorageDirectory(),
+				Utils.getDataFolder());
+		folder.mkdir();
+		
+		mSensorListener = SensorListener.create(testId,
+				getInstrumentation().getContext(), 50000, 200000, 1000000, 180,
+				100, 200000, 3);
+		
+		removeFiles();
+	}
+	
+	@Override
+	protected void tearDown() throws Exception {
+		super.tearDown();
+		
+		removeFiles();
+	}
+	
+	private void removeFiles(){
+		// clean up files if exist
+		if (mAccelerationFile.exists()) {
+			mAccelerationFile.delete();
+		}
+
+		if (mTimestampsFile.exists()) {
+			mTimestampsFile.delete();
+		}
+
+		if (mInterpolationFile.exists()) {
+			mInterpolationFile.delete();
+		}
+	}
+	
+	public void testFileCompile(){
+		try {
+			mSensorListener.start();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			fail("Failed to start.");
+		}
+
+		mSensorListener.stop();
+		mSensorListener.compileForUpload();
+		
+		File compiledFile = new File(Utils.getUploadDataFolderFile(), testId);
+		if(!compiledFile.exists()){
+			fail("Compressed file not created.");
+		}
+	}
+
+	public void testFileCreation() {
+
+		try {
+			mSensorListener.start();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			fail("Failed to start.");
+		}
+
+		mSensorListener.stop();
+
+		if (!mAccelerationFile.exists() || !mTimestampsFile.exists()
+				|| !mInterpolationFile.exists()) {
+			fail("All files should be created");
+		}
+	}
 
 	public void testInterpolation() {
-		File folder = new File(Environment.getExternalStorageDirectory(),
-				Utils.getDataFolder() + "/test");
-		folder.mkdir();
-
-		String accelerationFile = new File(folder, "interpolation").getPath();
-		String detectedTimestampsFile = new File(folder, "interpolation_tstmps")
-				.getPath();
-
-		SensorListener mSensorListener = SensorListener.create(
-				accelerationFile, detectedTimestampsFile, getInstrumentation()
-						.getContext(), 50000, 200000, 1000000, 180, 100,
-				200000, 3);
 
 		List<int[]> allResults = new ArrayList<int[]>();
 
@@ -61,7 +129,7 @@ public class SensorListenerTest extends InstrumentationTestCase {
 		}
 	}
 
-	public void testExerciseDetection() {
+	public void testExerciseDetection() {		
 		List<int[]> testValues = null;
 		List<DetectedEvent> expectedExerciseStates = null;
 
@@ -78,19 +146,6 @@ public class SensorListenerTest extends InstrumentationTestCase {
 		} catch (IOException e) {
 			fail(e.getMessage());
 		}
-
-		File folder = new File(Environment.getExternalStorageDirectory(),
-				Utils.getDataFolder());
-		folder.mkdir();
-
-		String accelerationFile = new File(folder, "interpolation").getPath();
-		String detectedTimestampsFile = new File(folder, "interpolation_tstmps")
-				.getPath();
-
-		SensorListener mSensorListener = SensorListener.create(
-				accelerationFile, detectedTimestampsFile, getInstrumentation()
-						.getContext(), 50000, 200000, 1000000, 180, 100,
-				200000, 3);
 
 		for (int i = 0; i < testValues.size(); i++) {
 			int values[] = new int[3];
@@ -123,7 +178,7 @@ public class SensorListenerTest extends InstrumentationTestCase {
 			}
 			expectedExerciseStates.remove(toDelete);
 		}
-		
+
 		assertEquals(0, expectedExerciseStates.size());
 	}
 }

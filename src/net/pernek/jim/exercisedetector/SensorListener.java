@@ -6,7 +6,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -14,6 +13,7 @@ import java.util.Queue;
 
 import net.pernek.jim.exercisedetector.alg.CircularArrayBoolean;
 import net.pernek.jim.exercisedetector.alg.CircularArrayInt;
+import net.pernek.jim.exercisedetector.alg.Compress;
 import net.pernek.jim.exercisedetector.alg.DetectedEvent;
 import android.content.Context;
 import android.content.Intent;
@@ -49,8 +49,6 @@ public class SensorListener implements SensorEventListener {
 	private PrintWriter mInterpolatedWriter;
 	private PrintWriter mOutputWriter;
 
-	private String mAccelerationOutputFile;
-	private String mDetectedTimestampsFile;
 	private Context mApplicationContext;
 
 	private HandlerThread mProcessThread;
@@ -75,6 +73,8 @@ public class SensorListener implements SensorEventListener {
 	private CircularArrayBoolean mCandidatesQueue;
 
 	private List<DetectedEvent> mDetectedEvents;
+	
+	private String mSessionId;
 
 	private SensorListener() {
 	}
@@ -85,21 +85,30 @@ public class SensorListener implements SensorEventListener {
 		mCurrentSeriesIdx = currentSeriesIdx;
 	}
 
-	public static SensorListener create(String accelerationOutputFile, String detectedTimestampsFile, Context context,
+	public static SensorListener create(String sessionId, Context context,
 			int thresholdActive, int thresholdInactive, int expectedMean,
 			int windowMain, int stepMain, int meanDistanceThreshold,
 			int windowRemove) {
 		SensorListener retVal = new SensorListener();
+		// initialize sensor
 		retVal.mSensorManager = (SensorManager) context
 				.getSystemService(Context.SENSOR_SERVICE);
 		retVal.mSensor = retVal.mSensorManager
 				.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+		
+		// store context for sending intents
 		retVal.mApplicationContext = context;
-		retVal.mAccelerationOutputFile = accelerationOutputFile;
-		retVal.mDetectedTimestampsFile = detectedTimestampsFile;
+		
+		// store the exercise id used for specifying the underlying 
+		// files for saving the data
+		retVal.mSessionId = sessionId;
+		
+		// create a handler thread to which sampled acceleration will
+		// be delivered
 		retVal.mProcessThread = new HandlerThread("ProcessThread",
 				Thread.MAX_PRIORITY);
 
+		// set algorithm parameters
 		retVal.mThresholdActive = thresholdActive;
 		retVal.mThresholdInactive = thresholdInactive;
 		retVal.mExpectedMean = expectedMean;
@@ -112,7 +121,7 @@ public class SensorListener implements SensorEventListener {
 		retVal.initializeAlgorithmStructures();
 
 		if (retVal.mSensor == null) {
-			// this could actually be changed so the app will offer only limited
+			// TODO: this could actually be changed so the app will offer only limited
 			// functionality - without automation
 			// (or functionality based on some other sensor)
 			Log.e(TAG, "No acceleration sensor present, the app can not run.");
@@ -128,15 +137,13 @@ public class SensorListener implements SensorEventListener {
 		mDetectedEvents.clear();
 
 		mOutputWriter = new PrintWriter(new BufferedWriter(new FileWriter(
-				mAccelerationOutputFile, true)));
+				Utils.getAccelerationFile(mSessionId), true)));
 		
 		mDetectedTimestampsWriter = new PrintWriter(new BufferedWriter(
-				new FileWriter(mDetectedTimestampsFile, true)));
+				new FileWriter(Utils.getTimestampsFile(mSessionId), true)));
 
-		// TODO: this one is only kept for debugging
-		String interpolatedFile = mAccelerationOutputFile + "_i";
 		mInterpolatedWriter = new PrintWriter(new BufferedWriter(
-				new FileWriter(interpolatedFile, true)));
+				new FileWriter(Utils.getInterpolatedAccelerationFile(mSessionId), true)));
 		
 		
 		// TODO: rework this (if false is returned no file should be created)
@@ -380,5 +387,15 @@ public class SensorListener implements SensorEventListener {
 		/*Log.d(TAG,
 				"SensorProcessor.exerciseStatCh: "
 						+ Long.toString(Thread.currentThread().getId()));*/
+	}
+	
+	public boolean compileForUpload(){
+		Compress comp = new Compress(new String[] { Utils.getAccelerationFile(mSessionId).getPath(),
+				Utils.getTimestampsFile(mSessionId).getPath() },
+				new File(Utils.getUploadDataFolderFile(), mSessionId).getPath());
+		
+		// TODO: when the compilation is finished compiled files can be deleted
+
+		return comp.zip();
 	}
 }

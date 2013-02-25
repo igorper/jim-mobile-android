@@ -36,7 +36,7 @@ public class ExpandableListDemo extends ExpandableListActivity {
 		mSettings = DetectorSettings.create(PreferenceManager
 				.getDefaultSharedPreferences(this));
 
-		mTrainingMainfestFile = new File(Utils.getFullDataFolder(),
+		mTrainingMainfestFile = new File(Utils.getDataFolderFile(),
 				Utils.getTrainingManifestFileName(mSettings.getOutputFile()))
 				.getPath();
 		mTrainingPlan = TrainingPlan.readFromFile(mTrainingMainfestFile);
