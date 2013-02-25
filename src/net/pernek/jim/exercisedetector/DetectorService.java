@@ -60,6 +60,10 @@ public class DetectorService extends Service {
 		// (this means we are starting a new sampling session)
 		if (mSettings.getOutputFile().equals("")) {
 			mSettings.saveOutputFile(Utils.generateFileName());
+			
+			// also reset current exercise and series index
+			mSettings.saveCurrentExerciseIndex(0);
+			mSettings.saveCurrentSeriesIndex(0);
 		}
 
 		// check if the folder exists and create it if it doesn't

@@ -231,8 +231,7 @@ public class ExerciseDetectorActivity extends Activity {
 		mTvExerciseState = (TextView) findViewById(R.id.tvExerciseState);
 		mChbToggleService = (CheckBox) findViewById(R.id.chbToggleService);
 		mChbToggleService.setChecked(isDetectorServiceRunning());
-		mLlTrainingPlan = (LinearLayout)findViewById(R.id.llTrainingPlan);
-	
+		mLlTrainingPlan = (LinearLayout) findViewById(R.id.llTrainingPlan);
 
 		mChbToggleService
 				.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -247,13 +246,15 @@ public class ExerciseDetectorActivity extends Activity {
 							// might be this can be improved
 							System.gc();
 
-							// reset training plan pointers
-							mSettings.saveCurrentExerciseIndex(0);
-							mSettings.saveCurrentSeriesIndex(0);
-
 							if (mSettings.getCurrentTrainingPlan().equals("")) {
 								// open popup to download a training plan
 							}
+
+							// on start reset exercise state to REST
+							mSettings.saveIsExerciseState(false);
+							mTvExerciseState
+									.setText(getExerciseString(mSettings
+											.isExerciseState()));
 
 							startService(new Intent(
 									ExerciseDetectorActivity.this,
@@ -266,9 +267,8 @@ public class ExerciseDetectorActivity extends Activity {
 									TIMER_UPDATE_MS);
 
 							// NOTE: we will never unbind the service as binding
-							// was
-							// performed with 0 flag meaning the service had to
-							// be started before with start service
+							// was performed with 0 flag meaning the service had
+							// to be started before with start service call
 							getApplicationContext().bindService(
 									new Intent(ExerciseDetectorActivity.this,
 											DetectorService.class),
@@ -284,23 +284,19 @@ public class ExerciseDetectorActivity extends Activity {
 							stopService(new Intent(
 									ExerciseDetectorActivity.this,
 									DetectorService.class));
-							
+
+							// on end reset exercise state to REST
+							mSettings.saveIsExerciseState(false);
+							mTvExerciseState
+									.setText(getExerciseString(mSettings
+											.isExerciseState()));
+
 							updateTrainingInfoUI();
 						}
 					}
 				});
 
 		resurrectDestroyed();
-
-		// - we could actually not show any training information until the
-		// training service is not
-		// running (training information should only be accessed through
-		// detector service and not
-		// through settings in this activity)
-		/*
-		 * updateExerciseInfoUI(mSettings.getCurrentExerciseIndex(),
-		 * mSettings.getCurrentSeriesIndex());
-		 */
 
 		receiver = new ResponseReceiver();
 
@@ -402,27 +398,27 @@ public class ExerciseDetectorActivity extends Activity {
 
 	private void updateTrainingInfoUI() {
 		if (mDetectorService != null) {
-			int exerciseIndex = mDetectorService.getCurrentExerciseIdx(); 
+			int exerciseIndex = mDetectorService.getCurrentExerciseIdx();
 			int seriesIndex = mDetectorService.getCurrentSeriesIdx();
 			TrainingPlan curTraining = mDetectorService
 					.getCurrentTrainingPlan();
 			Exercise curExercise = curTraining.getExercises()
 					.get(exerciseIndex);
 			Series curSeries = curExercise.getSeries().get(seriesIndex);
-			
+
 			mTvCurrentTraining.setText(curTraining.getName());
 			mTvCurrentExercise.setText(curExercise.getName());
 			mTvCurrentSeries.setText(Integer.toString(seriesIndex));
 			mTvExpectedRepetitions.setText(Integer.toString(curSeries
 					.getNumRepetitions()));
 			mTvExpectedWeight.setText(Integer.toString(curSeries.getWeight()));
-			
+
 			mLlTrainingPlan.setVisibility(View.VISIBLE);
 		} else {
 			mLlTrainingPlan.setVisibility(View.INVISIBLE);
 		}
 	}
-	
+
 	@Override
 	protected void onStart() {
 		// TODO Auto-generated method stub
