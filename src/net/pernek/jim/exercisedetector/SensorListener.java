@@ -11,10 +11,13 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 
+import org.json.JSONException;
+
 import net.pernek.jim.exercisedetector.alg.CircularArrayBoolean;
 import net.pernek.jim.exercisedetector.alg.CircularArrayInt;
 import net.pernek.jim.exercisedetector.alg.Compress;
 import net.pernek.jim.exercisedetector.alg.DetectedEvent;
+import net.pernek.jim.exercisedetector.alg.TrainingPlan;
 import android.content.Context;
 import android.content.Intent;
 import android.hardware.Sensor;
@@ -75,20 +78,16 @@ public class SensorListener implements SensorEventListener {
 	private List<DetectedEvent> mDetectedEvents;
 	
 	private String mSessionId;
+	
+	private TrainingPlan mCurrentTrainingPlan;
 
 	private SensorListener() {
-	}
-
-	public void updateCurrentExerciseInfo(int currentExerciseIdx,
-			int currentSeriesIdx) {
-		mCurrentExerciseIdx = currentExerciseIdx;
-		mCurrentSeriesIdx = currentSeriesIdx;
 	}
 
 	public static SensorListener create(String sessionId, Context context,
 			int thresholdActive, int thresholdInactive, int expectedMean,
 			int windowMain, int stepMain, int meanDistanceThreshold,
-			int windowRemove) {
+			int windowRemove, String jsonEncodedTrainingPlan, int currentExerciseIdx, int currentSeriesIdx) {
 		SensorListener retVal = new SensorListener();
 		// initialize sensor
 		retVal.mSensorManager = (SensorManager) context
@@ -102,6 +101,26 @@ public class SensorListener implements SensorEventListener {
 		// store the exercise id used for specifying the underlying 
 		// files for saving the data
 		retVal.mSessionId = sessionId;
+		
+		// create or read the training manifest
+		String tempTrainingMainfestPath = Utils.getTrainingManifestFile(sessionId).getPath();
+		
+		if (new File(tempTrainingMainfestPath).exists()) {
+			// if the training file is already stored on the reload it
+			// (this happened when the service was killed and recovered)
+			retVal.mCurrentTrainingPlan = TrainingPlan.readFromFile(tempTrainingMainfestPath);
+		} else {
+			// create the current training from the shared preferences
+			try {
+				retVal.mCurrentTrainingPlan = TrainingPlan.parseFromJson(jsonEncodedTrainingPlan);
+			} catch (JSONException e) {
+				e.printStackTrace();
+				return null;
+			}
+			
+			// save the file to disk as well (for the case the service crashes)
+			retVal.mCurrentTrainingPlan.saveToTempFile(tempTrainingMainfestPath);
+		}
 		
 		// create a handler thread to which sampled acceleration will
 		// be delivered
@@ -117,6 +136,10 @@ public class SensorListener implements SensorEventListener {
 		retVal.mMeanDistanceThreshold = meanDistanceThreshold;
 		retVal.mWindowRemove = windowRemove;
 		retVal.mDetectedEvents = new ArrayList<DetectedEvent>();
+		
+		// set current series and exercise (for the ressurection case)
+		retVal.mCurrentExerciseIdx = currentExerciseIdx;
+		retVal.mCurrentSeriesIdx = currentSeriesIdx;
 
 		retVal.initializeAlgorithmStructures();
 
@@ -389,13 +412,40 @@ public class SensorListener implements SensorEventListener {
 						+ Long.toString(Thread.currentThread().getId()));*/
 	}
 	
-	public boolean compileForUpload(){
-		Compress comp = new Compress(new String[] { Utils.getAccelerationFile(mSessionId).getPath(),
-				Utils.getTimestampsFile(mSessionId).getPath() },
-				new File(Utils.getUploadDataFolderFile(), mSessionId).getPath());
+	public boolean compileForUpload(String sessionId){
+		Compress comp = new Compress(new String[] { Utils.getAccelerationFile(sessionId).getPath(),
+				Utils.getTimestampsFile(sessionId).getPath() },
+				new File(Utils.getUploadDataFolderFile(), sessionId).getPath());
 		
 		// TODO: when the compilation is finished compiled files can be deleted
 
 		return comp.zip();
+	}
+
+	public void updateTrainingPlan() {
+		mCurrentTrainingPlan = TrainingPlan.readFromFile(Utils.getTrainingManifestFile(mSessionId).getPath());
+	}
+
+	public int[] moveToNextActivity() {
+		if (mCurrentSeriesIdx + 1 < mCurrentTrainingPlan.getExercises()
+				.get(mCurrentExerciseIdx).getSeries().size()) {
+			mCurrentSeriesIdx++;
+		} else {
+			mCurrentSeriesIdx = 0;
+
+			// we have move to the next exercise
+			if (mCurrentExerciseIdx + 1 < mCurrentTrainingPlan.getExercises().size()) {
+				mCurrentExerciseIdx++;
+			} else {
+				// last exercise done
+				return null;
+			}
+		}
+
+		return new int[] { mCurrentExerciseIdx, mCurrentSeriesIdx};
+	}
+
+	public TrainingPlan getCurrentTrainingPlan() {
+		return mCurrentTrainingPlan;
 	}
 }

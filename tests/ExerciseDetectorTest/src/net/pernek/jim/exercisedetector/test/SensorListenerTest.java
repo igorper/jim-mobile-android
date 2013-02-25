@@ -17,9 +17,12 @@ public class SensorListenerTest extends InstrumentationTestCase {
 	
 	private String testId = "TEST_ID";
 	
+	private static String SAMPLE_JSON_TRAINING = "{'exercises':[{'series':[{'repeat_count':10,'weight':50},{'repeat_count':15,'weight':55},{'repeat_count':10,'weight':45}],'name':'Lat Pulldown'},{'series':[{'repeat_count':10,'weight':50},{'repeat_count':15,'weight':55},{'repeat_count':10,'weight':45}],'name':'Vertical Press'},{'series':[{'repeat_count':10,'weight':50},{'repeat_count':15,'weight':55},{'repeat_count':10,'weight':45}],'name':'Incline Press'},{'series':[{'repeat_count':10,'weight':50},{'repeat_count':15,'weight':55},{'repeat_count':10,'weight':45}],'name':'Bench Press'}],'name':'Super Trening'}";
+	
 	File mAccelerationFile = Utils.getAccelerationFile(testId);
 	File mTimestampsFile = Utils.getTimestampsFile(testId);
 	File mInterpolationFile = Utils.getInterpolatedAccelerationFile(testId);
+	File mTrainingManifestFile = Utils.getTrainingManifestFile(testId);
 	
 	SensorListener mSensorListener;
 	
@@ -34,7 +37,7 @@ public class SensorListenerTest extends InstrumentationTestCase {
 		
 		mSensorListener = SensorListener.create(testId,
 				getInstrumentation().getContext(), 50000, 200000, 1000000, 180,
-				100, 200000, 3);
+				100, 200000, 3, SAMPLE_JSON_TRAINING,  0, 0);
 		
 		removeFiles();
 	}
@@ -61,6 +64,8 @@ public class SensorListenerTest extends InstrumentationTestCase {
 		}
 	}
 	
+	// test move to next (break down in the middle)
+	
 	public void testFileCompile(){
 		try {
 			mSensorListener.start();
@@ -70,7 +75,7 @@ public class SensorListenerTest extends InstrumentationTestCase {
 		}
 
 		mSensorListener.stop();
-		mSensorListener.compileForUpload();
+		mSensorListener.compileForUpload(testId);
 		
 		File compiledFile = new File(Utils.getUploadDataFolderFile(), testId);
 		if(!compiledFile.exists()){
