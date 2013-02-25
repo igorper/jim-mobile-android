@@ -5,8 +5,9 @@ import java.io.IOException;
 
 import org.json.JSONException;
 
-import net.pernek.jim.exercisedetector.alg.Compress;
-import net.pernek.jim.exercisedetector.alg.TrainingPlan;
+import net.pernek.jim.exercisedetector.entities.TrainingPlan;
+import net.pernek.jim.exercisedetector.util.Compress;
+import net.pernek.jim.exercisedetector.util.Utils;
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;

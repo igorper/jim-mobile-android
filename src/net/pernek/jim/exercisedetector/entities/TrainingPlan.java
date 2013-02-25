@@ -1,4 +1,4 @@
-package net.pernek.jim.exercisedetector.alg;
+package net.pernek.jim.exercisedetector.entities;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -10,7 +10,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 
-import net.pernek.jim.exercisedetector.Utils;
+import net.pernek.jim.exercisedetector.util.Utils;
 
 import org.json.JSONArray;
 import org.json.JSONException;

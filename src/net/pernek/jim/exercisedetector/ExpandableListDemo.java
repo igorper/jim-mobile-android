@@ -5,9 +5,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import net.pernek.jim.exercisedetector.alg.Exercise;
-import net.pernek.jim.exercisedetector.alg.Series;
-import net.pernek.jim.exercisedetector.alg.TrainingPlan;
+import net.pernek.jim.exercisedetector.entities.Exercise;
+import net.pernek.jim.exercisedetector.entities.Series;
+import net.pernek.jim.exercisedetector.entities.TrainingPlan;
+import net.pernek.jim.exercisedetector.util.Utils;
 import android.app.ExpandableListActivity;
 import android.os.Bundle;
 import android.preference.PreferenceManager;

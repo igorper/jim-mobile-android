@@ -1,8 +1,9 @@
 package net.pernek.jim.exercisedetector;
 
-import net.pernek.jim.exercisedetector.alg.Exercise;
-import net.pernek.jim.exercisedetector.alg.Series;
-import net.pernek.jim.exercisedetector.alg.TrainingPlan;
+import net.pernek.jim.exercisedetector.entities.Exercise;
+import net.pernek.jim.exercisedetector.entities.Series;
+import net.pernek.jim.exercisedetector.entities.TrainingPlan;
+import net.pernek.jim.exercisedetector.util.Utils;
 
 import org.json.JSONException;
 

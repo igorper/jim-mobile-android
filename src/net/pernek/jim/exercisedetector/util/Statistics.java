@@ -1,4 +1,4 @@
-package net.pernek.jim.exercisedetector;
+package net.pernek.jim.exercisedetector.util;
 
 
 // create unit tests for this functions

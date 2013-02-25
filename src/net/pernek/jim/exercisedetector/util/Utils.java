@@ -1,4 +1,4 @@
-package net.pernek.jim.exercisedetector;
+package net.pernek.jim.exercisedetector.util;
 
 import java.io.File;
 import java.text.SimpleDateFormat;

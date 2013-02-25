@@ -1,4 +1,4 @@
-package net.pernek.jim.exercisedetector.alg;
+package net.pernek.jim.exercisedetector.util;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;

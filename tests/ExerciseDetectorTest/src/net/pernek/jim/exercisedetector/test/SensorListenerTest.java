@@ -10,8 +10,8 @@ import java.util.List;
 import java.util.Queue;
 
 import net.pernek.jim.exercisedetector.SensorListener;
-import net.pernek.jim.exercisedetector.Utils;
 import net.pernek.jim.exercisedetector.alg.DetectedEvent;
+import net.pernek.jim.exercisedetector.util.Utils;
 import android.os.Environment;
 import android.test.InstrumentationTestCase;
 

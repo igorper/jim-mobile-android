@@ -1,4 +1,4 @@
-package net.pernek.jim.exercisedetector.alg;
+package net.pernek.jim.exercisedetector.entities;
 
 public class Series {
 	private int mNumRepetitions;

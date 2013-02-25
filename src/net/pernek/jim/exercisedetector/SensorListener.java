@@ -12,9 +12,11 @@ import java.util.List;
 import java.util.Queue;
 
 import net.pernek.jim.exercisedetector.alg.CircularArrayInt;
-import net.pernek.jim.exercisedetector.alg.Compress;
 import net.pernek.jim.exercisedetector.alg.DetectedEvent;
-import net.pernek.jim.exercisedetector.alg.TrainingPlan;
+import net.pernek.jim.exercisedetector.entities.TrainingPlan;
+import net.pernek.jim.exercisedetector.util.Compress;
+import net.pernek.jim.exercisedetector.util.Statistics;
+import net.pernek.jim.exercisedetector.util.Utils;
 
 import org.json.JSONException;
 

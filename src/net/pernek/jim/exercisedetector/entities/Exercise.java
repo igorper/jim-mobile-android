@@ -1,4 +1,4 @@
-package net.pernek.jim.exercisedetector.alg;
+package net.pernek.jim.exercisedetector.entities;
 
 import java.util.ArrayList;
 import java.util.List;

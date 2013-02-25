@@ -1,6 +1,6 @@
 package net.pernek.jim.exercisedetector.test;
 
-import net.pernek.jim.exercisedetector.Statistics;
+import net.pernek.jim.exercisedetector.util.Statistics;
 import junit.framework.TestCase;
 
 public class StatisticsTest extends TestCase {
