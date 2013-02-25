@@ -153,12 +153,8 @@ public class SensorListener implements SensorEventListener {
 
 		return retVal;
 	}
-
-	public boolean start() throws IOException {
-
-		mSessionStart = 0;
-		mDetectedEvents.clear();
-
+	
+	public void openOutputFiles() throws IOException{
 		mOutputWriter = new PrintWriter(new BufferedWriter(new FileWriter(
 				Utils.getAccelerationFile(mSessionId), true)));
 		
@@ -167,7 +163,11 @@ public class SensorListener implements SensorEventListener {
 
 		mInterpolatedWriter = new PrintWriter(new BufferedWriter(
 				new FileWriter(Utils.getInterpolatedAccelerationFile(mSessionId), true)));
-		
+	}
+
+	public boolean startAccelerationSampling() {
+		mSessionStart = 0;
+		mDetectedEvents.clear();	
 		
 		// TODO: rework this (if false is returned no file should be created)
 		return mSensorManager.registerListener(this, mSensor,
@@ -183,10 +183,8 @@ public class SensorListener implements SensorEventListener {
 		mMeanQueue = new CircularArrayInt(mWindowRemove);
 		mCandidatesQueue = new CircularArrayBoolean(mWindowRemove);
 	}
-
-	public boolean stop() {
-		mSensorManager.unregisterListener(this);
-
+	
+	public void closeOutputFiles(){
 		if (mOutputWriter != null) {
 			mOutputWriter.close();
 		}
@@ -198,6 +196,10 @@ public class SensorListener implements SensorEventListener {
 		if (mDetectedTimestampsWriter != null) {
 			mDetectedTimestampsWriter.close();
 		}
+	}
+
+	public boolean stopAccelerationSampling() {
+		mSensorManager.unregisterListener(this);
 
 		mProcessThread.quit();
 

@@ -81,22 +81,23 @@ public class DetectorService extends Service {
 		 * 1000000, 600, 200, 200000, 14);
 		 */
 		try {
-			boolean status = mSensorListener.start();
-
-			if (!status) {
-				// do this more gracefully -> the app simply does not need to
-				// offer automated functionalities if the sensors are not
-				// present
-				// (user can still swipe through the user interface)
-				Toast.makeText(
-						this,
-						"Unable to start accelerometer service. Is the sensor really present?",
-						Toast.LENGTH_SHORT).show();
-				return false;
-			}
+			mSensorListener.openOutputFiles();
 		} catch (IOException e) {
 			// this happens when creating a file fails
-			Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
+			Toast.makeText(this, "Unable to open output files.", Toast.LENGTH_SHORT).show();
+			return false;
+		}
+
+		boolean status = mSensorListener.startAccelerationSampling();
+		if (!status) {
+			// can also do this more gracefully -> the app simply does not need to
+			// offer automated functionalities if the sensors are not
+			// present
+			// (user can still swipe through the user interface)
+			Toast.makeText(
+					this,
+					"Unable to start accelerometer service. Is the sensor really present?",
+					Toast.LENGTH_SHORT).show();
 			return false;
 		}
 
@@ -119,7 +120,9 @@ public class DetectorService extends Service {
 		// selects that he wants to stop)
 		mSettings.saveOutputFile("");
 
-		mSensorListener.stop();
+		mSensorListener.closeOutputFiles();
+		
+		mSensorListener.stopAccelerationSampling();
 
 		// compile all collected data to one JSON file
 		// this file will be visible in upload activity
@@ -179,7 +182,7 @@ public class DetectorService extends Service {
 
 		mSettings.saveServiceRunning(false);
 
-		mSensorListener.stop();
+		mSensorListener.stopAccelerationSampling();
 
 		super.onDestroy();
 	}

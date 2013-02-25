@@ -69,16 +69,19 @@ public class SensorListenerTest extends InstrumentationTestCase {
 	}
 	
 	// test move to next (break down in the middle)
+	public void testRessurect(){
+		
+	}
 	
 	public void testFileCompile(){
 		try {
-			mSensorListener.start();
+			mSensorListener.openOutputFiles();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			fail("Failed to start.");
 		}
 
-		mSensorListener.stop();
+		mSensorListener.closeOutputFiles();
 		mSensorListener.compileForUpload(testId);
 		
 		File compiledFile = new File(Utils.getUploadDataFolderFile(), testId);
@@ -90,13 +93,13 @@ public class SensorListenerTest extends InstrumentationTestCase {
 	public void testFileCreation() {
 
 		try {
-			mSensorListener.start();
+			mSensorListener.openOutputFiles();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			fail("Failed to start.");
 		}
 
-		mSensorListener.stop();
+		mSensorListener.closeOutputFiles();
 
 		if (!mAccelerationFile.exists() || !mTimestampsFile.exists()
 				|| !mInterpolationFile.exists() || !mTrainingManifestFile.exists()) {
