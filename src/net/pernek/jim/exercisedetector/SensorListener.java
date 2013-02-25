@@ -11,13 +11,13 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 
-import org.json.JSONException;
-
-import net.pernek.jim.exercisedetector.alg.CircularArrayBoolean;
 import net.pernek.jim.exercisedetector.alg.CircularArrayInt;
 import net.pernek.jim.exercisedetector.alg.Compress;
 import net.pernek.jim.exercisedetector.alg.DetectedEvent;
 import net.pernek.jim.exercisedetector.alg.TrainingPlan;
+
+import org.json.JSONException;
+
 import android.content.Context;
 import android.content.Intent;
 import android.hardware.Sensor;
@@ -73,7 +73,7 @@ public class SensorListener implements SensorEventListener {
 	private CircularArrayInt mBufferTstmp;
 	private CircularArrayInt mTstmpsQueue;
 	private CircularArrayInt mMeanQueue;
-	private CircularArrayBoolean mCandidatesQueue;
+	private CircularArrayInt mCandidatesQueue;
 
 	private List<DetectedEvent> mDetectedEvents;
 
@@ -192,7 +192,7 @@ public class SensorListener implements SensorEventListener {
 		mBufferTstmp = new CircularArrayInt(mWindowMain);
 		mTstmpsQueue = new CircularArrayInt(mWindowRemove);
 		mMeanQueue = new CircularArrayInt(mWindowRemove);
-		mCandidatesQueue = new CircularArrayBoolean(mWindowRemove);
+		mCandidatesQueue = new CircularArrayInt(mWindowRemove);
 	}
 
 	public void closeOutputFiles() {
@@ -310,15 +310,15 @@ public class SensorListener implements SensorEventListener {
 			boolean binaryCandidate = binaryZ && (!binaryX || !binaryY);
 
 			if (mCandidatesQueue.isFull()) {
-				boolean lastCandidate = mCandidatesQueue.dequeue();
-				mCandidatesQueue.enqueue(binaryCandidate);
+				boolean lastCandidate = mCandidatesQueue.dequeue() == 1;
+				mCandidatesQueue.enqueue(binaryCandidate ? 1 : 0);
 				mTstmpsQueue.enqueue(curTstmp);
 
-				if (!lastCandidate && mCandidatesQueue.first()) {
-					boolean[] tempCand = mCandidatesQueue.getFullValues();
+				if (!lastCandidate && mCandidatesQueue.first() == 1) {
+					int[] tempCand = mCandidatesQueue.getFullValues();
 					int detectedPositives = 0;
 					for (int i = tempCand.length - 1; i >= 0; i--) {
-						detectedPositives += tempCand[i] ? 1 : 0;
+						detectedPositives += tempCand[i];
 					}
 
 					int meanZ = (int) Statistics.mean(mMeanQueue
@@ -330,7 +330,7 @@ public class SensorListener implements SensorEventListener {
 					}
 				}
 			} else {
-				mCandidatesQueue.enqueue(binaryCandidate);
+				mCandidatesQueue.enqueue(binaryCandidate ? 1 : 0);
 				mTstmpsQueue.enqueue(curTstmp);
 			}
 
