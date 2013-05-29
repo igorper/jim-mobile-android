@@ -11,6 +11,10 @@
         android:layout_centerHorizontal="true"
         android:layout_marginTop="18dp"
         android:orientation="vertical" >
+        
+        <net.pernek.jim.exercisedetector.CircularProgressControl
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent" />
 
         <CheckBox
             android:id="@+id/chbToggleService"

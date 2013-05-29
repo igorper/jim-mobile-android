@@ -60,7 +60,7 @@ public class DetectorService extends Service {
 		// (this means we are starting a new sampling session)
 		if (mSettings.getOutputFile().equals("")) {
 			mSettings.saveOutputFile(Utils.generateFileName());
-			
+
 			// also reset current exercise and series index
 			mSettings.saveCurrentExerciseIndex(0);
 			mSettings.saveCurrentSeriesIndex(0);
@@ -71,18 +71,21 @@ public class DetectorService extends Service {
 		folder.mkdir();
 
 		// hand testing values
+		/*
+		 * mSensorListener = SensorListener.create(mSettings.getOutputFile(),
+		 * getApplicationContext(), 50000, 200000, 1000000, 180, 100, 200000, 4,
+		 * mSettings.getCurrentTrainingPlan(),
+		 * mSettings.getCurrentExerciseIndex(),
+		 * mSettings.getCurrentSeriesIndex());
+		 */
+		// gym detection values
+
 		mSensorListener = SensorListener.create(mSettings.getOutputFile(),
-				getApplicationContext(), 50000, 200000, 1000000, 180, 100,
-				200000, 4, mSettings.getCurrentTrainingPlan(),
+				getApplicationContext(), 8000, 30000, 1000000, 600, 200,
+				200000, 14, mSettings.getCurrentTrainingPlan(),
 				mSettings.getCurrentExerciseIndex(),
 				mSettings.getCurrentSeriesIndex());
 
-		// gym detection values
-		/*
-		 * mSensorListener = SensorListener.create( new File(folder,
-		 * mSettings.getOutputFile()), getApplicationContext(), 8000, 30000,
-		 * 1000000, 600, 200, 200000, 14);
-		 */
 		try {
 			mSensorListener.openOutputFiles();
 		} catch (IOException e) {
@@ -156,8 +159,10 @@ public class DetectorService extends Service {
 		// update shared preferecenes (just for the case the application breaks
 		// down in the middle)
 		if (status) {
-			mSettings.saveCurrentExerciseIndex(mSensorListener.getCurrentExerciseIdx());
-			mSettings.saveCurrentSeriesIndex(mSensorListener.getCurrentSeriesIdx());
+			mSettings.saveCurrentExerciseIndex(mSensorListener
+					.getCurrentExerciseIdx());
+			mSettings.saveCurrentSeriesIndex(mSensorListener
+					.getCurrentSeriesIdx());
 		}
 
 		return status;
@@ -180,12 +185,12 @@ public class DetectorService extends Service {
 		notification.flags |= Notification.FLAG_NO_CLEAR;
 		startForeground(NOTIFICATION_ID, notification);
 	}
-	
-	public int getCurrentExerciseIdx(){
+
+	public int getCurrentExerciseIdx() {
 		return mSensorListener.getCurrentExerciseIdx();
 	}
-	
-	public int getCurrentSeriesIdx(){
+
+	public int getCurrentSeriesIdx() {
 		return mSensorListener.getCurrentSeriesIdx();
 	}
 

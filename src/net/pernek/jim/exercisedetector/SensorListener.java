@@ -67,7 +67,7 @@ public class SensorListener implements SensorEventListener {
 	private int mCurrentExerciseIdx = 0;
 	private int mCurrentSeriesIdx = 0;
 
-	int mPossibleActivityStart = -1;
+	private int mPossibleActivityStart = -1;
 
 	private CircularArrayInt mBufferX;
 	private CircularArrayInt mBufferY;
