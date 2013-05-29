@@ -24,6 +24,25 @@ public class CircularProgressControl extends View {
     private Paint mExerciseProgressForegroundPaint;
     private Paint mRestProgressBackgroundPaint;
     private Paint mRestProgressForegroundPaint;
+    
+    private int mTrainingProgressValue;
+    private int mExerciseProgressValue;
+    private int mRestProgressValue;
+    
+    public void setTrainingProgressValue(int value){
+    	mTrainingProgressValue = value;
+    	invalidate();
+    }
+    
+    public void setExerciseProgressValue(int value){
+    	mExerciseProgressValue = value;
+    	invalidate();
+    }
+    
+    public void setRestProgressValue(int value){
+    	mRestProgressValue = value;
+    	invalidate();
+    }
 	
 	private float mProgThicknessInPx;
     
@@ -111,11 +130,11 @@ public class CircularProgressControl extends View {
         super.onDraw(canvas);
         //canvas.drawText(mText, getPaddingLeft(), getPaddingTop() - mAscent, mTextPaint);
         canvas.drawCircle(mCenterX, mCenterY, circleRadius, mTrainingProgressBackgroundPaint);
-        canvas.drawArc(mTrainingCircleOval, 270, 90, true, mTrainingProgressForegroundPaint);
+        canvas.drawArc(mTrainingCircleOval, 270, mTrainingProgressValue, true, mTrainingProgressForegroundPaint);
         canvas.drawCircle(mCenterX, mCenterY, mExerciseCircleRadius, mExerciseProgressBackgroundPaint);
-        canvas.drawArc(mExerciseCircleOval, 270, 180, true, mExerciseProgressForegroundPaint);
+        canvas.drawArc(mExerciseCircleOval, 270, mExerciseProgressValue, true, mExerciseProgressForegroundPaint);
         canvas.drawCircle(circleRadius, circleRadius, mRestCircleRadius, mRestProgressBackgroundPaint);
-        canvas.drawArc(mRestCircleOval, 270, 270, true, mRestProgressForegroundPaint);
+        canvas.drawArc(mRestCircleOval, 270, mRestProgressValue, true, mRestProgressForegroundPaint);
     }
 }
 
