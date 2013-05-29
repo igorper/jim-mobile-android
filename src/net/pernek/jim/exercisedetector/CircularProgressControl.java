@@ -8,13 +8,16 @@ import android.graphics.RectF;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.util.TypedValue;
+import android.view.MotionEvent;
 import android.view.View;
+import android.widget.Button;
+import android.widget.Toast;
 
 /**
  * @author Igor
  *
  */
-public class CircularProgressControl extends View {
+public class CircularProgressControl extends Button{
 	private static final String TAG = Utils.getApplicationTag();
 	
 	/**
@@ -223,6 +226,17 @@ public class CircularProgressControl extends View {
     	mRestProgressForegroundPaint.setColor(REST_PROG_FG_COLOR);
     	        
     	mProgThicknessInPx = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, PROG_THICK_IN_DIP, getResources().getDisplayMetrics());
+    	
+    	// hide the default button background
+    	setBackgroundDrawable(null);
+    	setOnLongClickListener(new OnLongClickListener() {
+			
+			@Override
+			public boolean onLongClick(View arg0) {
+				Toast.makeText(getContext(), "test", Toast.LENGTH_LONG).show();
+				return false;
+			}
+		});
     }
     
     /**
@@ -245,7 +259,7 @@ public class CircularProgressControl extends View {
     	mRestCircleOval = new RectF(2*mProgThicknessInPx, 2*mProgThicknessInPx, 
     			width - 2*mProgThicknessInPx, width - 2*mProgThicknessInPx);
     }
-  
+      
     /**
      * Render the circular progress control.
      * 
@@ -253,7 +267,7 @@ public class CircularProgressControl extends View {
      */
     @Override
     protected void onDraw(Canvas canvas) {
-        super.onDraw(canvas);
+        //super.onDraw(canvas);
         
         // draw training, exercise and rest progress bars
         canvas.drawCircle(mCenterX, mCenterY, 
@@ -266,8 +280,10 @@ public class CircularProgressControl extends View {
         canvas.drawArc(mExerciseCircleOval, 270, 
         		mExerciseProgressValue *  VALUE_CIRCLE_MODIFIER, true, 
         		mExerciseProgressForegroundPaint);
+        if(!isPressed()){
         canvas.drawCircle(mTrainingCircleRadius, mTrainingCircleRadius, 
         		mRestCircleRadius, mRestProgressBackgroundPaint);
+        }
         canvas.drawArc(mRestCircleOval, 270, 
         		mRestProgressValue *  VALUE_CIRCLE_MODIFIER, true, 
         		mRestProgressForegroundPaint);
