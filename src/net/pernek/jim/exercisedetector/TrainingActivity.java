@@ -10,16 +10,16 @@ public class TrainingActivity extends Activity {
 	
 	private int mTrainingCounter = 0;
 	private int mExerciseCounter = 0;
-	private int mRestCounter = 360;
+	private int mRestCounter = 100;
 	
 	private Handler mUiHandler = new Handler();
 	private Runnable mRunTimerUpdate = new Runnable() {
 
 		@Override
 		public void run() {
-			mCircularProgress.setTrainingProgressValue(mTrainingCounter++);
+			//mCircularProgress.setTrainingProgressValue(mTrainingCounter++);
 			mCircularProgress.setExerciseProgressValue(mExerciseCounter);
-			mCircularProgress.setRestProgressValue(mRestCounter--);
+			//mCircularProgress.setRestProgressValue(mRestCounter--);
 			
 			mExerciseCounter += 2;
 			
