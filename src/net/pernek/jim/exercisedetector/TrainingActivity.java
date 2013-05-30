@@ -1,5 +1,6 @@
 package net.pernek.jim.exercisedetector;
 
+import net.pernek.jim.exercisedetector.CircularProgressControl.CircularProgressState;
 import android.app.Activity;
 import android.os.Bundle;
 import android.os.Handler;
@@ -36,6 +37,7 @@ public class TrainingActivity extends Activity {
 		mCircularProgress.setExerciseMaxProgress(200);
 		mCircularProgress.setExerciseMinProgress(100);
 		mCircularProgress.setRestMaxProgress(200);
+		mCircularProgress.setCurrentState(CircularProgressState.EXERCISE);
 		
 		mUiHandler.postDelayed(mRunTimerUpdate, 100);
 	}
