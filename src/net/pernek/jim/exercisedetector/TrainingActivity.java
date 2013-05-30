@@ -9,19 +9,19 @@ public class TrainingActivity extends Activity {
 	private CircularProgressControl mCircularProgress;
 	
 	private int mTrainingCounter = 0;
-	private int mExerciseCounter = 0;
-	private int mRestCounter = 100;
+	private int mExerciseCounter = 100;
+	private int mRestCounter = 0;
 	
 	private Handler mUiHandler = new Handler();
 	private Runnable mRunTimerUpdate = new Runnable() {
 
 		@Override
 		public void run() {
-			//mCircularProgress.setTrainingProgressValue(mTrainingCounter++);
-			mCircularProgress.setExerciseProgressValue(mExerciseCounter);
-			//mCircularProgress.setRestProgressValue(mRestCounter--);
+			mCircularProgress.setTrainingProgressValue(mTrainingCounter++);
+			mCircularProgress.setExerciseProgressValue(mExerciseCounter++);
+			mCircularProgress.setRestProgressValue(mRestCounter);
 			
-			mExerciseCounter += 2;
+			mRestCounter += 2;
 			
 			mUiHandler.postDelayed(this, 100);
 		}
@@ -33,6 +33,9 @@ public class TrainingActivity extends Activity {
 		setContentView(R.layout.training_activity);
 		
 		mCircularProgress = (CircularProgressControl)findViewById(R.id.circularProgress);
+		mCircularProgress.setExerciseMaxProgress(200);
+		mCircularProgress.setExerciseMinProgress(100);
+		mCircularProgress.setRestMaxProgress(200);
 		
 		mUiHandler.postDelayed(mRunTimerUpdate, 100);
 	}

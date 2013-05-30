@@ -54,13 +54,7 @@ public class CircularProgressControl extends Button{
 	 * Thickness of training and exercise progress bars in dp. 
 	 */
 	private static final int PROG_THICK_IN_DIP = 10;
-	
-	/**
-	 * A modifier for converting from input values to progress circle values
-	 * (e.g. 3.6 if input values are between [0,100]) 
-	 */
-	private static final float VALUE_CIRCLE_MODIFIER = 3.6f;
-	
+		
     /**
      * Training progress bar background paint. 
      */
@@ -91,6 +85,11 @@ public class CircularProgressControl extends Button{
      */
     private Paint mRestProgressForegroundPaint;
     
+    
+    /*
+     * START PROGRESS BARS VALUES
+     */
+    
     /**
      * Value indicating the length of the training progress bar.
      */
@@ -105,6 +104,44 @@ public class CircularProgressControl extends Button{
      * Value indicating the length of the rest progress bar. 
      */
     private int mRestProgressValue;
+    
+    /**
+     * Max value for the training progress bar.
+     */
+    private int mTrainingMaxProgress = 100;
+    
+    /**
+     *  Max value for the exercise progress bar (default 100)
+     */
+    private int mExerciseMaxProgress = 100;
+    
+    /**
+     * Max value for the rest progress bar (default 100).
+     */
+    private int mRestMaxProgress = 100;
+    
+    /**
+     * Min value for the training progress bar (default 0). 
+     */
+    private int mTrainingMinProgress = 0;
+        
+    /**
+     * Min value for the exercise progress bar (default 0). 
+     */
+    private int mExerciseMinProgress = 0;
+    
+    /**
+     * Min value for the rest progress bar (default 0). 
+     */
+    private int mRestMinProgress = 0;
+    
+    /*
+     * END PROGRESS BARS VALUES
+     */
+    
+    /*
+     * START PRECALCULATED VALUES FOR FAST DRAWING.
+     */
     
     /**
      * Rectangle for drawing training progress arc.
@@ -151,7 +188,20 @@ public class CircularProgressControl extends Button{
 	 * thickness in px.
 	 */
 	private float mProgThicknessInPx;
+	
+	private float mCalculatedTrainingArc;
+	
+	private float mCalculatedExerciseArc;
+	
+	private float mCalculatedRestArc;
+	
+	/*
+     * END PRECALCULATED VALUES FOR FAST DRAWING.
+     */
         
+	public float calculateArc(float value, float max, float min){
+		return (value - min) / (max - min)  * 360;
+	}
 	 
     /** Set value of training progress bar.
      * @param value should be between [0,100], if larger
@@ -159,6 +209,9 @@ public class CircularProgressControl extends Button{
      */
     public void setTrainingProgressValue(int value){
     	mTrainingProgressValue = value;
+    	
+    	mCalculatedTrainingArc = calculateArc(mTrainingProgressValue, mTrainingMaxProgress, mTrainingMinProgress);
+    	
     	invalidate();
     	
     	Log.d(TAG, Integer.toString(mTrainingProgressValue));
@@ -170,6 +223,9 @@ public class CircularProgressControl extends Button{
      */
     public void setExerciseProgressValue(int value){
     	mExerciseProgressValue = value;
+    	
+    	mCalculatedExerciseArc  = calculateArc(mExerciseProgressValue, mExerciseMaxProgress, mExerciseMinProgress);
+    	
     	invalidate();
     }
     
@@ -179,8 +235,60 @@ public class CircularProgressControl extends Button{
      */
     public void setRestProgressValue(int value){
     	mRestProgressValue = value;
+    	
+    	mCalculatedRestArc = calculateArc(mRestProgressValue, mRestMaxProgress, mRestMinProgress);
+    	
     	invalidate();
     }
+    
+    public void setTrainingMaxProgress(int value){
+    	mTrainingMaxProgress = value;
+    	
+    	mCalculatedTrainingArc = calculateArc(mTrainingProgressValue, mTrainingMaxProgress, mTrainingMinProgress);
+    	
+    	invalidate();
+    }
+    
+    public void setTrainingMinProgress(int value){
+    	mTrainingMinProgress  = value;
+    	
+    	mCalculatedTrainingArc = calculateArc(mTrainingProgressValue, mTrainingMaxProgress, mTrainingMinProgress);
+    	
+    	invalidate();
+    }
+    
+    public void setRestMaxProgress(int value){
+    	mRestMaxProgress = value;
+    	
+    	mCalculatedRestArc = calculateArc(mRestProgressValue, mRestMaxProgress, mRestMinProgress);
+    	
+    	invalidate();
+    }
+    
+    public void setRestMinProgress(int value){
+    	mRestMinProgress = value;
+    	
+    	mCalculatedRestArc = calculateArc(mRestProgressValue, mRestMaxProgress, mRestMinProgress);
+    	
+    	invalidate();
+    }
+    
+    public void setExerciseMaxProgress(int value){
+    	mExerciseMaxProgress = value;
+    	
+    	mCalculatedExerciseArc  = calculateArc(mExerciseProgressValue, mExerciseMaxProgress, mExerciseMinProgress);
+    	
+    	invalidate();
+    }
+    
+    public void setExerciseMinProgress(int value){
+    	mExerciseMinProgress = value;
+    	
+    	mCalculatedExerciseArc  = calculateArc(mExerciseProgressValue, mExerciseMaxProgress, mExerciseMinProgress);
+    	
+    	invalidate();
+    }
+
     
     /**
      * Constructor.  This version is only needed if you will be instantiating
@@ -267,25 +375,25 @@ public class CircularProgressControl extends Button{
      */
     @Override
     protected void onDraw(Canvas canvas) {
-        //super.onDraw(canvas);
+        super.onDraw(canvas);
         
         // draw training, exercise and rest progress bars
         canvas.drawCircle(mCenterX, mCenterY, 
         		mTrainingCircleRadius, mTrainingProgressBackgroundPaint);
         canvas.drawArc(mTrainingCircleOval, 270, 
-        		mTrainingProgressValue *  VALUE_CIRCLE_MODIFIER, 
+        		mCalculatedTrainingArc, 
         		true, mTrainingProgressForegroundPaint);
         canvas.drawCircle(mCenterX, mCenterY, 
         		mExerciseCircleRadius, mExerciseProgressBackgroundPaint);
         canvas.drawArc(mExerciseCircleOval, 270, 
-        		mExerciseProgressValue *  VALUE_CIRCLE_MODIFIER, true, 
+        		mCalculatedExerciseArc, true, 
         		mExerciseProgressForegroundPaint);
         if(!isPressed()){
         canvas.drawCircle(mTrainingCircleRadius, mTrainingCircleRadius, 
         		mRestCircleRadius, mRestProgressBackgroundPaint);
         }
         canvas.drawArc(mRestCircleOval, 270, 
-        		mRestProgressValue *  VALUE_CIRCLE_MODIFIER, true, 
+        		mCalculatedRestArc, true, 
         		mRestProgressForegroundPaint);
     }
 }
