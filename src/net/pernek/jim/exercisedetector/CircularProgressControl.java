@@ -189,10 +189,22 @@ public class CircularProgressControl extends Button{
 	 */
 	private float mProgThicknessInPx;
 	
+	/**
+	 * Precalculated value of the training
+	 * arc length.
+	 */
 	private float mCalculatedTrainingArc;
 	
+	/**
+	 * Precalculated value of the exercise
+	 * arc length.
+	 */
 	private float mCalculatedExerciseArc;
 	
+	/**
+	 * Precalculate value of the rest
+	 * arc length.
+	 */
 	private float mCalculatedRestArc;
 	
 	/*
@@ -206,14 +218,12 @@ public class CircularProgressControl extends Button{
 	 * @return a number between [0, 360] if the value is between [min, max], 
 	 * otherwise the number can be out of bounds.
 	 */
-	// TODO: Unit test for this functionality.
 	public static float calculateArc(float value, float max, float min){
 		return (value - min) / (max - min)  * 360;
 	}
 	 
-    /** Set value of training progress bar.
-     * @param value should be between [0,100], if larger
-     * the progress bar will be full.
+    /** Sets the active value of the training progress bar and invalidates the screen.
+     * The training progress bar visualizes the training completion.
      */
     public void setTrainingProgressValue(int value){
     	mTrainingProgressValue = value;
@@ -225,9 +235,8 @@ public class CircularProgressControl extends Button{
     	Log.d(TAG, Integer.toString(mTrainingProgressValue));
     }
     
-    /** Set value of exercise progress bar.
-     * @param value should be between [0,100], if larger
-     * the progress bar will be full.
+    /** Sets the active value of the exercise progress bar and invalidates the screen.
+     * The exercise progress bar visualizes the exercise completion.
      */
     public void setExerciseProgressValue(int value){
     	mExerciseProgressValue = value;
@@ -237,9 +246,8 @@ public class CircularProgressControl extends Button{
     	invalidate();
     }
     
-    /** Set value of rest progress bar.
-     * @param value should be between [0,100], if larger
-     * the progress bar will be full.
+    /** Sets the active value of the rest progress bar and invalidates the screen.
+     * The rest progress bar visualizes the rest interval.
      */
     public void setRestProgressValue(int value){
     	mRestProgressValue = value;
@@ -249,6 +257,9 @@ public class CircularProgressControl extends Button{
     	invalidate();
     }
     
+    /** Sets the max value of the training progress bar and invalidates the screen.
+     * This value indicates when the training progress bar is full.
+     */
     public void setTrainingMaxProgress(int value){
     	mTrainingMaxProgress = value;
     	
@@ -257,6 +268,9 @@ public class CircularProgressControl extends Button{
     	invalidate();
     }
     
+    /** Sets the min value of the training progress bar and invalidates the screen.
+     * This value indicates when the training progress bar is empty.
+     */
     public void setTrainingMinProgress(int value){
     	mTrainingMinProgress  = value;
     	
@@ -265,6 +279,9 @@ public class CircularProgressControl extends Button{
     	invalidate();
     }
     
+    /** Sets the max value of the rest progress bar and invalidates the screen.
+     * This value indicates when the rest progress bar is full.
+     */
     public void setRestMaxProgress(int value){
     	mRestMaxProgress = value;
     	
@@ -273,6 +290,9 @@ public class CircularProgressControl extends Button{
     	invalidate();
     }
     
+    /** Sets the min value of the rest progress bar and invalidates the screen.
+     * This value indicates when the rest progress bar is empty.
+     */
     public void setRestMinProgress(int value){
     	mRestMinProgress = value;
     	
@@ -281,6 +301,9 @@ public class CircularProgressControl extends Button{
     	invalidate();
     }
     
+    /** Sets the max value of the exercise progress bar and invalidates the screen.
+     * This value indicates when the exercise progress bar is full.
+     */
     public void setExerciseMaxProgress(int value){
     	mExerciseMaxProgress = value;
     	
@@ -289,6 +312,9 @@ public class CircularProgressControl extends Button{
     	invalidate();
     }
     
+    /** Sets the min value of the rest progress bar and invalidates the screen.
+     * This value indicates when the rest progress bar is empty.
+     */
     public void setExerciseMinProgress(int value){
     	mExerciseMinProgress = value;
     	
@@ -296,7 +322,6 @@ public class CircularProgressControl extends Button{
     	
     	invalidate();
     }
-
     
     /**
      * Constructor.  This version is only needed if you will be instantiating
@@ -364,6 +389,7 @@ public class CircularProgressControl extends Button{
     	
     	setMeasuredDimension(width, width);
     	
+    	// precalculate all variables used for drawing
     	mTrainingCircleRadius = width / 2;
     	mCenterX = mCenterY = width / 2;
     	mExerciseCircleRadius = mTrainingCircleRadius - mProgThicknessInPx;
