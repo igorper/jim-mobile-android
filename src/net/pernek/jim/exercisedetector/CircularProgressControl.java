@@ -3,9 +3,11 @@ package net.pernek.jim.exercisedetector;
 import net.pernek.jim.exercisedetector.util.Utils;
 import android.content.Context;
 import android.graphics.Canvas;
+import android.graphics.DashPathEffect;
 import android.graphics.Paint;
 import android.graphics.RectF;
 import android.graphics.Typeface;
+import android.graphics.Paint.Style;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.util.TypedValue;
@@ -19,6 +21,10 @@ import android.widget.Toast;
  * 
  */
 public class CircularProgressControl extends Button {
+	/** Contains possible states for the {@link CircularProgressControl}
+	 * @author Igor
+	 *
+	 */
 	public enum CircularProgressState {
 		START, EXERCISE, STOP, OVERVIEW
 	}
@@ -80,10 +86,16 @@ public class CircularProgressControl extends Button {
 	 */
 	private static final int START_PROG_IN_COLOR = 0xFFF2F2F2;
 
+	/**
+	 * Start and stop button strong text color.
+	 */
 	private static final int START_STRONG_TEXT_COLOR = 0xFF424242;
 
+	/**
+	 * Start and stop button thin text color.
+	 */
 	private static final int START_THIN_TEXT_COLOR = 0xFFFFFFFF;
-
+	
 	/**
 	 * Thickness of training and exercise progress bars in dp.
 	 */
@@ -104,9 +116,35 @@ public class CircularProgressControl extends Button {
 	 */
 	private static final int START_PROG_IN_THICK_IN_DIP = 6;
 
+	/**
+	 * Start and stop button strong text size in dp.
+	 */
 	private static final int START_STRONG_TEXT_SIZE_IN_DIP = 60;
 
+	/**
+	 * Start and stop button thin text size in dp.
+	 */
 	private static final int START_THIN_TEXT_SIZE_IN_DIP = 30;
+	
+	/**
+	 * Overview state "min active/total" text size in dp.
+	 */
+	private static final int OVERVIEW_TEXT_SIZE_IN_DIP = 20;
+	
+	/**
+	 * Overview state big total and active number text size in dp.
+	 */
+	private static final int OVERVIEW_TEXT_NUMBER_SIZE_IN_DIP = 65;
+	
+	/**
+	 * Overview state dashed line stroke thickness in dp.
+	 */
+	private static final int OVERVIEW_DASH_THICK_IN_DIP = 3;
+	
+	/**
+	 * Overview state dashed line part length in dp.
+	 */
+	private static final int OVERVIEW_DASH_PART_LEN_IN_DIP = 5; 
 
 	/**
 	 * Training progress bar background paint.
@@ -163,10 +201,38 @@ public class CircularProgressControl extends Button {
 	 */
 	private Paint mStartProgressInnerPaint;
 
+	/**
+	 * Start and stop button strong text paint. 
+	 */
 	private Paint mStartButtonStrongTextPaint;
 
+	/**
+	 * Start and stop button thin text paint.
+	 */
 	private Paint mStartButtonThinTextPaint;
 
+	/**
+	 * Paint for the overview dashed line.
+	 */
+	private Paint mOverviewDashPaint;
+	
+	/**
+	 * Paint for the "min" text in overview state.
+	 */
+	private Paint mTextOverviewMinPaint;
+	
+	/**
+	 * Paint for the "total" and "active" text in the
+	 * overview state.
+	 */
+	private Paint mTextOverviewTotalPaint;
+	
+	/**
+	 * Paint for the big total and active number in the
+	 * overview state.
+	 */
+	private Paint mTextOverviewNumberPaint;
+	
 	/*
 	 * START PROGRESS BARS VALUES
 	 */
@@ -339,6 +405,16 @@ public class CircularProgressControl extends Button {
 	private String mStopButtonStrongText = "DONE";
 
 	private String mStopButtonThinText = "I'M";
+	
+	private String mOverviewMinText = "min ";
+	
+	private String mOverviewActiveText = "active";
+	
+	private String mOverviewTotalText = "total";
+	
+	private int mNumberActive = 70;
+	
+	private int mNumberTotal = 120;
 
 	/**
 	 * Calculates the arc length based on the input values.
@@ -351,6 +427,39 @@ public class CircularProgressControl extends Button {
 	 */
 	public static float calculateArc(float value, float max, float min) {
 		return (value - min) / (max - min) * 360;
+	}
+	
+	/** Sets the active minutes number and invalidates the screen.
+	 * @param value
+	 */
+	public void setNumberActive(int value){
+		mNumberActive = value;
+		
+		invalidate();
+	}
+	
+	
+	/** Gets the active minutes number.
+	 * @return
+	 */
+	public int getNumberActive(){
+		return mNumberActive;
+	}
+	
+	/** Sets the total minutes number and invalidates the screen.
+	 * @param value
+	 */
+	public void setNumberTotal(int value){
+		mNumberTotal = value;
+		
+		invalidate();
+	}
+	
+	/** Gets the total minutes number.
+	 * @return
+	 */
+	public int getNumberTotal(){
+		return mNumberTotal;
 	}
 
 	/**
@@ -577,6 +686,39 @@ public class CircularProgressControl extends Button {
 		mStartInnerThicknessInPx = TypedValue.applyDimension(
 				TypedValue.COMPLEX_UNIT_DIP, START_PROG_IN_THICK_IN_DIP,
 				getResources().getDisplayMetrics());
+		
+		// overview state variables
+		float dashPartLenInPx = TypedValue.applyDimension(
+				TypedValue.COMPLEX_UNIT_DIP, OVERVIEW_DASH_PART_LEN_IN_DIP, getResources()
+				.getDisplayMetrics());
+		
+		mOverviewDashPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+		mOverviewDashPaint.setColor(REST_PROG_FG_COLOR);
+		mOverviewDashPaint.setStyle(Style.STROKE);
+		mOverviewDashPaint.setPathEffect(new DashPathEffect(new float[] { dashPartLenInPx,
+				dashPartLenInPx }, 0));
+		mOverviewDashPaint.setStrokeWidth(TypedValue.applyDimension(
+				TypedValue.COMPLEX_UNIT_DIP, OVERVIEW_DASH_THICK_IN_DIP, getResources()
+				.getDisplayMetrics()));
+		
+		mTextOverviewMinPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+		mTextOverviewMinPaint.setColor(REST_PROG_FG_COLOR);
+		mTextOverviewMinPaint.setTextSize(TypedValue.applyDimension(
+				TypedValue.COMPLEX_UNIT_DIP, OVERVIEW_TEXT_SIZE_IN_DIP,
+				getResources().getDisplayMetrics()));
+		
+		mTextOverviewTotalPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+		mTextOverviewTotalPaint.setColor(START_STRONG_TEXT_COLOR);
+		mTextOverviewTotalPaint.setTypeface(Typeface.DEFAULT_BOLD);
+		mTextOverviewTotalPaint.setTextSize(TypedValue.applyDimension(
+				TypedValue.COMPLEX_UNIT_DIP, OVERVIEW_TEXT_SIZE_IN_DIP,
+				getResources().getDisplayMetrics()));
+		
+		mTextOverviewNumberPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+		mTextOverviewNumberPaint.setColor(START_STRONG_TEXT_COLOR);
+		mTextOverviewNumberPaint.setTextSize(TypedValue.applyDimension(
+				TypedValue.COMPLEX_UNIT_DIP, OVERVIEW_TEXT_NUMBER_SIZE_IN_DIP,
+				getResources().getDisplayMetrics()));
 
 		// hide the default button background
 		setBackgroundDrawable(null);
@@ -638,6 +780,7 @@ public class CircularProgressControl extends Button {
 
 		switch (mCurrentState) {
 		case START: {
+			// draw start button circle with borders
 			canvas.drawCircle(mCenterX, mCenterY, mStartOuterCircleRadius,
 					mStartProgressOuterPaint);
 			canvas.drawCircle(mCenterX, mCenterY, mStartMiddleCircleRadius,
@@ -648,23 +791,25 @@ public class CircularProgressControl extends Button {
 					isPressedState ? mRestProgressClickBackgroundPaint
 							: mRestProgressBackgroundPaint);
 
-				float startStrongTextWidth = mStartButtonStrongTextPaint
-						.measureText(mStartButtonStrongText);
-				float startStrongTextDescent = mStartButtonStrongTextPaint
-						.descent();
-				float startThinTextWidth = mStartButtonThinTextPaint
-						.measureText(mStartButtonThinText);
-				float startThinTextAscent = mStartButtonThinTextPaint.ascent();
-				canvas.drawText(mStartButtonStrongText, mCenterX
-						- startStrongTextWidth / 2, mCenterY,
-						mStartButtonStrongTextPaint);
-				canvas.drawText(mStartButtonThinText, mCenterX
-						- startThinTextWidth / 2, mCenterY
-						+ startStrongTextDescent - startThinTextAscent,
-						mStartButtonThinTextPaint);
+			// draw start button text
+			float startStrongTextWidth = mStartButtonStrongTextPaint
+					.measureText(mStartButtonStrongText);
+			float startStrongTextDescent = mStartButtonStrongTextPaint
+					.descent();
+			float startThinTextWidth = mStartButtonThinTextPaint
+					.measureText(mStartButtonThinText);
+			float startThinTextAscent = mStartButtonThinTextPaint.ascent();
+			canvas.drawText(mStartButtonStrongText, mCenterX
+					- startStrongTextWidth / 2, mCenterY,
+					mStartButtonStrongTextPaint);
+			canvas.drawText(mStartButtonThinText, mCenterX - startThinTextWidth
+					/ 2, mCenterY + startStrongTextDescent
+					- startThinTextAscent, mStartButtonThinTextPaint);
 			break;
 		}
-		case STOP: {
+		case STOP:
+		case OVERVIEW: {
+			// the circle with borders
 			canvas.drawCircle(mCenterX, mCenterY, mTrainingCircleRadius,
 					mTrainingProgressForegroundPaint);
 			canvas.drawCircle(mCenterX, mCenterY, mExerciseCircleRadius,
@@ -672,21 +817,82 @@ public class CircularProgressControl extends Button {
 			canvas.drawCircle(mCenterX, mCenterY, mRestCircleRadius,
 					isPressedState ? mRestProgressClickBackgroundPaint
 							: mRestProgressBackgroundPaint);
-			
-			float stopThinTextWidth = mStartButtonThinTextPaint
-					.measureText(mStopButtonThinText);
-			float stopStrongTextWidth = mStartButtonStrongTextPaint
-					.measureText(mStopButtonStrongText);
-			float stopThinTextAscent = mStartButtonThinTextPaint.ascent();
-			float stopStrongTextAscent = mStartButtonStrongTextPaint
-					.ascent();
 
-			canvas.drawText(mStopButtonThinText, mCenterX
-					- stopThinTextWidth / 2, mCenterY + stopThinTextAscent
-					* 1.5f, mStartButtonThinTextPaint);
-			canvas.drawText(mStopButtonStrongText, mCenterX
-					- stopStrongTextWidth / 2, mCenterY
-					- stopStrongTextAscent / 2, mStartButtonStrongTextPaint);
+			if (mCurrentState == CircularProgressState.STOP) {
+				// draw stop button text
+				float stopThinTextWidth = mStartButtonThinTextPaint
+						.measureText(mStopButtonThinText);
+				float stopStrongTextWidth = mStartButtonStrongTextPaint
+						.measureText(mStopButtonStrongText);
+				float stopThinTextAscent = mStartButtonThinTextPaint.ascent();
+				float stopStrongTextAscent = mStartButtonStrongTextPaint
+						.ascent();
+
+				canvas.drawText(mStopButtonThinText, mCenterX
+						- stopThinTextWidth / 2, mCenterY + stopThinTextAscent
+						* 1.5f, mStartButtonThinTextPaint);
+				canvas.drawText(mStopButtonStrongText, mCenterX
+						- stopStrongTextWidth / 2, mCenterY
+						- stopStrongTextAscent / 2, mStartButtonStrongTextPaint);
+			} else {
+
+				// draw the dashed line
+				float dashedLineLength = mCenterX / 2f;
+				canvas.drawLine(dashedLineLength, mCenterX,
+						3 * dashedLineLength, mCenterX,
+						mOverviewDashPaint);
+				
+				// position the ("min active") text in the center of the button 
+				float minLength = mTextOverviewMinPaint.measureText(mOverviewMinText);
+				float activeLength = mTextOverviewTotalPaint.measureText(mOverviewActiveText);
+				float minActiveStartX  = mCenterX - (minLength + activeLength) / 2;
+								
+				// measure the height of the text for vertical placement
+				float textDescent = mTextOverviewTotalPaint.descent();
+				float textAscent = mTextOverviewTotalPaint.ascent();
+				
+				
+				// draw the "min active"
+				canvas.drawText(mOverviewMinText, 
+						minActiveStartX, 
+						mCenterY - 2*textDescent, mTextOverviewMinPaint);
+				
+				canvas.drawText(mOverviewActiveText, 
+						minActiveStartX + minLength, 
+						mCenterY - 2*textDescent, mTextOverviewTotalPaint);
+				
+				// center and draw the big active number
+				float activeNumberLength = mTextOverviewNumberPaint.measureText(
+						Integer.toString(mNumberActive));
+				
+				canvas.drawText(Integer.toString(mNumberActive), 
+						mCenterX - activeNumberLength / 2,
+						mCenterY - 3*textDescent + textAscent, 
+						mTextOverviewNumberPaint);
+				
+				
+				// center and draw the big total number
+				float totalNumberLength = mTextOverviewNumberPaint.measureText(
+						Integer.toString(mNumberTotal));
+				
+				float numberTextAscent = mTextOverviewNumberPaint.ascent();
+				canvas.drawText(Integer.toString(mNumberTotal), 
+						mCenterX - totalNumberLength / 2,
+						mCenterY + textDescent - numberTextAscent, 
+						mTextOverviewNumberPaint);
+				
+				// center and draw the "min total" text
+				float totalLength = mTextOverviewTotalPaint.measureText(mOverviewTotalText);
+				float minTotalStartX = mCenterX - (minLength + totalLength) / 2;
+				
+				canvas.drawText(mOverviewMinText, 
+						minTotalStartX, 
+						mCenterY + 2*textDescent - numberTextAscent - textAscent, mTextOverviewMinPaint);
+				
+				canvas.drawText(mOverviewTotalText, 
+						minTotalStartX + minLength, 
+						mCenterY + 2*textDescent - numberTextAscent - textAscent, mTextOverviewTotalPaint);
+			}
 			break;
 		}
 		case EXERCISE: {
