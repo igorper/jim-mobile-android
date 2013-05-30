@@ -64,48 +64,48 @@ public class CircularProgressControl extends Button {
 	 * Rest progress bar click foreground color.
 	 */
 	private static final int REST_PROG_FG_CLICK_COLOR = 0x99E1563E;
-	
+
 	/**
 	 * Start button outer border color.
 	 */
 	private static final int START_PROG_OUT_COLOR = 0xFFE5E8E8;
-	
+
 	/**
 	 * Start button middle border color.
 	 */
 	private static final int START_PROG_MID_COLOR = 0xFFFFFFFF;
-	
+
 	/**
 	 * Start button inner border color.
 	 */
 	private static final int START_PROG_IN_COLOR = 0xFFF2F2F2;
-	
+
 	private static final int START_STRONG_TEXT_COLOR = 0xFF424242;
-	
-	private static final int START_THIN_TEXT_COLOR = 0xFFFFFFFF; 
+
+	private static final int START_THIN_TEXT_COLOR = 0xFFFFFFFF;
 
 	/**
 	 * Thickness of training and exercise progress bars in dp.
 	 */
 	private static final int PROG_THICK_IN_DIP = 10;
-	
+
 	/**
 	 * Thickness of start button's outer border in dp.
 	 */
 	private static final int START_PROG_OUT_THICK_IN_DIP = 3;
-	
+
 	/**
 	 * Thickness of start button's middle border in dp.
 	 */
 	private static final int START_PROG_MID_THICK_IN_DIP = 11;
-	
+
 	/**
 	 * Thickness of start buttons's inner border in dp.
 	 */
 	private static final int START_PROG_IN_THICK_IN_DIP = 6;
-	
+
 	private static final int START_STRONG_TEXT_SIZE_IN_DIP = 60;
-	
+
 	private static final int START_THIN_TEXT_SIZE_IN_DIP = 30;
 
 	/**
@@ -147,24 +147,24 @@ public class CircularProgressControl extends Button {
 	 * Rest progress bar click foreground paint.
 	 */
 	private Paint mRestProgressClickForegroundPaint;
-	
+
 	/**
 	 * Start button outer border paint.
 	 */
 	private Paint mStartProgressOuterPaint;
-	
+
 	/**
 	 * Start button middle border paint.
 	 */
 	private Paint mStartProgressMiddlePaint;
-	
+
 	/**
 	 * Start button inner border paint.
 	 */
 	private Paint mStartProgressInnerPaint;
-	
+
 	private Paint mStartButtonStrongTextPaint;
-	
+
 	private Paint mStartButtonThinTextPaint;
 
 	/*
@@ -283,37 +283,37 @@ public class CircularProgressControl extends Button {
 	 * Precalculated value of the rest arc length.
 	 */
 	private float mCalculatedRestArc;
-	
+
 	/**
 	 * Start button outer border radius.
 	 */
 	private float mStartOuterCircleRadius;
-	
+
 	/**
 	 * Start button middle border radius.
 	 */
 	private float mStartMiddleCircleRadius;
-	
+
 	/**
 	 * Start button inner border radius.
 	 */
 	private float mStartInnerCircleRadius;
-	
+
 	/**
 	 * Start button center circle radius.
 	 */
 	private float mStartCenterCircleRadius;
-	
+
 	/**
 	 * Precalculated start button outer border thickness in px.
 	 */
 	private float mStartOuterThicknessInPx;
-	
+
 	/**
 	 * Precalculated start button middle border thickness in px.
 	 */
 	private float mStartMiddleThicknessInPx;
-	
+
 	/**
 	 * Precalculated start button inner border thickness in px.
 	 */
@@ -322,19 +322,23 @@ public class CircularProgressControl extends Button {
 	/*
 	 * END PRECALCULATED VALUES FOR FAST DRAWING.
 	 */
-	
+
 	/**
 	 * Current state of the control.
 	 */
 	private CircularProgressState mCurrentState;
 
 	private Typeface mCooperBlackTypeface;
-	
+
 	private Typeface mHaginCapsThinTypeface;
-	
+
 	private String mStartButtonStrongText = "PUSH";
-	
+
 	private String mStartButtonThinText = "TO START";
+
+	private String mStopButtonStrongText = "DONE";
+
+	private String mStopButtonThinText = "I'M";
 
 	/**
 	 * Calculates the arc length based on the input values.
@@ -467,12 +471,12 @@ public class CircularProgressControl extends Button {
 
 		invalidate();
 	}
-	
-	public void setCurrentState(CircularProgressState state){
+
+	public void setCurrentState(CircularProgressState state) {
 		mCurrentState = state;
 	}
-	
-	public CircularProgressState getCurrentState(){
+
+	public CircularProgressState getCurrentState() {
 		return mCurrentState;
 	}
 
@@ -503,10 +507,12 @@ public class CircularProgressControl extends Button {
 	 * Initializes all drawing objects.
 	 */
 	private final void init() {
-		// typefaces
-		mCooperBlackTypeface = Typeface.createFromAsset(getContext().getAssets(), "fonts/Cooper Black.ttf");
-		mHaginCapsThinTypeface = Typeface.createFromAsset(getContext().getAssets(), "fonts/Hagin Caps Thin.ttf");
-		
+		// load typefaces
+		mCooperBlackTypeface = Typeface.createFromAsset(getContext()
+				.getAssets(), "fonts/Cooper Black.ttf");
+		mHaginCapsThinTypeface = Typeface.createFromAsset(getContext()
+				.getAssets(), "fonts/Hagin Caps Thin.ttf");
+
 		// exercise state variables
 		mTrainingProgressBackgroundPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 		mTrainingProgressBackgroundPaint.setColor(TRAIN_PROG_BG_COLOR);
@@ -531,47 +537,46 @@ public class CircularProgressControl extends Button {
 
 		mRestProgressClickForegroundPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 		mRestProgressClickForegroundPaint.setColor(REST_PROG_FG_CLICK_COLOR);
-		
+
 		mProgThicknessInPx = TypedValue.applyDimension(
 				TypedValue.COMPLEX_UNIT_DIP, PROG_THICK_IN_DIP, getResources()
 						.getDisplayMetrics());
-		
+
 		// start button state variables
 		mStartProgressOuterPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 		mStartProgressOuterPaint.setColor(START_PROG_OUT_COLOR);
-		
+
 		mStartProgressMiddlePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 		mStartProgressMiddlePaint.setColor(START_PROG_MID_COLOR);
-		
+
 		mStartProgressInnerPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 		mStartProgressInnerPaint.setColor(START_PROG_IN_COLOR);
-		
+
 		mStartButtonStrongTextPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 		mStartButtonStrongTextPaint.setColor(START_STRONG_TEXT_COLOR);
 		mStartButtonStrongTextPaint.setTextSize(TypedValue.applyDimension(
-				TypedValue.COMPLEX_UNIT_DIP, START_STRONG_TEXT_SIZE_IN_DIP, getResources()
-				.getDisplayMetrics()));
+				TypedValue.COMPLEX_UNIT_DIP, START_STRONG_TEXT_SIZE_IN_DIP,
+				getResources().getDisplayMetrics()));
 		mStartButtonStrongTextPaint.setTypeface(mCooperBlackTypeface);
-		
+
 		mStartButtonThinTextPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 		mStartButtonThinTextPaint.setColor(START_THIN_TEXT_COLOR);
 		mStartButtonThinTextPaint.setTextSize(TypedValue.applyDimension(
-				TypedValue.COMPLEX_UNIT_DIP, START_THIN_TEXT_SIZE_IN_DIP, getResources()
-				.getDisplayMetrics()));
+				TypedValue.COMPLEX_UNIT_DIP, START_THIN_TEXT_SIZE_IN_DIP,
+				getResources().getDisplayMetrics()));
 		mStartButtonThinTextPaint.setTypeface(mHaginCapsThinTypeface);
-		
-		
+
 		mStartOuterThicknessInPx = TypedValue.applyDimension(
-				TypedValue.COMPLEX_UNIT_DIP, START_PROG_OUT_THICK_IN_DIP, getResources()
-						.getDisplayMetrics());
-		
+				TypedValue.COMPLEX_UNIT_DIP, START_PROG_OUT_THICK_IN_DIP,
+				getResources().getDisplayMetrics());
+
 		mStartMiddleThicknessInPx = TypedValue.applyDimension(
-				TypedValue.COMPLEX_UNIT_DIP, START_PROG_MID_THICK_IN_DIP, getResources()
-						.getDisplayMetrics());
-		
+				TypedValue.COMPLEX_UNIT_DIP, START_PROG_MID_THICK_IN_DIP,
+				getResources().getDisplayMetrics());
+
 		mStartInnerThicknessInPx = TypedValue.applyDimension(
-				TypedValue.COMPLEX_UNIT_DIP, START_PROG_IN_THICK_IN_DIP, getResources()
-						.getDisplayMetrics());
+				TypedValue.COMPLEX_UNIT_DIP, START_PROG_IN_THICK_IN_DIP,
+				getResources().getDisplayMetrics());
 
 		// hide the default button background
 		setBackgroundDrawable(null);
@@ -600,9 +605,12 @@ public class CircularProgressControl extends Button {
 		mExerciseCircleRadius = mTrainingCircleRadius - mProgThicknessInPx;
 		mRestCircleRadius = mExerciseCircleRadius - mProgThicknessInPx;
 		mStartOuterCircleRadius = width / 2;
-		mStartMiddleCircleRadius = mStartOuterCircleRadius - mStartOuterThicknessInPx;
-		mStartInnerCircleRadius = mStartMiddleCircleRadius - mStartMiddleThicknessInPx;
-		mStartCenterCircleRadius = mStartInnerCircleRadius - mStartInnerThicknessInPx;
+		mStartMiddleCircleRadius = mStartOuterCircleRadius
+				- mStartOuterThicknessInPx;
+		mStartInnerCircleRadius = mStartMiddleCircleRadius
+				- mStartMiddleThicknessInPx;
+		mStartCenterCircleRadius = mStartInnerCircleRadius
+				- mStartInnerThicknessInPx;
 
 		mTrainingCircleOval = new RectF(0, 0, width, width);
 		mExerciseCircleOval = new RectF(mProgThicknessInPx, mProgThicknessInPx,
@@ -620,8 +628,8 @@ public class CircularProgressControl extends Button {
 	@Override
 	protected void onDraw(Canvas canvas) {
 		super.onDraw(canvas);
-		
-		if(mCurrentState == null){
+
+		if (mCurrentState == null) {
 			Log.d(TAG, "Current state not set yet.");
 			return;
 		}
@@ -629,23 +637,56 @@ public class CircularProgressControl extends Button {
 		boolean isPressedState = isPressed();
 
 		switch (mCurrentState) {
-		case START:{
+		case START: {
 			canvas.drawCircle(mCenterX, mCenterY, mStartOuterCircleRadius,
 					mStartProgressOuterPaint);
 			canvas.drawCircle(mCenterX, mCenterY, mStartMiddleCircleRadius,
 					mStartProgressMiddlePaint);
-			canvas.drawCircle(mCenterX, mCenterY, mStartInnerCircleRadius, 
+			canvas.drawCircle(mCenterX, mCenterY, mStartInnerCircleRadius,
 					mStartProgressInnerPaint);
-			canvas.drawCircle(mCenterX, mCenterY, mStartCenterCircleRadius, 
-					isPressedState ? mRestProgressClickBackgroundPaint :
-							mRestProgressBackgroundPaint);
+			canvas.drawCircle(mCenterX, mCenterY, mStartCenterCircleRadius,
+					isPressedState ? mRestProgressClickBackgroundPaint
+							: mRestProgressBackgroundPaint);
+
+				float startStrongTextWidth = mStartButtonStrongTextPaint
+						.measureText(mStartButtonStrongText);
+				float startStrongTextDescent = mStartButtonStrongTextPaint
+						.descent();
+				float startThinTextWidth = mStartButtonThinTextPaint
+						.measureText(mStartButtonThinText);
+				float startThinTextAscent = mStartButtonThinTextPaint.ascent();
+				canvas.drawText(mStartButtonStrongText, mCenterX
+						- startStrongTextWidth / 2, mCenterY,
+						mStartButtonStrongTextPaint);
+				canvas.drawText(mStartButtonThinText, mCenterX
+						- startThinTextWidth / 2, mCenterY
+						+ startStrongTextDescent - startThinTextAscent,
+						mStartButtonThinTextPaint);
+			break;
+		}
+		case STOP: {
+			canvas.drawCircle(mCenterX, mCenterY, mTrainingCircleRadius,
+					mTrainingProgressForegroundPaint);
+			canvas.drawCircle(mCenterX, mCenterY, mExerciseCircleRadius,
+					mExerciseProgressForegroundPaint);
+			canvas.drawCircle(mCenterX, mCenterY, mRestCircleRadius,
+					isPressedState ? mRestProgressClickBackgroundPaint
+							: mRestProgressBackgroundPaint);
 			
-			float startStrongTextWidth = mStartButtonStrongTextPaint.measureText(mStartButtonStrongText);
-			float startStrongTextDescent = mStartButtonStrongTextPaint.descent();
-			float startThinTextWidth = mStartButtonThinTextPaint.measureText(mStartButtonThinText);
-			float startThinTextAscent = mStartButtonThinTextPaint.ascent();
-			canvas.drawText(mStartButtonStrongText, mCenterX - startStrongTextWidth / 2, mCenterY, mStartButtonStrongTextPaint);
-			canvas.drawText(mStartButtonThinText, mCenterX - startThinTextWidth / 2, mCenterY + startStrongTextDescent - startThinTextAscent, mStartButtonThinTextPaint);
+			float stopThinTextWidth = mStartButtonThinTextPaint
+					.measureText(mStopButtonThinText);
+			float stopStrongTextWidth = mStartButtonStrongTextPaint
+					.measureText(mStopButtonStrongText);
+			float stopThinTextAscent = mStartButtonThinTextPaint.ascent();
+			float stopStrongTextAscent = mStartButtonStrongTextPaint
+					.ascent();
+
+			canvas.drawText(mStopButtonThinText, mCenterX
+					- stopThinTextWidth / 2, mCenterY + stopThinTextAscent
+					* 1.5f, mStartButtonThinTextPaint);
+			canvas.drawText(mStopButtonStrongText, mCenterX
+					- stopStrongTextWidth / 2, mCenterY
+					- stopStrongTextAscent / 2, mStartButtonStrongTextPaint);
 			break;
 		}
 		case EXERCISE: {
@@ -667,7 +708,8 @@ public class CircularProgressControl extends Button {
 			break;
 		}
 		default:
-			canvas.drawText("State not set!", mCenterX, mCenterY, mRestProgressForegroundPaint);
+			canvas.drawText("State not set!", mCenterX, mCenterY,
+					mRestProgressForegroundPaint);
 		}
 
 	}
