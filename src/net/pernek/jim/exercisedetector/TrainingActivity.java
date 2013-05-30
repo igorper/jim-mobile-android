@@ -37,7 +37,7 @@ public class TrainingActivity extends Activity {
 		mCircularProgress.setExerciseMaxProgress(200);
 		mCircularProgress.setExerciseMinProgress(100);
 		mCircularProgress.setRestMaxProgress(200);
-		mCircularProgress.setCurrentState(CircularProgressState.EXERCISE);
+		mCircularProgress.setCurrentState(CircularProgressState.START);
 		
 		mUiHandler.postDelayed(mRunTimerUpdate, 100);
 	}
