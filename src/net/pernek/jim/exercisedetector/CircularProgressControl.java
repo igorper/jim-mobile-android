@@ -199,7 +199,15 @@ public class CircularProgressControl extends Button{
      * END PRECALCULATED VALUES FOR FAST DRAWING.
      */
         
-	public float calculateArc(float value, float max, float min){
+	/** Calculates the arc length based on the input values. 
+	 * @param value
+	 * @param max
+	 * @param min
+	 * @return a number between [0, 360] if the value is between [min, max], 
+	 * otherwise the number can be out of bounds.
+	 */
+	// TODO: Unit test for this functionality.
+	public static float calculateArc(float value, float max, float min){
 		return (value - min) / (max - min)  * 360;
 	}
 	 
