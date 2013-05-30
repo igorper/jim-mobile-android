@@ -51,6 +51,16 @@ public class CircularProgressControl extends Button{
 	private static final int REST_PROG_FG_COLOR = 0xFFE1563E;
 	
 	/**
+	 * Rest progress bar click background color. 
+	 */
+	private static final int REST_PROG_BG_CLICK_COLOR = 0x99FBC911;
+	
+	/**
+	 * Rest progress bar click foreground color. 
+	 */
+	private static final int REST_PROG_FG_CLICK_COLOR = 0x99E1563E;
+	
+	/**
 	 * Thickness of training and exercise progress bars in dp. 
 	 */
 	private static final int PROG_THICK_IN_DIP = 10;
@@ -84,6 +94,16 @@ public class CircularProgressControl extends Button{
      * Rest progress bar foreground paint. 
      */
     private Paint mRestProgressForegroundPaint;
+    
+    /**
+     * Rest progress bar click background paint. 
+     */
+    private Paint mRestProgressClickBackgroundPaint;
+        
+    /**
+     * Rest progress bar click foreground paint. 
+     */
+    private Paint mRestProgressClickForegroundPaint;
     
     
     /*
@@ -330,7 +350,7 @@ public class CircularProgressControl extends Button{
      */
     public CircularProgressControl(Context context) {
         super(context);
-        initLabelView();
+        init();
     }
 
     /**
@@ -341,13 +361,13 @@ public class CircularProgressControl extends Button{
      */
     public CircularProgressControl(Context context, AttributeSet attrs) {
         super(context, attrs);
-        initLabelView();
+        init();
     }
 
     /**
      * Initializes all drawing objects. 
      */
-    private final void initLabelView() {
+    private final void init() {
     	mTrainingProgressBackgroundPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     	mTrainingProgressBackgroundPaint.setColor(TRAIN_PROG_BG_COLOR);
     	
@@ -365,6 +385,12 @@ public class CircularProgressControl extends Button{
     	
     	mRestProgressForegroundPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     	mRestProgressForegroundPaint.setColor(REST_PROG_FG_COLOR);
+    	
+    	mRestProgressClickBackgroundPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    	mRestProgressClickBackgroundPaint.setColor(REST_PROG_BG_CLICK_COLOR);
+    	
+    	mRestProgressClickForegroundPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    	mRestProgressClickForegroundPaint.setColor(REST_PROG_FG_CLICK_COLOR);
     	        
     	mProgThicknessInPx = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, PROG_THICK_IN_DIP, getResources().getDisplayMetrics());
     	
@@ -411,6 +437,8 @@ public class CircularProgressControl extends Button{
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
         
+        boolean isPressedState = isPressed();
+        
         // draw training, exercise and rest progress bars
         canvas.drawCircle(mCenterX, mCenterY, 
         		mTrainingCircleRadius, mTrainingProgressBackgroundPaint);
@@ -422,12 +450,11 @@ public class CircularProgressControl extends Button{
         canvas.drawArc(mExerciseCircleOval, 270, 
         		mCalculatedExerciseArc, true, 
         		mExerciseProgressForegroundPaint);
-        if(!isPressed()){
-        canvas.drawCircle(mTrainingCircleRadius, mTrainingCircleRadius, 
-        		mRestCircleRadius, mRestProgressBackgroundPaint);
-        }
+        canvas.drawCircle(mCenterX, mCenterY, 
+        		mRestCircleRadius, isPressedState ? mRestProgressClickBackgroundPaint : 
+        			mRestProgressBackgroundPaint);
         canvas.drawArc(mRestCircleOval, 270, 
-        		mCalculatedRestArc, true, 
+        		mCalculatedRestArc, true, isPressedState ? mRestProgressClickForegroundPaint : 
         		mRestProgressForegroundPaint);
     }
 }
