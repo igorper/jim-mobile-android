@@ -5,6 +5,7 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.RectF;
+import android.graphics.Typeface;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.util.TypedValue;
@@ -318,14 +319,18 @@ public class CircularProgressControl extends Button {
 	 */
 	private float mStartInnerThicknessInPx;
 
+	/*
+	 * END PRECALCULATED VALUES FOR FAST DRAWING.
+	 */
+	
 	/**
 	 * Current state of the control.
 	 */
 	private CircularProgressState mCurrentState;
 
-	/*
-	 * END PRECALCULATED VALUES FOR FAST DRAWING.
-	 */
+	private Typeface mCooperBlackTypeface;
+	
+	private Typeface mHaginCapsThinTypeface;
 	
 	private String mStartButtonStrongText = "PUSH";
 	
@@ -498,6 +503,10 @@ public class CircularProgressControl extends Button {
 	 * Initializes all drawing objects.
 	 */
 	private final void init() {
+		// typefaces
+		mCooperBlackTypeface = Typeface.createFromAsset(getContext().getAssets(), "fonts/Cooper Black.ttf");
+		mHaginCapsThinTypeface = Typeface.createFromAsset(getContext().getAssets(), "fonts/Hagin Caps Thin.ttf");
+		
 		// exercise state variables
 		mTrainingProgressBackgroundPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 		mTrainingProgressBackgroundPaint.setColor(TRAIN_PROG_BG_COLOR);
@@ -542,12 +551,15 @@ public class CircularProgressControl extends Button {
 		mStartButtonStrongTextPaint.setTextSize(TypedValue.applyDimension(
 				TypedValue.COMPLEX_UNIT_DIP, START_STRONG_TEXT_SIZE_IN_DIP, getResources()
 				.getDisplayMetrics()));
+		mStartButtonStrongTextPaint.setTypeface(mCooperBlackTypeface);
 		
 		mStartButtonThinTextPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 		mStartButtonThinTextPaint.setColor(START_THIN_TEXT_COLOR);
 		mStartButtonThinTextPaint.setTextSize(TypedValue.applyDimension(
 				TypedValue.COMPLEX_UNIT_DIP, START_THIN_TEXT_SIZE_IN_DIP, getResources()
 				.getDisplayMetrics()));
+		mStartButtonThinTextPaint.setTypeface(mHaginCapsThinTypeface);
+		
 		
 		mStartOuterThicknessInPx = TypedValue.applyDimension(
 				TypedValue.COMPLEX_UNIT_DIP, START_PROG_OUT_THICK_IN_DIP, getResources()
