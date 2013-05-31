@@ -4,14 +4,17 @@ import net.pernek.jim.exercisedetector.CircularProgressControl.CircularProgressS
 import android.app.Activity;
 import android.os.Bundle;
 import android.os.Handler;
+import android.view.View;
+import android.view.View.OnLongClickListener;
+import android.widget.Toast;
 
 public class TrainingActivity extends Activity {
 	
 	private CircularProgressControl mCircularProgress;
 	
 	private int mTrainingCounter = 0;
-	private int mExerciseCounter = 100;
-	private int mRestCounter = 0;
+	private int mExerciseCounter = 0;
+	private int mRestCounter = 100;
 	
 	private Handler mUiHandler = new Handler();
 	private Runnable mRunTimerUpdate = new Runnable() {
@@ -20,26 +23,43 @@ public class TrainingActivity extends Activity {
 		public void run() {
 			mCircularProgress.setTrainingProgressValue(mTrainingCounter++);
 			mCircularProgress.setExerciseProgressValue(mExerciseCounter++);
-			mCircularProgress.setRestProgressValue(mRestCounter);
-			
-			mRestCounter += 2;
+			mCircularProgress.setRestProgressValue(mRestCounter--);
 			
 			mUiHandler.postDelayed(this, 100);
 		}
 	};
 	
+	private int stateCount = 0;
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.training_activity);
-		
 		mCircularProgress = (CircularProgressControl)findViewById(R.id.circularProgress);
-		mCircularProgress.setExerciseMaxProgress(200);
-		mCircularProgress.setExerciseMinProgress(100);
-		mCircularProgress.setRestMaxProgress(200);
-		mCircularProgress.setCurrentState(CircularProgressState.OVERVIEW);
 		
-		mUiHandler.postDelayed(mRunTimerUpdate, 100);
+		CircularProgressState currentState = CircularProgressState.values()[stateCount++];
+		
+		mCircularProgress.setCurrentState(CircularProgressState.EXERCISE);
+/*		mCircularProgress.setOnLongClickListener(new OnLongClickListener() {
+			
+			@Override
+			public boolean onLongClick(View v) {
+				Toast.makeText(getApplicationContext(), "test", Toast.LENGTH_LONG).show();
+				mCircularProgress.setCurrentState(
+						CircularProgressState.values()[stateCount % 4]);
+				
+				stateCount++;
+				
+				if(mCircularProgress.getCurrentState() == CircularProgressState.EXERCISE){
+					mTrainingCounter = 0;
+					mExerciseCounter = 0;
+					mRestCounter = 100;
+					
+					mUiHandler = new Handler();
+					mUiHandler.postDelayed(mRunTimerUpdate, 100);
+				}
+				return false;
+			}
+		});*/
 	}
 
 }

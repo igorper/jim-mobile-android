@@ -20,7 +20,7 @@ import android.widget.Toast;
  * @author Igor
  * 
  */
-public class CircularProgressControl extends Button {
+public class CircularProgressControl extends View {
 	/** Contains possible states for the {@link CircularProgressControl}
 	 * @author Igor
 	 *
@@ -393,6 +393,11 @@ public class CircularProgressControl extends Button {
 	 * Current state of the control.
 	 */
 	private CircularProgressState mCurrentState;
+	
+	/**
+	 * Holds the information if the button is currently pressed.
+	 */
+	private boolean mIsPressedState;
 
 	private Typeface mCooperBlackTypeface;
 
@@ -427,6 +432,13 @@ public class CircularProgressControl extends Button {
 	 */
 	public static float calculateArc(float value, float max, float min) {
 		return (value - min) / (max - min) * 360;
+	}
+	
+	/** Returns if the circular button is currently pressed.
+	 * @return
+	 */
+	public boolean isButtonPressed(){
+		return mIsPressedState;
 	}
 	
 	/** Sets the active minutes number and invalidates the screen.
@@ -583,6 +595,8 @@ public class CircularProgressControl extends Button {
 
 	public void setCurrentState(CircularProgressState state) {
 		mCurrentState = state;
+		
+		invalidate();
 	}
 
 	public CircularProgressState getCurrentState() {
@@ -722,14 +736,6 @@ public class CircularProgressControl extends Button {
 
 		// hide the default button background
 		setBackgroundDrawable(null);
-		setOnLongClickListener(new OnLongClickListener() {
-
-			@Override
-			public boolean onLongClick(View arg0) {
-				Toast.makeText(getContext(), "test", Toast.LENGTH_LONG).show();
-				return false;
-			}
-		});
 	}
 
 	/**
@@ -761,7 +767,7 @@ public class CircularProgressControl extends Button {
 				2 * mProgThicknessInPx, width - 2 * mProgThicknessInPx, width
 						- 2 * mProgThicknessInPx);
 	}
-
+	
 	/**
 	 * Render the circular progress control.
 	 * 
@@ -776,7 +782,7 @@ public class CircularProgressControl extends Button {
 			return;
 		}
 
-		boolean isPressedState = isPressed();
+		Log.d(TAG, Boolean.toString(mIsPressedState));
 
 		switch (mCurrentState) {
 		case START: {
@@ -788,7 +794,7 @@ public class CircularProgressControl extends Button {
 			canvas.drawCircle(mCenterX, mCenterY, mStartInnerCircleRadius,
 					mStartProgressInnerPaint);
 			canvas.drawCircle(mCenterX, mCenterY, mStartCenterCircleRadius,
-					isPressedState ? mRestProgressClickBackgroundPaint
+					mIsPressedState ? mRestProgressClickBackgroundPaint
 							: mRestProgressBackgroundPaint);
 
 			// draw start button text
@@ -815,7 +821,7 @@ public class CircularProgressControl extends Button {
 			canvas.drawCircle(mCenterX, mCenterY, mExerciseCircleRadius,
 					mExerciseProgressForegroundPaint);
 			canvas.drawCircle(mCenterX, mCenterY, mRestCircleRadius,
-					isPressedState ? mRestProgressClickBackgroundPaint
+					mIsPressedState ? mRestProgressClickBackgroundPaint
 							: mRestProgressBackgroundPaint);
 
 			if (mCurrentState == CircularProgressState.STOP) {
@@ -906,10 +912,10 @@ public class CircularProgressControl extends Button {
 			canvas.drawArc(mExerciseCircleOval, 270, mCalculatedExerciseArc,
 					true, mExerciseProgressForegroundPaint);
 			canvas.drawCircle(mCenterX, mCenterY, mRestCircleRadius,
-					isPressedState ? mRestProgressClickBackgroundPaint
+					mIsPressedState ? mRestProgressClickBackgroundPaint
 							: mRestProgressBackgroundPaint);
 			canvas.drawArc(mRestCircleOval, 270, mCalculatedRestArc, true,
-					isPressedState ? mRestProgressClickForegroundPaint
+					mIsPressedState ? mRestProgressClickForegroundPaint
 							: mRestProgressForegroundPaint);
 			break;
 		}
@@ -917,6 +923,20 @@ public class CircularProgressControl extends Button {
 			canvas.drawText("State not set!", mCenterX, mCenterY,
 					mRestProgressForegroundPaint);
 		}
-
+	}
+		
+	@Override
+	public boolean onTouchEvent(MotionEvent event) {
+		// calculate if the touch was inside the button 
+		// (currently the whole button is active,
+		// including outer borders as well)
+		boolean isInCircle = Math.pow(event.getX() - mCenterX, 2) + Math.pow(event.getY() - mCenterY, 2) < Math.pow(mTrainingCircleRadius, 2);
+		
+		mIsPressedState = (event.getAction() == MotionEvent.ACTION_DOWN || 
+				event.getAction() == MotionEvent.ACTION_MOVE) && isInCircle;
+		
+		invalidate();
+		
+		return mIsPressedState;
 	}
 }
