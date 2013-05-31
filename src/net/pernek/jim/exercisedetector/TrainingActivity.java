@@ -35,31 +35,31 @@ public class TrainingActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.training_activity);
 		mCircularProgress = (CircularProgressControl)findViewById(R.id.circularProgress);
+		mCircularProgress.setRestMaxProgress(100);
+		mCircularProgress.setRestMinProgress(0);
 		
-		CircularProgressState currentState = CircularProgressState.values()[stateCount++];
+		CircularProgressState currentState = CircularProgressState.values()[stateCount];
 		
-		mCircularProgress.setCurrentState(CircularProgressState.EXERCISE);
-/*		mCircularProgress.setOnLongClickListener(new OnLongClickListener() {
+		mCircularProgress.setCurrentState(currentState);
+		mCircularProgress.setOnLongClickListener(new OnLongClickListener() {
 			
 			@Override
 			public boolean onLongClick(View v) {
 				Toast.makeText(getApplicationContext(), "test", Toast.LENGTH_LONG).show();
 				mCircularProgress.setCurrentState(
-						CircularProgressState.values()[stateCount % 4]);
-				
-				stateCount++;
+						CircularProgressState.values()[++stateCount % 4]);
 				
 				if(mCircularProgress.getCurrentState() == CircularProgressState.EXERCISE){
 					mTrainingCounter = 0;
 					mExerciseCounter = 0;
 					mRestCounter = 100;
 					
-					mUiHandler = new Handler();
+					mUiHandler.removeCallbacks(mRunTimerUpdate);
 					mUiHandler.postDelayed(mRunTimerUpdate, 100);
 				}
 				return false;
 			}
-		});*/
+		});
 	}
 
 }
