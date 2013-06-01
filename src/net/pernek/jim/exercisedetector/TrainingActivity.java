@@ -32,6 +32,8 @@ public class TrainingActivity extends Activity {
 	private int stateCount = 0;
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
+		
+		// TODO: Use ViewFlipper to change between button circular button view, and rate training view
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.training_activity);
 		mCircularProgress = (CircularProgressControl)findViewById(R.id.circularProgress);

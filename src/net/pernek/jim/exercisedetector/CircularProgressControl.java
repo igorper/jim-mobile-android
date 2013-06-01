@@ -988,15 +988,17 @@ public class CircularProgressControl extends View {
 
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {
-		// propagate event further (for longclick and other events detection)
-		super.onTouchEvent(event);
-
 		// calculate if the touch was inside the button
 		// (currently the whole button is active,
 		// including outer borders as well)
 		boolean isInCircle = Math.pow(event.getX() - mCenterX, 2)
 				+ Math.pow(event.getY() - mCenterY, 2) < Math.pow(
 				mTrainingCircleRadius, 2);
+		
+		if(isInCircle){
+			// propagate event further (for longclick and other events detection)
+			super.onTouchEvent(event);
+		}
 
 		mIsPressedState = (event.getAction() == MotionEvent.ACTION_DOWN || event
 				.getAction() == MotionEvent.ACTION_MOVE) && isInCircle;
