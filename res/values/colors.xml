@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="finnish_button_background">#FF0080D0</color>
+    <color name="finnish_button_pressed">#990080D0</color>
+    <color name="finnish_button_text">#FFFFFFFF</color>
+</resources>
