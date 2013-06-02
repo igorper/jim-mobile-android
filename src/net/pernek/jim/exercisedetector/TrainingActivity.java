@@ -8,6 +8,7 @@ import android.graphics.PixelFormat;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.DropBoxManager.Entry;
+import android.util.TypedValue;
 import android.view.View;
 import android.view.View.OnLongClickListener;
 import android.widget.ImageView;
@@ -142,13 +143,22 @@ public class TrainingActivity extends Activity {
 	public void onTrainingRatingSelected(View v) {
 		ImageView trainingRatingSelected = (ImageView) v;
 
+		int imageSelectedPadding = getResources().
+				getDimensionPixelSize(R.dimen.training_rating_smile_selected_padding);
+		int imagePadding = getResources().
+				getDimensionPixelSize(R.dimen.training_rating_smile_padding);
+		
 		// loop through training ratings image views and set the appropriate image
 		for(int i=0; i < mTrainingRatingImages.length; i++){
 			if(mTrainingRatingImages[i] == trainingRatingSelected){
 				mTrainingRatingImages[i].setImageResource(TRAINING_RATING_SELECTED_IMAGES[i]);
+				mTrainingRatingImages[i].setPadding(imageSelectedPadding, imageSelectedPadding, 
+						imageSelectedPadding, imageSelectedPadding);
 				mTrainingRatingSelectedID = i;
 			} else {
 				mTrainingRatingImages[i].setImageResource(TRAINING_RATING_IMAGES[i]);
+				mTrainingRatingImages[i].setPadding(imagePadding, imagePadding, 
+						imagePadding, imagePadding);
 			}
 		}
 	}

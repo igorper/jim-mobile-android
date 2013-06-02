@@ -3,4 +3,9 @@
     <color name="finnish_button_background">#FF0080D0</color>
     <color name="finnish_button_pressed">#990080D0</color>
     <color name="finnish_button_text">#FFFFFFFF</color>
+    <color name="jim_orange">#FFFBC911</color>
+    <color name="jim_red">#FFE1563E</color>
+    <color name="jim_gray">#FF999999</color>
+    <color name="jim_background">#FFF1F2F2</color>
+    <color name="training_comment_text">#DDBFC1C1</color>
 </resources>

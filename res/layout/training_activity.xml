@@ -36,21 +36,23 @@
                 android:layout_weight="1" />
         </LinearLayout>
 
+        <!-- RATE TRAINING SCREEN -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:orientation="vertical" >
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="1"
-                android:background="#123456" />
+            android:orientation="vertical"
+            android:background="@color/jim_background" >
 
             <TextView
+                android:layout_marginTop="@dimen/training_rating_top_margin"
                 android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:textSize="@dimen/finnish_button_text_size"
+                android:textColor="@color/jim_red"
+                android:gravity="center"
+                android:paddingTop="@dimen/finnish_button_padding"
+                android:paddingBottom="@dimen/finnish_button_padding"
+                android:background="@color/jim_orange"
                 android:text="How was it?" />
 
             <LinearLayout
@@ -60,6 +62,7 @@
                 android:orientation="horizontal" >
 
                 <ImageView
+                    android:padding="@dimen/training_rating_smile_padding"
                     android:id="@+id/trainingRating1"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
@@ -67,6 +70,7 @@
                     android:onClick="onTrainingRatingSelected" />
 
                 <ImageView
+                    android:padding="@dimen/training_rating_smile_padding"
                     android:id="@+id/trainingRating2"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
@@ -74,6 +78,7 @@
                     android:onClick="onTrainingRatingSelected" />
 
                 <ImageView
+                    android:padding="@dimen/training_rating_smile_padding"
                     android:id="@+id/trainingRating3"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
@@ -81,6 +86,7 @@
                     android:onClick="onTrainingRatingSelected" />
 
                 <ImageView
+                    android:padding="@dimen/training_rating_smile_padding"
                     android:id="@+id/trainingRating4"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
@@ -88,19 +94,24 @@
                     android:onClick="onTrainingRatingSelected" />
             </LinearLayout>
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="0dp" >
-            </LinearLayout>
+            <EditText android:text="comment ..." android:layout_width="match_parent"
+                android:inputType="textShortMessage" android:gravity="top"
+                android:textSize="@dimen/training_comment_text_size"
+                android:textColor="@color/training_comment_text" 
+                android:layout_height="0dp" android:layout_weight="1"
+                android:layout_margin="@dimen/finnish_button_padding"
+                android:padding="@dimen/finnish_button_padding" 
+                android:background="@drawable/training_comment_border" />
 
             <Button
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="@drawable/finnish_button_style"
                 android:textColor="@drawable/finnish_button_text"
-                android:textSize="40dp"
-                android:padding="10dp"
+                android:textSize="@dimen/finnish_button_text_size"
+                android:padding="@dimen/finnish_button_padding"
                 android:onClick="testClick"
+                android:layout_margin="@dimen/finnish_button_padding"
                 android:text="Finnish" />
         </LinearLayout>
     </ViewFlipper>
