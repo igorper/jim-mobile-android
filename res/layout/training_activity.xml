@@ -27,13 +27,16 @@
             <net.pernek.jim.exercisedetector.ui.SwipeControl
                 android:id="@+id/scroller"
                 android:layout_width="match_parent"
-                android:layout_height="@dimen/notification_rect_size"
-                android:background="#00ff00"
+                android:layout_height="@dimen/status_rect_height"
+                android:background="@color/jim_orange"
                 android:fadingEdge="none"
                 android:fillViewport="true"
                 android:scrollbars="none"
                 jim:swipeLeftColor="@color/jim_blue"
-                jim:swipeRightColor="@color/jim_red" />
+                jim:swipeRightColor="@color/jim_red"
+                jim:typefacePathAssets="fonts/OpenSans-Regular.ttf"
+                jim:textLeftOff="Later"
+                jim:textRightOff="Skip" />
         </LinearLayout>
 
         <!-- RATE TRAINING SCREEN -->

@@ -6,8 +6,10 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.os.Handler;
+import android.text.Html;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -22,7 +24,6 @@ import android.widget.Toast;
 
 public class SwipeControl extends HorizontalScrollView {
 	private static final String TAG = Utils.getApplicationTag();
-	private static String DEFAULT_COLOR_MISSING = "#ff55bbaa";
 
 	private Handler handler;
 
@@ -31,18 +32,25 @@ public class SwipeControl extends HorizontalScrollView {
 	private boolean mSwipeEnded = true;
 	private boolean mSwipeDetected = false;
 	
-	private String mSwipeLeftColor;
-	private String mSwipeRightColor;
-	private Drawable mBackgroundDrawable;
+	private String mSwipeLeftBackgroundColor;
+	private String mSwipeRightBackgroundColor;
 	
+	private Drawable mBackgroundDrawable;
+	private String mLeftOffText;
+	private String mRightOffText;
+	private String mCenterLeftText;
+	private String mCenterRightText;
+	private TextView tvLeftOff;
+	private TextView tvCenter;
+	private TextView tvRightOff;
+		
 	private int mColorDelay = 200;
 	
 	private int mFontSize;
+	private Typeface mTypeface;
 
 	public SwipeControl(Context context, AttributeSet attrs) {
 		super(context, attrs);
-		
-		extractXmlAttrs(context.obtainStyledAttributes(attrs, R.styleable.SwipeContol));
 		
 		// background drawable will be used to change back the background color
 		// after the swipe gesture
@@ -59,8 +67,10 @@ public class SwipeControl extends HorizontalScrollView {
 		// the scroller to this position)
 		mScrollerStart = offScreenElementWidth;
 
-		createScrollerLayout(screenWidth,
+		createScrollerLayout(context, screenWidth,
 				offScreenElementWidth);
+		
+		extractXmlAttrs(context.obtainStyledAttributes(attrs, R.styleable.SwipeContol));
 
 		getViewTreeObserver().addOnGlobalLayoutListener(
 				new ViewTreeObserver.OnGlobalLayoutListener() {
@@ -108,14 +118,43 @@ public class SwipeControl extends HorizontalScrollView {
 			}
 		});
 	}
-
 	
+	public void setLeftOffText(String text){
+		mLeftOffText = text;
+		tvLeftOff.setText(mLeftOffText);
+	}
+	
+	public void setRightOffText(String text){
+		mRightOffText = text;
+		tvRightOff.setText(mRightOffText);
+	}
+	
+	public void setCenterText(String left, String right){
+		mCenterLeftText = left;
+		mCenterRightText = right;
+		
+		// strip first two characters as getColor includes alpha channel, 
+		// as opposed to Html.fromHtml 
+		String colorLeft = Integer.toHexString(getResources().getColor(R.color.status_rect_center_left_text)).substring(2);
+		String colorRight = Integer.toHexString(getResources().getColor(R.color.status_rect_center_right_text)).substring(2);
+		
+		tvCenter.setText(Html.fromHtml("<font color='#" + colorLeft + "'>" + mCenterLeftText + 
+				"</font><font color='#" + colorRight + "'>" + mCenterRightText + "</font>"));
+	}
+		
 	/** This function extracts xml attributes defined for the {@link SwipeControl} class.
 	 * @param ta
 	 */
 	private void extractXmlAttrs(TypedArray ta) {
-		mSwipeLeftColor = ta.getString(R.styleable.SwipeContol_swipeLeftColor);
-		mSwipeRightColor = ta.getString(R.styleable.SwipeContol_swipeRightColor);
+		// TODO: handle if any of the attributes is missing
+		mSwipeLeftBackgroundColor = ta.getString(R.styleable.SwipeContol_swipeLeftColor);
+		mSwipeRightBackgroundColor = ta.getString(R.styleable.SwipeContol_swipeRightColor);
+		
+		mTypeface = Typeface.createFromAsset(getContext()
+				.getAssets(), ta.getString(R.styleable.SwipeContol_typefacePathAssets));
+		setLeftOffText(ta.getString(R.styleable.SwipeContol_textLeftOff));
+		setRightOffText(ta.getString(R.styleable.SwipeContol_textRightOff));
+		
 		
 		ta.recycle();
 	}
@@ -136,32 +175,38 @@ public class SwipeControl extends HorizontalScrollView {
 	 * @param offScreenElementWidth
 	 *            is the width of left and right off screen TextViews.
 	 */
-	private void createScrollerLayout(int screenWidth, int offScreenElementWidth) {
-		TextView tvLeft = new TextView(getContext());
-		tvLeft.setText("TLEVI");
-		tvLeft.setTextSize(20);
-		tvLeft.setGravity(Gravity.CENTER);
-		tvLeft.setLayoutParams(new LinearLayout.LayoutParams(
+	private void createScrollerLayout(Context context, int screenWidth, int offScreenElementWidth) {
+		tvLeftOff = new TextView(context);
+		
+		tvLeftOff.setTextSize(20);
+		tvLeftOff.setGravity(Gravity.CENTER);
+		tvLeftOff.setTypeface(mTypeface);
+		tvLeftOff.setTextColor(getResources().getColor(R.color.status_rect_left_off_text));
+		tvLeftOff.setLayoutParams(new LinearLayout.LayoutParams(
 				offScreenElementWidth, LayoutParams.MATCH_PARENT));
-		TextView tvCenter = new TextView(getContext());
-		tvCenter.setText("TCENTER");
+		
+		tvCenter = new TextView(context);
+		setCenterText("Next: ", "Biceps");
 		tvCenter.setTextSize(20);
 		tvCenter.setGravity(Gravity.CENTER);
+		tvCenter.setTypeface(mTypeface);
 		tvCenter.setLayoutParams(new LinearLayout.LayoutParams(screenWidth,
 				LayoutParams.MATCH_PARENT));
-		TextView tvRight = new TextView(getContext());
-		tvRight.setText("RIGHT");
-		tvRight.setTextSize(20);
-		tvRight.setGravity(Gravity.CENTER);
-		tvRight.setLayoutParams(new LinearLayout.LayoutParams(
+		
+		tvRightOff = new TextView(context);
+		tvRightOff.setTextSize(20);
+		tvRightOff.setGravity(Gravity.CENTER);
+		tvRightOff.setTypeface(mTypeface);
+		tvRightOff.setTextColor(getResources().getColor(R.color.status_rect_right_off_text));
+		tvRightOff.setLayoutParams(new LinearLayout.LayoutParams(
 				offScreenElementWidth, LayoutParams.MATCH_PARENT));
 
-		LinearLayout scrollHost = new LinearLayout(getContext());
+		LinearLayout scrollHost = new LinearLayout(context);
 		scrollHost.setLayoutParams(new LinearLayout.LayoutParams(
 				LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
-		scrollHost.addView(tvLeft);
+		scrollHost.addView(tvLeftOff);
 		scrollHost.addView(tvCenter);
-		scrollHost.addView(tvRight);
+		scrollHost.addView(tvRightOff);
 
 		addView(scrollHost);
 	}
@@ -176,7 +221,7 @@ public class SwipeControl extends HorizontalScrollView {
 
 				@Override
 				public void run() {
-					setBackgroundColor(Color.parseColor(mSwipeRightColor));
+					setBackgroundColor(Color.parseColor(mSwipeRightBackgroundColor));
 					mSwipeDetected = true;
 				}
 			});
@@ -186,7 +231,7 @@ public class SwipeControl extends HorizontalScrollView {
 
 				@Override
 				public void run() {
-					setBackgroundColor(Color.parseColor(mSwipeLeftColor));
+					setBackgroundColor(Color.parseColor(mSwipeLeftBackgroundColor));
 					mSwipeDetected = true;
 				}
 			});

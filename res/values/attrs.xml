@@ -3,5 +3,10 @@
     <declare-styleable name="SwipeContol">
        <attr name="swipeLeftColor" format="color" />
        <attr name="swipeRightColor" format="color" />
+       <attr name="typefacePathAssets" format="string" />
+       <attr name="textLeftOff" format="string" />
+       <attr name="textRightOff" format="string" />
+       <attr name="textCenterLeft" format="string" />
+       <attr name="textCenterRight" format="string" />
    </declare-styleable>
 </resources>
