@@ -1,9 +1,12 @@
 package net.pernek.jim.exercisedetector.ui;
 
+import net.pernek.jim.exercisedetector.R;
 import net.pernek.jim.exercisedetector.util.Utils;
 import android.app.Activity;
 import android.content.Context;
+import android.content.res.TypedArray;
 import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
@@ -19,31 +22,44 @@ import android.widget.Toast;
 
 public class SwipeControl extends HorizontalScrollView {
 	private static final String TAG = Utils.getApplicationTag();
+	private static String DEFAULT_COLOR_MISSING = "#ff55bbaa";
 
 	private Handler handler;
 
 	private int mScrollerStart;
-	private int mScrollerWidth;
 
 	private boolean mSwipeEnded = true;
 	private boolean mSwipeDetected = false;
 	
-	private String mSwipeLeftColor = "#ff0080d0";
-	private String mSwipeRightColor = "#ffe1563e";
+	private String mSwipeLeftColor;
+	private String mSwipeRightColor;
+	private Drawable mBackgroundDrawable;
 	
 	private int mColorDelay = 200;
+	
+	private int mFontSize;
 
 	public SwipeControl(Context context, AttributeSet attrs) {
 		super(context, attrs);
+		
+		extractXmlAttrs(context.obtainStyledAttributes(attrs, R.styleable.SwipeContol));
+		
+		// background drawable will be used to change back the background color
+		// after the swipe gesture
+		mBackgroundDrawable = getBackground();
 
+		// ui thread handler, used to post and schedule all visual changes
 		handler = new Handler();
 
+		// get the dimensions to define the layout of the contol
 		int screenWidth = getScreenWidth(context);
 		int offScreenElementWidth = screenWidth / 3 * 2;
-		
+
+		// this is the initial scroller position (we will always scroll
+		// the scroller to this position)
 		mScrollerStart = offScreenElementWidth;
 
-		mScrollerWidth = createScrollerLayout(screenWidth,
+		createScrollerLayout(screenWidth,
 				offScreenElementWidth);
 
 		getViewTreeObserver().addOnGlobalLayoutListener(
@@ -52,7 +68,8 @@ public class SwipeControl extends HorizontalScrollView {
 					public void onGlobalLayout() {
 						getViewTreeObserver()
 								.removeGlobalOnLayoutListener(this);
-						// scroll to initial position
+						
+						// scroll to initial position at the beginning
 						scrollTo(mScrollerStart, 0);
 					}
 				});
@@ -61,17 +78,23 @@ public class SwipeControl extends HorizontalScrollView {
 			@Override
 			public boolean onTouch(View v, MotionEvent event) {
 				if (event.getAction() == MotionEvent.ACTION_DOWN) {
+					// using this allows us to stop reporting touch
+					// events after a swipe has ended, and resume at
+					// the beginning of each swipe
 					mSwipeEnded = false;
 				} else if (mSwipeDetected
 						|| event.getAction() == MotionEvent.ACTION_UP
 						|| event.getAction() == MotionEvent.ACTION_CANCEL) {
-					// scroll to initial position
+					// scroll to initial position after the swipe or on
+					// swipe release/cancel
 					smoothScrollTo(mScrollerStart, 0);
+					
+					// change back the control color after the swipe (with a delay)
 					postDelayed(new Runnable() {
 						
 						@Override
 						public void run() {
-							setBackgroundColor(Color.parseColor("#00ff00"));
+							setBackgroundDrawable(mBackgroundDrawable);
 							
 						}
 					}, mColorDelay);
@@ -84,6 +107,17 @@ public class SwipeControl extends HorizontalScrollView {
 				return mSwipeEnded;
 			}
 		});
+	}
+
+	
+	/** This function extracts xml attributes defined for the {@link SwipeControl} class.
+	 * @param ta
+	 */
+	private void extractXmlAttrs(TypedArray ta) {
+		mSwipeLeftColor = ta.getString(R.styleable.SwipeContol_swipeLeftColor);
+		mSwipeRightColor = ta.getString(R.styleable.SwipeContol_swipeRightColor);
+		
+		ta.recycle();
 	}
 
 	private int getScreenWidth(Context context) {
@@ -101,9 +135,8 @@ public class SwipeControl extends HorizontalScrollView {
 	 *            is the width of the central TextView.
 	 * @param offScreenElementWidth
 	 *            is the width of left and right off screen TextViews.
-	 * @return the scroll width.
 	 */
-	private int createScrollerLayout(int screenWidth, int offScreenElementWidth) {
+	private void createScrollerLayout(int screenWidth, int offScreenElementWidth) {
 		TextView tvLeft = new TextView(getContext());
 		tvLeft.setText("TLEVI");
 		tvLeft.setTextSize(20);
@@ -131,9 +164,6 @@ public class SwipeControl extends HorizontalScrollView {
 		scrollHost.addView(tvRight);
 
 		addView(scrollHost);
-
-		// return total scroller width
-		return screenWidth;
 	}
 
 	@Override
@@ -142,7 +172,6 @@ public class SwipeControl extends HorizontalScrollView {
 		
 		if (l == 0) {
 			// swipe right
-
 			handler.post(new Runnable() {
 
 				@Override

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="SwipeContol">
+       <attr name="swipeLeftColor" format="color" />
+       <attr name="swipeRightColor" format="color" />
+   </declare-styleable>
+</resources>

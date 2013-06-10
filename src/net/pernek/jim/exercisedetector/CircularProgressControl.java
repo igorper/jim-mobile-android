@@ -16,7 +16,9 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
-/**
+/** A circular progress control.
+ * NOTE: At this point this button ignores the padding property
+ * (this should be added in the future). 
  * @author Igor
  * 
  */

@@ -1,5 +1,6 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    xmlns:jim="http://schemas.android.com/apk/res/net.pernek.jim.exercisedetector"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#FFF1F2F2"
@@ -19,16 +20,20 @@
                 android:id="@+id/circularProgress"
                 android:layout_width="match_parent"
                 android:layout_height="100dp"
-                android:background="#00aa00" />
+                android:background="#00aa00"
+                android:layout_margin="20dp"
+                 />
 
             <net.pernek.jim.exercisedetector.ui.SwipeControl
                 android:id="@+id/scroller"
                 android:layout_width="match_parent"
-                android:layout_height="50dp"
+                android:layout_height="@dimen/notification_rect_size"
                 android:background="#00ff00"
                 android:fadingEdge="none"
                 android:fillViewport="true"
-                android:scrollbars="none" />
+                android:scrollbars="none"
+                jim:swipeLeftColor="@color/jim_blue"
+                jim:swipeRightColor="@color/jim_red" />
         </LinearLayout>
 
         <!-- RATE TRAINING SCREEN -->
@@ -110,7 +115,7 @@
                 android:background="@drawable/finnish_button_style"
                 android:onClick="testClick"
                 android:padding="@dimen/finnish_button_padding"
-                android:text="Finnish"
+                android:text="Finish"
                 android:textColor="@drawable/finnish_button_text"
                 android:textSize="@dimen/finnish_button_text_size" />
         </LinearLayout>
