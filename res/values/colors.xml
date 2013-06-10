@@ -14,4 +14,6 @@
     <color name="status_rect_right_off_text">#FFFFFFFF</color>
     <color name="status_rect_center_left_text">#FF000000</color>
     <color name="status_rect_center_right_text">#FFE1563E</color>
+    <color name="status_rect_left_swipe_background">#FFE1563E</color>
+    <color name="status_rect_right_swipe_background">#ff0080d0</color>
 </resources>

@@ -1,8 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <declare-styleable name="SwipeContol">
-       <attr name="swipeLeftColor" format="color" />
-       <attr name="swipeRightColor" format="color" />
        <attr name="typefacePathAssets" format="string" />
        <attr name="textLeftOff" format="string" />
        <attr name="textRightOff" format="string" />

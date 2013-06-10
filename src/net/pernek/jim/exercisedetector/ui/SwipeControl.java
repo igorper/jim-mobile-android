@@ -22,6 +22,14 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+/** A horizontal swipe control with textual clues.  
+ * Notes:
+ * - currently colors not exposed through android:ScrollView attrs
+ * are obtained directly from colors.xml resource file 
+ * (see those with prefix:'status_rect_' 
+ * @author Igor
+ *
+ */
 public class SwipeControl extends HorizontalScrollView {
 	private static final String TAG = Utils.getApplicationTag();
 
@@ -147,9 +155,8 @@ public class SwipeControl extends HorizontalScrollView {
 	 */
 	private void extractXmlAttrs(TypedArray ta) {
 		// TODO: handle if any of the attributes is missing
-		mSwipeLeftBackgroundColor = ta.getString(R.styleable.SwipeContol_swipeLeftColor);
-		mSwipeRightBackgroundColor = ta.getString(R.styleable.SwipeContol_swipeRightColor);
 		
+		// TODO: remove typeface from attrs
 		mTypeface = Typeface.createFromAsset(getContext()
 				.getAssets(), ta.getString(R.styleable.SwipeContol_typefacePathAssets));
 		setLeftOffText(ta.getString(R.styleable.SwipeContol_textLeftOff));
@@ -176,8 +183,10 @@ public class SwipeControl extends HorizontalScrollView {
 	 *            is the width of left and right off screen TextViews.
 	 */
 	private void createScrollerLayout(Context context, int screenWidth, int offScreenElementWidth) {
-		tvLeftOff = new TextView(context);
+		mSwipeLeftBackgroundColor = String.format("#%X", getResources().getColor(R.color.status_rect_left_swipe_background));
+		mSwipeRightBackgroundColor = String.format("#%X", getResources().getColor(R.color.status_rect_right_swipe_background));
 		
+		tvLeftOff = new TextView(context);
 		tvLeftOff.setTextSize(20);
 		tvLeftOff.setGravity(Gravity.CENTER);
 		tvLeftOff.setTypeface(mTypeface);
