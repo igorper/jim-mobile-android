@@ -12,48 +12,44 @@
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent" >
+            android:layout_height="match_parent"
+            android:orientation="vertical" >
 
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1" />
+            <net.pernek.jim.exercisedetector.CircularProgressControl
+                android:id="@+id/circularProgress"
+                android:layout_width="match_parent"
+                android:layout_height="100dp"
+                android:background="#00aa00" />
 
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="15" >
-
-                <net.pernek.jim.exercisedetector.CircularProgressControl
-                    android:id="@+id/circularProgress"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1" />
+            <net.pernek.jim.exercisedetector.ui.SwipeControl
+                android:id="@+id/scroller"
+                android:layout_width="match_parent"
+                android:layout_height="100dp"
+                android:background="#00ff00"
+                android:fadingEdge="none"
+                android:fillViewport="true"
+                android:scrollbars="none" />
         </LinearLayout>
 
         <!-- RATE TRAINING SCREEN -->
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:orientation="vertical"
-            android:background="@color/jim_background" >
+            android:background="@color/jim_background"
+            android:orientation="vertical" >
 
             <TextView
-                android:layout_marginTop="@dimen/training_rating_top_margin"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textSize="@dimen/finnish_button_text_size"
-                android:textColor="@color/jim_red"
-                android:gravity="center"
-                android:paddingTop="@dimen/finnish_button_padding"
-                android:paddingBottom="@dimen/finnish_button_padding"
+                android:layout_marginTop="@dimen/training_rating_top_margin"
                 android:background="@color/jim_orange"
-                android:text="How was it?" />
+                android:gravity="center"
+                android:paddingBottom="@dimen/finnish_button_padding"
+                android:paddingTop="@dimen/finnish_button_padding"
+                android:text="How was it?"
+                android:textColor="@color/jim_red"
+                android:textSize="@dimen/finnish_button_text_size" />
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -62,57 +58,61 @@
                 android:orientation="horizontal" >
 
                 <ImageView
-                    android:padding="@dimen/training_rating_smile_padding"
                     android:id="@+id/trainingRating1"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
-                    android:onClick="onTrainingRatingSelected" />
+                    android:onClick="onTrainingRatingSelected"
+                    android:padding="@dimen/training_rating_smile_padding" />
 
                 <ImageView
-                    android:padding="@dimen/training_rating_smile_padding"
                     android:id="@+id/trainingRating2"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
-                    android:onClick="onTrainingRatingSelected" />
+                    android:onClick="onTrainingRatingSelected"
+                    android:padding="@dimen/training_rating_smile_padding" />
 
                 <ImageView
-                    android:padding="@dimen/training_rating_smile_padding"
                     android:id="@+id/trainingRating3"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
-                    android:onClick="onTrainingRatingSelected" />
+                    android:onClick="onTrainingRatingSelected"
+                    android:padding="@dimen/training_rating_smile_padding" />
 
                 <ImageView
-                    android:padding="@dimen/training_rating_smile_padding"
                     android:id="@+id/trainingRating4"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
-                    android:onClick="onTrainingRatingSelected" />
+                    android:onClick="onTrainingRatingSelected"
+                    android:padding="@dimen/training_rating_smile_padding" />
             </LinearLayout>
 
-            <EditText android:text="comment ..." android:layout_width="match_parent"
-                android:inputType="textShortMessage" android:gravity="top"
-                android:textSize="@dimen/training_comment_text_size"
-                android:textColor="@color/training_comment_text" 
-                android:layout_height="0dp" android:layout_weight="1"
+            <EditText
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
                 android:layout_margin="@dimen/finnish_button_padding"
-                android:padding="@dimen/finnish_button_padding" 
-                android:background="@drawable/training_comment_border" />
+                android:layout_weight="1"
+                android:background="@drawable/training_comment_border"
+                android:gravity="top"
+                android:inputType="textShortMessage"
+                android:padding="@dimen/finnish_button_padding"
+                android:text="comment ..."
+                android:textColor="@color/training_comment_text"
+                android:textSize="@dimen/training_comment_text_size" />
 
             <Button
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@drawable/finnish_button_style"
-                android:textColor="@drawable/finnish_button_text"
-                android:textSize="@dimen/finnish_button_text_size"
-                android:padding="@dimen/finnish_button_padding"
-                android:onClick="testClick"
                 android:layout_margin="@dimen/finnish_button_padding"
-                android:text="Finnish" />
+                android:background="@drawable/finnish_button_style"
+                android:onClick="testClick"
+                android:padding="@dimen/finnish_button_padding"
+                android:text="Finnish"
+                android:textColor="@drawable/finnish_button_text"
+                android:textSize="@dimen/finnish_button_text_size" />
         </LinearLayout>
     </ViewFlipper>
 
