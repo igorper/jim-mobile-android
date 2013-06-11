@@ -162,5 +162,8 @@ public class TrainingActivity extends Activity {
 			}
 		}
 	}
-
+	
+	public void onSelectTrainingClick(View view){
+		Toast.makeText(getApplicationContext(), "Exercise selected", Toast.LENGTH_SHORT).show();
+	}
 }

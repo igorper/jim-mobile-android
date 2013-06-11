@@ -20,26 +20,59 @@
                 android:id="@+id/circularProgress"
                 android:layout_width="match_parent"
                 android:layout_height="100dp"
-                android:background="#00aa00"
                 android:layout_marginLeft="20dp"
-                android:layout_marginTop="20dp"
                 android:layout_marginRight="20dp"
-                 />
+                android:layout_marginTop="20dp"
+                android:background="#00aa00" />
 
-            <LinearLayout android:layout_width="match_parent"
-                android:layout_height="0dp" android:layout_weight="1">
-            <net.pernek.jim.exercisedetector.ui.SwipeControl
-                android:layout_gravity="center_vertical"
-                android:id="@+id/scroller"
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="@dimen/status_rect_height"
-                android:background="@color/jim_orange"
-                android:fadingEdge="none"
-                android:fillViewport="true"
-                android:scrollbars="none"
-                jim:typefacePathAssets="fonts/OpenSans-Regular.ttf"
-                jim:textLeftOff="Later"
-                jim:textRightOff="Skip" />
+                android:layout_height="0dp"
+                android:layout_weight="1" >
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/status_rect_height"
+                    android:layout_gravity="center_vertical"
+                    android:background="@color/jim_orange" >
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:onClick="onSelectTrainingClick"
+                        android:orientation="vertical" >
+
+                        <TextView
+                            android:textColor="@color/jim_black"
+                            android:gravity="center"
+                            android:layout_width="match_parent"
+                            android:layout_height="0dp"
+                            android:layout_weight="1"
+                            android:textSize="25dp"
+                            android:text="Workout selected:" />
+
+                        <TextView
+                            android:textColor="@color/jim_red"
+                            android:gravity="center"
+                            android:layout_width="match_parent"
+                            android:layout_height="0dp"
+                            android:layout_weight="1"
+                            android:textSize="25dp"
+                            android:text="Fit before summer" />
+                    </LinearLayout>
+
+                    <net.pernek.jim.exercisedetector.ui.SwipeControl
+                        android:id="@+id/scroller"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:fadingEdge="none"
+                        android:fillViewport="true"
+                        android:scrollbars="none"
+                        android:visibility="invisible"
+                        jim:textLeftOff="Later"
+                        jim:textRightOff="Skip"
+                        jim:typefacePathAssets="fonts/OpenSans-Regular.ttf" />
+                </RelativeLayout>
             </LinearLayout>
         </LinearLayout>
 
