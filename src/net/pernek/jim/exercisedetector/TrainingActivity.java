@@ -3,11 +3,15 @@ package net.pernek.jim.exercisedetector;
 import java.util.Hashtable;
 
 import net.pernek.jim.exercisedetector.CircularProgressControl.CircularProgressState;
+import net.pernek.jim.exercisedetector.ui.TrainingSelectionList;
+import net.pernek.jim.exercisedetector.util.Utils;
 import android.app.Activity;
+import android.content.Intent;
 import android.graphics.PixelFormat;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.DropBoxManager.Entry;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.View;
 import android.view.View.OnLongClickListener;
@@ -16,6 +20,10 @@ import android.widget.Toast;
 import android.widget.ViewFlipper;
 
 public class TrainingActivity extends Activity {
+	
+	private static final String TAG = Utils.getApplicationTag();
+	
+	private static final int ACTIVITY_REQUEST_TRAININGS_LIST = 0;
 
 	private CircularProgressControl mCircularProgress;
 	private ViewFlipper mViewFlipper;
@@ -164,6 +172,23 @@ public class TrainingActivity extends Activity {
 	}
 	
 	public void onSelectTrainingClick(View view){
-		Toast.makeText(getApplicationContext(), "Exercise selected", Toast.LENGTH_SHORT).show();
+		Intent intent = new Intent(TrainingActivity.this, TrainingSelectionList.class);
+        startActivityForResult(intent, ACTIVITY_REQUEST_TRAININGS_LIST);
+	}
+	
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+		switch(requestCode){
+		case ACTIVITY_REQUEST_TRAININGS_LIST:{
+			if(data != null && data.hasExtra(TrainingSelectionList.INTENT_EXTRA_SELECTED_TRAINING_KEY)){
+				Toast.makeText(this, data.getStringExtra(TrainingSelectionList.INTENT_EXTRA_SELECTED_TRAINING_KEY), Toast.LENGTH_LONG).show();
+			}
+			break;
+		}
+		default:
+			Log.d(TAG, "onActivityResult default switch.");
+			break;
+		}
+		
 	}
 }
