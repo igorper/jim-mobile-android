@@ -43,22 +43,46 @@
                         android:orientation="vertical" >
 
                         <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="0dp"
+                            android:layout_weight="1"
+                            android:gravity="center"
+                            android:text="Workout selected:"
                             android:textColor="@color/jim_black"
-                            android:gravity="center"
-                            android:layout_width="match_parent"
-                            android:layout_height="0dp"
-                            android:layout_weight="1"
-                            android:textSize="25dp"
-                            android:text="Workout selected:" />
+                            android:textSize="@dimen/status_rect_training_selection_font_size" />
 
-                        <TextView
-                            android:textColor="@color/jim_red"
-                            android:gravity="center"
+                        <RelativeLayout
                             android:layout_width="match_parent"
                             android:layout_height="0dp"
-                            android:layout_weight="1"
-                            android:textSize="25dp"
-                            android:text="Fit before summer" />
+                            android:layout_weight="1" >
+
+                            <!-- It's really hard to pick the optimal triangle size and align
+                            it with the text (this should be done from scratch with low level
+                            drawing in the future -->
+                            <LinearLayout
+                                android:layout_width="wrap_content"
+                                android:layout_height="match_parent"
+                                android:layout_centerInParent="true" >
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="match_parent"
+                                    android:layout_gravity="center_vertical"
+                                    android:gravity="center_vertical"
+                                    android:text="Fit before summer"
+                                    android:textColor="@color/jim_red"
+                                    android:textSize="@dimen/status_rect_training_selection_font_size" />
+
+                                <ImageView
+                                    android:adjustViewBounds="true"
+                                    android:scaleType="fitCenter"
+                                    android:layout_marginLeft="10dp"
+                                    android:layout_gravity="center_vertical|left"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:src="@drawable/arrow_red_down" />
+                            </LinearLayout>
+                        </RelativeLayout>
                     </LinearLayout>
 
                     <net.pernek.jim.exercisedetector.ui.SwipeControl
