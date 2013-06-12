@@ -4,6 +4,10 @@
     <string name="app_name">ExerciseDetector</string>
     <string name="hello_world">Hello world!</string>
     <string name="menu_settings">Settings</string>
+    <string name="login_button_text">login</string>
+    <string name="username_edittext_text">username or email</string>
+    <string name="password_edittext_text">password</string>
+    
 	<!-- From demo -->
     <drawable name="white">#ffffff</drawable>
 	<drawable name="blue">#2554C7</drawable>

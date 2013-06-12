@@ -11,6 +11,7 @@ import android.graphics.PixelFormat;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.DropBoxManager.Entry;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.View;
@@ -25,6 +26,8 @@ public class TrainingActivity extends Activity {
 	
 	private static final int ACTIVITY_REQUEST_TRAININGS_LIST = 0;
 
+	private DetectorSettings mSettings;
+	
 	private CircularProgressControl mCircularProgress;
 	private ViewFlipper mViewFlipper;
 
@@ -93,6 +96,15 @@ public class TrainingActivity extends Activity {
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
+		
+		mSettings = DetectorSettings.create(PreferenceManager
+				.getDefaultSharedPreferences(this));
+		
+		// if we are not logged in yet show the login activity first
+		if(mSettings.getUsername().equals("")){
+			startActivity(new Intent(TrainingActivity.this, LoginActivity.class));
+			finish();
+		}
 
 		// TODO: Use ViewFlipper to change between button circular button view,
 		// and rate training view

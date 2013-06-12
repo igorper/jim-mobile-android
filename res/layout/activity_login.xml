@@ -18,21 +18,26 @@
 
             <EditText
                 android:layout_width="match_parent"
+                android:singleLine="true"
+                android:imeOptions="actionNext"
                 android:layout_height="@dimen/login_element_height"
                 android:layout_margin="@dimen/login_element_margin"
                 android:background="@color/jim_white"
                 android:gravity="center"
-                android:text="username or email"
+                android:hint="@string/username_edittext_text"
                 android:textAppearance="?android:attr/textAppearanceLarge"
                 android:textColor="@color/jim_gray" />
 
             <EditText
+                android:id="@+id/password_edittext"
+                android:inputType="textPassword"
+                android:imeOptions="actionGo"
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/login_element_height"
                 android:layout_margin="@dimen/login_element_margin"
                 android:background="@color/jim_white"
                 android:gravity="center"
-                android:text="password"
+                android:hint="@string/password_edittext_text"
                 android:textAppearance="?android:attr/textAppearanceLarge"
                 android:textColor="@color/jim_gray" />
         </LinearLayout>
@@ -58,7 +63,8 @@
                 android:background="@drawable/blue_button_style"
                 android:text="login"
                 android:textAppearance="?android:attr/textAppearanceLarge"
-                android:textColor="@drawable/blue_button_text" />
+                android:textColor="@drawable/blue_button_text"
+                android:onClick="onLoginButtonClick" />
 
             <ImageView
                 android:layout_margin="@dimen/login_logo_margin"
