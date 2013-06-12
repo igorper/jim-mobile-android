@@ -122,6 +122,7 @@ public class ExerciseDetectorActivity extends Activity {
 		}
 	};
 
+	@Override
 	public boolean onCreateOptionsMenu(android.view.Menu menu) {
 		menu.add(1, MENU_UPLOAD, 1, "Upload");
 		menu.add(1, MENU_GET_TRAINING_LIST, 1, "Get training list");

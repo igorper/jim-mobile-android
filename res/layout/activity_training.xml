@@ -37,6 +37,7 @@
                     android:background="@color/jim_orange" >
 
                     <LinearLayout
+                        android:id="@+id/trainingSelector"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:onClick="onSelectTrainingClick"
@@ -86,7 +87,7 @@
                     </LinearLayout>
 
                     <net.pernek.jim.exercisedetector.ui.SwipeControl
-                        android:id="@+id/scroller"
+                        android:id="@+id/swipeControl"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:fadingEdge="none"

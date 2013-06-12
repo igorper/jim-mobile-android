@@ -3,20 +3,25 @@ package net.pernek.jim.exercisedetector;
 import java.util.Hashtable;
 
 import net.pernek.jim.exercisedetector.CircularProgressControl.CircularProgressState;
+import net.pernek.jim.exercisedetector.ui.SwipeControl;
 import net.pernek.jim.exercisedetector.ui.TrainingSelectionList;
 import net.pernek.jim.exercisedetector.util.Utils;
 import android.app.Activity;
 import android.content.Intent;
 import android.graphics.PixelFormat;
+import android.opengl.Visibility;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.DropBoxManager.Entry;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.util.TypedValue;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnLongClickListener;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 import android.widget.ViewFlipper;
 
@@ -24,12 +29,18 @@ public class TrainingActivity extends Activity {
 	
 	private static final String TAG = Utils.getApplicationTag();
 	
+	private final static int MENU_SYNC = Menu.FIRST;
+	private final static int MENU_SWIPE = Menu.FIRST + 1;
+	private final static int MENU_LOGOUT = Menu.FIRST + 2;
+	
 	private static final int ACTIVITY_REQUEST_TRAININGS_LIST = 0;
 
 	private DetectorSettings mSettings;
 	
 	private CircularProgressControl mCircularProgress;
 	private ViewFlipper mViewFlipper;
+	private SwipeControl mSwipeControl;
+	private LinearLayout mTrainingSelector;
 
 	private int mTrainingCounter = 0;
 	private int mExerciseCounter = 0;
@@ -115,6 +126,8 @@ public class TrainingActivity extends Activity {
 
 		mCircularProgress = (CircularProgressControl) findViewById(R.id.circularProgress);
 		mViewFlipper = (ViewFlipper) findViewById(R.id.viewFlipper);
+		mSwipeControl = (SwipeControl)findViewById(R.id.swipeControl);
+		mTrainingSelector = (LinearLayout)findViewById(R.id.trainingSelector);
 
 		mCircularProgress.setRestMaxProgress(100);
 		mCircularProgress.setRestMinProgress(0);
@@ -201,6 +214,45 @@ public class TrainingActivity extends Activity {
 			Log.d(TAG, "onActivityResult default switch.");
 			break;
 		}
-		
 	}
+	
+	@Override
+	public boolean onCreateOptionsMenu(android.view.Menu menu) {
+		menu.add(1, MENU_SYNC, 1, "Sync");
+		menu.add(1, MENU_SWIPE, 2, "Swipe");
+		menu.add(1, MENU_LOGOUT, 3, "Logout");
+		return true;
+	};
+	
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		switch (item.getItemId()) {
+		case MENU_SYNC: {
+						
+			break;
+		}
+		case MENU_SWIPE: {
+			if(mSwipeControl.getVisibility() == View.VISIBLE){
+				mSwipeControl.setVisibility(View.INVISIBLE);
+				mTrainingSelector.setVisibility(View.VISIBLE);
+			} else {
+				mSwipeControl.setVisibility(View.VISIBLE);
+				mTrainingSelector.setVisibility(View.INVISIBLE);
+			}
+			break;
+		}
+		case MENU_LOGOUT: {
+			mSettings.saveUsername("");
+			mSettings.savePassword("");
+			finish();
+			
+			break;
+		}
+		default:
+			break;
+		}
+
+		return super.onOptionsItemSelected(item);
+	}
+
 }
