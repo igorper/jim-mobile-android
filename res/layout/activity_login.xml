@@ -17,6 +17,8 @@
             android:orientation="vertical" >
 
             <EditText
+                android:inputType="textEmailAddress"
+                android:id="@+id/username_edittext"
                 android:layout_width="match_parent"
                 android:singleLine="true"
                 android:imeOptions="actionNext"
