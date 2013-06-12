@@ -97,7 +97,7 @@ public class TrainingActivity extends Activity {
 		// TODO: Use ViewFlipper to change between button circular button view,
 		// and rate training view
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.training_activity);
+		setContentView(R.layout.activity_training);
 		
 		initializeTrainingRatings();
 

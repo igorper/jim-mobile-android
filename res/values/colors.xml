@@ -8,6 +8,7 @@
     <color name="jim_gray">#FF999999</color>
     <color name="jim_background">#FFF1F2F2</color>
     <color name="jim_black">#FF000000</color>
+    <color name="jim_white">#FFFFFFFF</color>
     <color name="training_comment_text">#ffBFC1C1</color>
     <color name="jim_blue">#ff0080d0</color>
     <color name="missing">#FF000000</color>

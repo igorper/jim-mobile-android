@@ -176,11 +176,11 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_margin="@dimen/finnish_button_padding"
-                android:background="@drawable/finnish_button_style"
+                android:background="@drawable/blue_button_style"
                 android:onClick="testClick"
                 android:padding="@dimen/finnish_button_padding"
                 android:text="Finish"
-                android:textColor="@drawable/finnish_button_text"
+                android:textColor="@drawable/blue_button_text"
                 android:textSize="@dimen/finnish_button_text_size" />
         </LinearLayout>
     </ViewFlipper>
