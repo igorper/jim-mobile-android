@@ -19,7 +19,7 @@ import org.json.JSONObject;
 import android.text.Html.TagHandler;
 import android.util.Log;
 
-public class TrainingPlan {
+public class TrainingPlanOld {
 	
 	private static final String TAG = Utils.getApplicationTag();
 
@@ -27,11 +27,11 @@ public class TrainingPlan {
 
 	private List<Exercise> mExercises;
 
-	private TrainingPlan() {
+	private TrainingPlanOld() {
 	}
 
-	public static TrainingPlan create(String name) {
-		TrainingPlan retVal = new TrainingPlan();
+	public static TrainingPlanOld create(String name) {
+		TrainingPlanOld retVal = new TrainingPlanOld();
 		retVal.mName = name;
 		retVal.mExercises = new ArrayList<Exercise>();
 
@@ -41,11 +41,11 @@ public class TrainingPlan {
 	// we assume that a training plan is well formed
 	// (has more than zero exercises, series, no data is missing,
 	// etc.) - TODO: add error handling for illegal cases
-	public static TrainingPlan parseFromJson(String jsonString)
+	public static TrainingPlanOld parseFromJson(String jsonString)
 			throws JSONException {
 		JSONObject jTrainingPlan = new JSONObject(jsonString);
 
-		TrainingPlan retVal = TrainingPlan.create(jTrainingPlan
+		TrainingPlanOld retVal = TrainingPlanOld.create(jTrainingPlan
 				.getString("name"));
 
 		JSONArray jExercises = jTrainingPlan.getJSONArray("exercises");
@@ -126,7 +126,7 @@ public class TrainingPlan {
 	}
 
 	// make this method consistent with parse from JSON (it's another factory method)
-	public static TrainingPlan readFromFile(String path) {
+	public static TrainingPlanOld readFromFile(String path) {
 		// training plan not saved yet
 		if (!new File(path).exists()) {
 			return null;
@@ -145,7 +145,7 @@ public class TrainingPlan {
 			Log.d(TAG, sb.toString());
 			
 			// return parsed object
-			return TrainingPlan.parseFromJson(sb.toString());
+			return TrainingPlanOld.parseFromJson(sb.toString());
 
 		} catch (Exception e) {
 			e.printStackTrace();

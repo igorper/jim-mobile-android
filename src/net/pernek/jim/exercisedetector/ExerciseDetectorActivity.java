@@ -2,7 +2,7 @@ package net.pernek.jim.exercisedetector;
 
 import net.pernek.jim.exercisedetector.entities.Exercise;
 import net.pernek.jim.exercisedetector.entities.Series;
-import net.pernek.jim.exercisedetector.entities.TrainingPlan;
+import net.pernek.jim.exercisedetector.entities.TrainingPlanOld;
 import net.pernek.jim.exercisedetector.util.Utils;
 
 import org.json.JSONException;
@@ -401,7 +401,7 @@ public class ExerciseDetectorActivity extends Activity {
 		if (mDetectorService != null) {
 			int exerciseIndex = mDetectorService.getCurrentExerciseIdx();
 			int seriesIndex = mDetectorService.getCurrentSeriesIdx();
-			TrainingPlan curTraining = mDetectorService
+			TrainingPlanOld curTraining = mDetectorService
 					.getCurrentTrainingPlan();
 			Exercise curExercise = curTraining.getExercises()
 					.get(exerciseIndex);

@@ -7,7 +7,7 @@ import java.util.List;
 
 import net.pernek.jim.exercisedetector.entities.Exercise;
 import net.pernek.jim.exercisedetector.entities.Series;
-import net.pernek.jim.exercisedetector.entities.TrainingPlan;
+import net.pernek.jim.exercisedetector.entities.TrainingPlanOld;
 import net.pernek.jim.exercisedetector.util.Utils;
 import android.app.ExpandableListActivity;
 import android.os.Bundle;
@@ -24,7 +24,7 @@ public class TrainingManifestActivity extends ExpandableListActivity {
 	private static final String EXERCISE_ITEM = "exercise.item";
 	private static final String SERIES_ITEM = "series.item";
 
-	private TrainingPlan mTrainingPlan;
+	private TrainingPlanOld mTrainingPlan;
 	private DetectorSettings mSettings;
 	private String mTrainingMainfestFile;
 
@@ -40,7 +40,7 @@ public class TrainingManifestActivity extends ExpandableListActivity {
 		mTrainingMainfestFile = new File(Utils.getDataFolderFile(),
 				Utils.getTrainingManifestFileName(mSettings.getOutputFile()))
 				.getPath();
-		mTrainingPlan = TrainingPlan.readFromFile(mTrainingMainfestFile);
+		mTrainingPlan = TrainingPlanOld.readFromFile(mTrainingMainfestFile);
 
 		// if no training plan was returned we can not show anything
 		// (a current training plan has to be present at this point)

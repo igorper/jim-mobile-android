@@ -13,7 +13,7 @@ import java.util.Queue;
 
 import net.pernek.jim.exercisedetector.alg.CircularArrayInt;
 import net.pernek.jim.exercisedetector.alg.DetectedEvent;
-import net.pernek.jim.exercisedetector.entities.TrainingPlan;
+import net.pernek.jim.exercisedetector.entities.TrainingPlanOld;
 import net.pernek.jim.exercisedetector.util.Compress;
 import net.pernek.jim.exercisedetector.util.Statistics;
 import net.pernek.jim.exercisedetector.util.Utils;
@@ -81,7 +81,7 @@ public class SensorListener implements SensorEventListener {
 
 	private String mSessionId;
 
-	private TrainingPlan mCurrentTrainingPlan;
+	private TrainingPlanOld mCurrentTrainingPlan;
 
 	private SensorListener() {
 	}
@@ -112,12 +112,12 @@ public class SensorListener implements SensorEventListener {
 		if (new File(tempTrainingMainfestPath).exists()) {
 			// if the training file is already stored on the reload it
 			// (this happened when the service was killed and recovered)
-			retVal.mCurrentTrainingPlan = TrainingPlan
+			retVal.mCurrentTrainingPlan = TrainingPlanOld
 					.readFromFile(tempTrainingMainfestPath);
 		} else {
 			// create the current training from the shared preferences
 			try {
-				retVal.mCurrentTrainingPlan = TrainingPlan
+				retVal.mCurrentTrainingPlan = TrainingPlanOld
 						.parseFromJson(jsonEncodedTrainingPlan);
 			} catch (JSONException e) {
 				e.printStackTrace();
@@ -443,7 +443,7 @@ public class SensorListener implements SensorEventListener {
 	}
 
 	public void updateTrainingPlan() {
-		mCurrentTrainingPlan = TrainingPlan.readFromFile(Utils
+		mCurrentTrainingPlan = TrainingPlanOld.readFromFile(Utils
 				.getTrainingManifestFile(mSessionId).getPath());
 	}
 
@@ -468,7 +468,7 @@ public class SensorListener implements SensorEventListener {
 		return true;
 	}
 
-	public TrainingPlan getCurrentTrainingPlan() {
+	public TrainingPlanOld getCurrentTrainingPlan() {
 		return mCurrentTrainingPlan;
 	}
 

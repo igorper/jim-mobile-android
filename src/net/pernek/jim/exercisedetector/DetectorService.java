@@ -5,7 +5,7 @@ import java.io.IOException;
 
 import org.json.JSONException;
 
-import net.pernek.jim.exercisedetector.entities.TrainingPlan;
+import net.pernek.jim.exercisedetector.entities.TrainingPlanOld;
 import net.pernek.jim.exercisedetector.util.Compress;
 import net.pernek.jim.exercisedetector.util.Utils;
 import android.app.Notification;
@@ -168,7 +168,7 @@ public class DetectorService extends Service {
 		return status;
 	}
 
-	public TrainingPlan getCurrentTrainingPlan() {
+	public TrainingPlanOld getCurrentTrainingPlan() {
 		return mSensorListener.getCurrentTrainingPlan();
 	}
 

@@ -19,6 +19,8 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
+import net.pernek.jim.exercisedetector.database.JimTables;
+import net.pernek.jim.exercisedetector.database.JimTables.TrainingPlan;
 import net.pernek.jim.exercisedetector.util.Utils;
 
 import org.apache.http.HttpEntity;
@@ -49,8 +51,10 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import android.app.IntentService;
+import android.content.ContentValues;
 import android.content.Intent;
 import android.util.Log;
+import android.webkit.JsPromptResult;
 
 // TODO: rename file to e.g. server communicator (this service will do
 // all the server calls)
@@ -76,7 +80,7 @@ public class DataUploaderService extends IntentService {
 	private static final String TESTING_EMAIL = "igor.pernek@gmail.com";
 	private static final String TESTING_PASSWORD = "307 Lakih_Pet";
 	private static final String UPLOAD_URL = "http://dev.trainerjim.com/measurements/upload";
-	private static final String TRAINING_LIST_URL = "/mapi/training/list";
+	//private static final String TRAINING_LIST_URL = "/mapi/training/list";
 	private static final String TRAINING_GET_URL = "/mapi/training/get";
 
 	private static final String INPUT_EMAIL_NAME = "measurement_submission[email]";
@@ -188,6 +192,7 @@ public class DataUploaderService extends IntentService {
 		} else if (action.equals(ACTION_GET_TRAINING_LIST)) {
 			String username = intent.getExtras().getString(INTENT_KEY_USERNAME);
 			String password = intent.getExtras().getString(INTENT_KEY_PASSWORD);
+			
 			getTrainingList(username, password);
 
 		} else if (action.equalsIgnoreCase(ACTION_GET_TRAINING)) {
@@ -294,11 +299,16 @@ public class DataUploaderService extends IntentService {
 
 		try {
 			List<NameValuePair> params = new ArrayList<NameValuePair>();
-			params.add(new BasicNameValuePair("email", TESTING_EMAIL));
-			params.add(new BasicNameValuePair("password", TESTING_PASSWORD));
+			params.add(new BasicNameValuePair("email", username));
+			params.add(new BasicNameValuePair("password", password));
+			
+			String url = getResources().getString(R.string.server_url) + 
+			getResources().getString(R.string.server_path_training_list); 
+			
+			Log.d(TAG, "Get training list from " + url);
 
 			HttpGet httpget = new HttpGet(String.format("%s?%s",
-					TRAINING_LIST_URL, URLEncodedUtils.format(params, "utf-8")));
+					url, URLEncodedUtils.format(params, "utf-8")));
 
 			HttpResponse response = httpClient.execute(httpget);
 			int status = response.getStatusLine().getStatusCode();
@@ -314,6 +324,19 @@ public class DataUploaderService extends IntentService {
 					builder.append(line);
 				}
 				String jsonString = builder.toString();
+				JSONArray ja = new JSONArray(jsonString);
+				JSONObject jo = (JSONObject)ja.get(0);
+				int id = jo.getInt("id");
+				String name = jo.getString("name");
+				
+				ContentValues trainingPlan = new ContentValues();
+				trainingPlan.put(TrainingPlan._ID, id);
+				trainingPlan.put(TrainingPlan.NAME, name);
+				
+				getContentResolver().insert(TrainingPlan.CONTENT_URI, trainingPlan);
+				
+				int z= 0;
+				z++;
 			}
 		} catch (Exception e) {
 			Log.e(TAG, e.getLocalizedMessage());
