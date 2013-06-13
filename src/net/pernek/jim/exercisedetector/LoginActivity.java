@@ -23,8 +23,6 @@ public class LoginActivity extends Activity {
 	private EditText mUsernameEditText;
 	private ProgressDialog mLoginProgress;
 
-	private Handler mHandler;
-
 	private ResponseReceiver mBroadcastReceiver;
 
 	@Override
@@ -57,8 +55,6 @@ public class LoginActivity extends Activity {
 		filter.addCategory(Intent.CATEGORY_DEFAULT);
 		mBroadcastReceiver = new ResponseReceiver();
 		registerReceiver(mBroadcastReceiver, filter);
-
-		mHandler = new Handler();
 	}
 
 	@Override
@@ -108,5 +104,4 @@ public class LoginActivity extends Activity {
 
 		}
 	}
-
 }

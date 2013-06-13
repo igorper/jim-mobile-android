@@ -76,13 +76,13 @@ public class DataUploaderService extends IntentService {
 	private static final String TESTING_EMAIL = "igor.pernek@gmail.com";
 	private static final String TESTING_PASSWORD = "307 Lakih_Pet";
 	private static final String UPLOAD_URL = "http://dev.trainerjim.com/measurements/upload";
-	private static final String TRAINING_LIST_URL = "http://dev.trainerjim.com/mapi/training/list";
-	private static final String TRAINING_GET_URL = "http://dev.trainerjim.com/mapi/training/get";
+	private static final String TRAINING_LIST_URL = "/mapi/training/list";
+	private static final String TRAINING_GET_URL = "/mapi/training/get";
 
 	private static final String INPUT_EMAIL_NAME = "measurement_submission[email]";
 	private static final String INPUT_PASSWORD_NAME = "measurement_submission[password]";
 	private static final String INPUT_FILE_NAME = "measurement_submission[file_upload_data]";
-
+	
 	public DataUploaderService() {
 		super("DataUploaderService");
 	}
@@ -177,7 +177,14 @@ public class DataUploaderService extends IntentService {
 		} else if (action.equals(ACTION_LOGIN)) {
 			String username = intent.getExtras().getString(INTENT_KEY_USERNAME);
 			String password = intent.getExtras().getString(INTENT_KEY_PASSWORD);
-			checkCredentials(username, password);
+			boolean loginSuccessful = checkCredentials(username, password);
+			
+			Intent broadcastIntent = new Intent();
+			broadcastIntent.setAction(ACTION_DONE);
+			broadcastIntent.addCategory(Intent.CATEGORY_DEFAULT);
+			broadcastIntent.putExtra(PARAM_LOGIN_SUCCESSFUL, loginSuccessful);
+			sendBroadcast(broadcastIntent);
+			
 		} else if (action.equals(ACTION_GET_TRAINING_LIST)) {
 			String username = intent.getExtras().getString(INTENT_KEY_USERNAME);
 			String password = intent.getExtras().getString(INTENT_KEY_PASSWORD);
@@ -235,7 +242,7 @@ public class DataUploaderService extends IntentService {
 		}
 	}
 
-	private void checkCredentials(String username, String password) {
+	private boolean checkCredentials(String username, String password) {
 		HttpClient httpClient = getDangerousHttpClient();
 		boolean loginSuccessful;
 		
@@ -243,25 +250,43 @@ public class DataUploaderService extends IntentService {
 			List<NameValuePair> params = new ArrayList<NameValuePair>();
 			params.add(new BasicNameValuePair("email", username));
 			params.add(new BasicNameValuePair("password", password));
+			
+			String url = getResources().getString(R.string.server_url) + 
+			getResources().getString(R.string.server_path_auth); 
+			
+			Log.d(TAG, "Check credentials on " + url);
 
 			HttpGet httpget = new HttpGet(String.format("%s?%s",
-					TRAINING_LIST_URL, URLEncodedUtils.format(params, "utf-8")));
+					url, URLEncodedUtils.format(params, "utf-8")));
 
 			HttpResponse response = httpClient.execute(httpget);
 
-			loginSuccessful = (response.getStatusLine().getStatusCode() == 200);
+			int status = response.getStatusLine().getStatusCode();
 			
+			if(status == 200){				
+				loginSuccessful = Boolean.parseBoolean(extractJsonFromStream(response.getEntity().getContent()));
+			} else{
+				loginSuccessful = false;
+			}
 
 		} catch (Exception e) {
 			loginSuccessful = false;
 			Log.e(TAG, e.getLocalizedMessage());
 		}
 		
-		Intent broadcastIntent = new Intent();
-		broadcastIntent.setAction(ACTION_DONE);
-		broadcastIntent.addCategory(Intent.CATEGORY_DEFAULT);
-		broadcastIntent.putExtra(PARAM_LOGIN_SUCCESSFUL, loginSuccessful);
-		sendBroadcast(broadcastIntent);
+		return loginSuccessful;
+	}
+	
+	private String extractJsonFromStream(InputStream content) throws IOException{
+		BufferedReader reader = new BufferedReader(
+				new InputStreamReader(content));
+		String line;
+		StringBuilder builder = new StringBuilder();
+		while ((line = reader.readLine()) != null) {
+			builder.append(line);
+		}
+
+		return builder.toString();
 	}
 
 	private void getTrainingList(String username, String password) {

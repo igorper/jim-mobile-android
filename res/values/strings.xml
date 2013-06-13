@@ -18,4 +18,9 @@
 	<drawable name="gray">#778899</drawable>
 	<drawable name="red">#C11B17</drawable>
 	<!-- END from demo -->
+	
+	<!-- REST SERVICES URLS -->
+	<string name="server_url">https://dev.trainerjim.com</string>
+	<string name="server_path_training_list">/mapi/training/list</string>
+	<string name="server_path_auth">/mapi/users/authenticate</string>
 </resources>
