@@ -34,7 +34,7 @@ public final class JimTables {
         /**
          * The default sort order for this table
          */
-        public static final String DEFAULT_SORT_ORDER = "modified DESC";
+        public static final String DEFAULT_SORT_ORDER = "name ASC";
 
         /**
          * The name of the training plan.

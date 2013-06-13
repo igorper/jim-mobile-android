@@ -173,8 +173,15 @@ public class TrainingContentProvider extends ContentProvider {
 
 		// Get the database and run the query
 		SQLiteDatabase db = mOpenHelper.getReadableDatabase();
-		Cursor c = qb.query(db, projection, selection, selectionArgs, null,
+		Cursor c = null;
+		
+		try{
+		c = qb.query(db, projection, selection, selectionArgs, null,
 				null, orderBy);
+		}catch(Exception ex){
+			int ka=0;
+			ka++;
+		}
 
 		// Tell the cursor what uri to watch, so it knows when its source data
 		// changes

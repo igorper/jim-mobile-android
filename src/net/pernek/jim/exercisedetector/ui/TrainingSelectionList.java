@@ -1,11 +1,19 @@
 package net.pernek.jim.exercisedetector.ui;
 
+import net.pernek.jim.exercisedetector.R;
+import net.pernek.jim.exercisedetector.database.JimTables.TrainingPlan;
 import android.app.ListActivity;
 import android.content.Intent;
+import android.database.Cursor;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ArrayAdapter;
+import android.widget.CursorAdapter;
 import android.widget.ListView;
+import android.widget.SimpleCursorAdapter;
+import android.widget.TextView;
+import android.widget.Toast;
 
 public class TrainingSelectionList extends ListActivity {
 	
@@ -14,19 +22,28 @@ public class TrainingSelectionList extends ListActivity {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+				
+		String[] projection = { TrainingPlan._ID, TrainingPlan.NAME};
+	    String[] uiBindFrom = { TrainingPlan.NAME };
+	    int[] uiBindTo = { R.id.textTrainingName };
+	    Cursor tutorials = managedQuery(
+	            TrainingPlan.CONTENT_URI, projection, null, null, null);
+	    CursorAdapter adapter = new SimpleCursorAdapter(getApplicationContext(), R.layout.list_row, tutorials,
+	            uiBindFrom, uiBindTo);
+	    setListAdapter(adapter);
 
-		setListAdapter(new ArrayAdapter<String>(this,
-				android.R.layout.simple_list_item_1, mStrings));
-		getListView().setTextFilterEnabled(true);
+//		setListAdapter(new ArrayAdapter<String>(this,
+//				android.R.layout.simple_list_item_1, mStrings));
+//		getListView().setTextFilterEnabled(true);
 	}
 	
 	@Override
 	protected void onListItemClick(ListView l, View v, int position, long id) {
-		String item = (String) getListAdapter().getItem(position);
-		Intent data = new Intent();
-		data.putExtra(INTENT_EXTRA_SELECTED_TRAINING_KEY,item);
-		setResult(RESULT_OK, data);
-		finish();
+		Toast.makeText(getApplicationContext(), Long.toString(id), Toast.LENGTH_SHORT).show();
+//		Intent data = new Intent();
+//		data.putExtra(INTENT_EXTRA_SELECTED_TRAINING_KEY,id);
+//		setResult(RESULT_OK, data);
+//		finish();
 	}
 
 	private String[] mStrings = { "Abbaye de Belloc",
