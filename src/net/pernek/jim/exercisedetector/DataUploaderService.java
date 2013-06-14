@@ -25,8 +25,10 @@ import net.pernek.jim.exercisedetector.util.Utils;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
 import org.apache.http.HttpVersion;
 import org.apache.http.NameValuePair;
+import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
@@ -48,11 +50,14 @@ import org.apache.http.params.HttpParams;
 import org.apache.http.params.HttpProtocolParams;
 import org.apache.http.protocol.HTTP;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
+import org.json.JSONStringer;
 
 import android.app.IntentService;
 import android.content.ContentValues;
 import android.content.Intent;
+import android.text.Html;
 import android.util.Log;
 import android.webkit.JsPromptResult;
 
@@ -64,6 +69,7 @@ public class DataUploaderService extends IntentService {
 
 	public static final String ACTION_DONE = "action_done";
 	public static final String PARAM_LOGIN_SUCCESSFUL = "login_successful";
+	public static final String PARAM_GET_TRAINING_SUCCESSFUL = "get_training_successful";
 
 	public static final String ACTION_UPLOAD = "action-upload";
 	public static final String ACTION_GET_TRAINING_LIST = "action-get-training-list";
@@ -80,13 +86,13 @@ public class DataUploaderService extends IntentService {
 	private static final String TESTING_EMAIL = "igor.pernek@gmail.com";
 	private static final String TESTING_PASSWORD = "307 Lakih_Pet";
 	private static final String UPLOAD_URL = "http://dev.trainerjim.com/measurements/upload";
-	//private static final String TRAINING_LIST_URL = "/mapi/training/list";
-	private static final String TRAINING_GET_URL = "/mapi/training/get";
+	// private static final String TRAINING_LIST_URL = "/mapi/training/list";
+	// private static final String TRAINING_GET_URL = "/mapi/training/get";
 
 	private static final String INPUT_EMAIL_NAME = "measurement_submission[email]";
 	private static final String INPUT_PASSWORD_NAME = "measurement_submission[password]";
 	private static final String INPUT_FILE_NAME = "measurement_submission[file_upload_data]";
-	
+
 	public DataUploaderService() {
 		super("DataUploaderService");
 	}
@@ -173,118 +179,126 @@ public class DataUploaderService extends IntentService {
 	@Override
 	protected void onHandleIntent(Intent intent) {
 		String action = intent.getExtras().getString(INTENT_KEY_ACTION);
+		String username = intent.getExtras().getString(INTENT_KEY_USERNAME);
+		String password = intent.getExtras().getString(INTENT_KEY_PASSWORD);
 
 		if (action.equals(ACTION_UPLOAD)) {
 			String path = intent.getExtras().getString(INTENT_KEY_FILE);
 
 			uploadFile(path);
 		} else if (action.equals(ACTION_LOGIN)) {
-			String username = intent.getExtras().getString(INTENT_KEY_USERNAME);
-			String password = intent.getExtras().getString(INTENT_KEY_PASSWORD);
 			boolean loginSuccessful = checkCredentials(username, password);
-			
+
 			Intent broadcastIntent = new Intent();
 			broadcastIntent.setAction(ACTION_DONE);
 			broadcastIntent.addCategory(Intent.CATEGORY_DEFAULT);
 			broadcastIntent.putExtra(PARAM_LOGIN_SUCCESSFUL, loginSuccessful);
 			sendBroadcast(broadcastIntent);
-			
+
 		} else if (action.equals(ACTION_GET_TRAINING_LIST)) {
-			String username = intent.getExtras().getString(INTENT_KEY_USERNAME);
-			String password = intent.getExtras().getString(INTENT_KEY_PASSWORD);
-			
-			getTrainingList(username, password);
+			String jsonTrainingPlans = getTrainingList(username, password);
+
+			List<Integer> fetchedTrainingIds = new ArrayList<Integer>();
+			try {
+				JSONArray jaTrainingsPlans = new JSONArray(jsonTrainingPlans);
+				for (int i = 0; i < jaTrainingsPlans.length(); i++) {
+					JSONObject joTrainingPlan = (JSONObject) jaTrainingsPlans
+							.get(i);
+					fetchedTrainingIds.add(joTrainingPlan.getInt("id"));
+
+					// String jsonTraining =
+
+				}
+			} catch (JSONException e) {
+				e.printStackTrace();
+				Log.d(TAG, "Get training list json exeception");
+			}
+
+			// ContentValues trainingPlan = new ContentValues();
+			// trainingPlan.put(TrainingPlan._ID, id);
+			// trainingPlan.put(TrainingPlan.NAME, name);
+			//
+			//
+			// getContentResolver().insert(TrainingPlan.CONTENT_URI,
+			// trainingPlan);
 
 		} else if (action.equalsIgnoreCase(ACTION_GET_TRAINING)) {
 			int trainingId = intent.getExtras().getInt(INTENT_KEY_TRAINING_ID);
 
-			HttpClient httpClient = getDangerousHttpClient();
-
+			String jsonTraining = null;
 			try {
-				List<NameValuePair> params = new ArrayList<NameValuePair>();
-				params.add(new BasicNameValuePair("email", TESTING_EMAIL));
-				params.add(new BasicNameValuePair("password", TESTING_PASSWORD));
-				params.add(new BasicNameValuePair("id", Integer
-						.toString(trainingId)));
-
-				HttpGet httpget = new HttpGet(String.format("%s?%s",
-						TRAINING_GET_URL,
-						URLEncodedUtils.format(params, "utf-8")));
-
-				HttpResponse response = httpClient.execute(httpget);
-				int status = response.getStatusLine().getStatusCode();
-
-				Intent broadcastIntent = new Intent();
-				broadcastIntent
-						.setAction(ExerciseDetectorActivity.ResponseReceiver.ACTION_TRAINING_PLAN_DOWNLOADED);
-				broadcastIntent.addCategory(Intent.CATEGORY_DEFAULT);
-				broadcastIntent.putExtra(
-						UploadSessionActivity.ResponseReceiver.PARAM_STATUS,
-						status);
-
-				if (status == 200) {
-					HttpEntity entity = response.getEntity();
-					InputStream content = entity.getContent();
-					BufferedReader reader = new BufferedReader(
-							new InputStreamReader(content));
-					String line;
-					StringBuilder builder = new StringBuilder();
-					while ((line = reader.readLine()) != null) {
-						builder.append(line);
-					}
-					String jsonString = builder.toString();
-
-					broadcastIntent
-							.putExtra(
-									ExerciseDetectorActivity.ResponseReceiver.PARAM_TRAINING_PLAN,
-									jsonString);
-				}
-
-				sendBroadcast(broadcastIntent);
-			} catch (Exception e) {
+				jsonTraining = getTraining(trainingId, username, password);
+			} catch (ClientProtocolException e) {
+				e.printStackTrace();
+				Log.e(TAG, e.getLocalizedMessage());
+			} catch (IOException e) {
+				e.printStackTrace();
 				Log.e(TAG, e.getLocalizedMessage());
 			}
-		}
-	}
 
-	private boolean checkCredentials(String username, String password) {
-		HttpClient httpClient = getDangerousHttpClient();
-		boolean loginSuccessful;
-		
-		try {
-			List<NameValuePair> params = new ArrayList<NameValuePair>();
-			params.add(new BasicNameValuePair("email", username));
-			params.add(new BasicNameValuePair("password", password));
-			
-			String url = getResources().getString(R.string.server_url) + 
-			getResources().getString(R.string.server_path_auth); 
-			
-			Log.d(TAG, "Check credentials on " + url);
-
-			HttpGet httpget = new HttpGet(String.format("%s?%s",
-					url, URLEncodedUtils.format(params, "utf-8")));
-
-			HttpResponse response = httpClient.execute(httpget);
-
-			int status = response.getStatusLine().getStatusCode();
-			
-			if(status == 200){				
-				loginSuccessful = Boolean.parseBoolean(extractJsonFromStream(response.getEntity().getContent()));
-			} else{
-				loginSuccessful = false;
+			Intent broadcastIntent = new Intent();
+			broadcastIntent
+					.setAction(ExerciseDetectorActivity.ResponseReceiver.ACTION_TRAINING_PLAN_DOWNLOADED);
+			broadcastIntent.addCategory(Intent.CATEGORY_DEFAULT);
+			if (jsonTraining != null) {
+				broadcastIntent
+						.putExtra(
+								ExerciseDetectorActivity.ResponseReceiver.PARAM_TRAINING_PLAN,
+								jsonTraining);
 			}
-
-		} catch (Exception e) {
-			loginSuccessful = false;
-			Log.e(TAG, e.getLocalizedMessage());
+			broadcastIntent.putExtra(
+					UploadSessionActivity.ResponseReceiver.PARAM_STATUS,
+					jsonTraining != null);
+			sendBroadcast(broadcastIntent);
 		}
-		
-		return loginSuccessful;
 	}
-	
-	private String extractJsonFromStream(InputStream content) throws IOException{
-		BufferedReader reader = new BufferedReader(
-				new InputStreamReader(content));
+
+	/**
+	 * This method returns a JSON encoded training corresponding to the input
+	 * trainingID.
+	 * 
+	 * @param trainingId
+	 * @param username
+	 * @param password
+	 * @return a JSON encoded training string or null if Http return status code was not OK.
+	 * @throws IOException if unable to extract stream from JSON
+	 * @throws ClientProtocolException could happen during Http comunication
+	 */
+	private String getTraining(int trainingId, String username, String password) throws ClientProtocolException, IOException{
+		HttpClient httpClient = getDangerousHttpClient();
+
+		List<NameValuePair> params = new ArrayList<NameValuePair>();
+		params.add(new BasicNameValuePair("email", username));
+		params.add(new BasicNameValuePair("password", password));
+		params.add(new BasicNameValuePair("id", Integer.toString(trainingId)));
+
+		String url = String.format(
+				"%s?%s",
+				getResources().getString(R.string.server_url)
+						+ getResources().getString(
+								R.string.server_path_training),
+				URLEncodedUtils.format(params, "utf-8"));
+
+		Log.d(TAG, "Get training with " + url);
+
+		HttpGet httpget = new HttpGet(url);
+
+		HttpResponse response = httpClient.execute(httpget);
+		int status = response.getStatusLine().getStatusCode();
+
+		return status == HttpStatus.SC_OK ? extractJsonFromStream(response
+				.getEntity().getContent()) : null;
+	}
+
+	/** This method extracts a JSON string from stream.
+	 * @param content
+	 * @return
+	 * @throws IOException could happen while reading the from stream.
+	 */
+	private static String extractJsonFromStream(InputStream content)
+			throws IOException {
+		BufferedReader reader = new BufferedReader(new InputStreamReader(
+				content));
 		String line;
 		StringBuilder builder = new StringBuilder();
 		while ((line = reader.readLine()) != null) {
@@ -294,21 +308,59 @@ public class DataUploaderService extends IntentService {
 		return builder.toString();
 	}
 
-	private void getTrainingList(String username, String password) {
+	private boolean checkCredentials(String username, String password) {
+		HttpClient httpClient = getDangerousHttpClient();
+		boolean loginSuccessful;
+
+		try {
+			List<NameValuePair> params = new ArrayList<NameValuePair>();
+			params.add(new BasicNameValuePair("email", username));
+			params.add(new BasicNameValuePair("password", password));
+
+			String url = getResources().getString(R.string.server_url)
+					+ getResources().getString(R.string.server_path_auth);
+
+			Log.d(TAG, "Check credentials on " + url);
+
+			HttpGet httpget = new HttpGet(String.format("%s?%s", url,
+					URLEncodedUtils.format(params, "utf-8")));
+
+			HttpResponse response = httpClient.execute(httpget);
+
+			int status = response.getStatusLine().getStatusCode();
+
+			if (status == HttpStatus.SC_OK) {
+				loginSuccessful = Boolean
+						.parseBoolean(extractJsonFromStream(response
+								.getEntity().getContent()));
+			} else {
+				loginSuccessful = false;
+			}
+
+		} catch (Exception e) {
+			loginSuccessful = false;
+			Log.e(TAG, e.getLocalizedMessage());
+		}
+
+		return loginSuccessful;
+	}
+
+	private String getTrainingList(String username, String password) {
 		HttpClient httpClient = getDangerousHttpClient();
 
 		try {
 			List<NameValuePair> params = new ArrayList<NameValuePair>();
 			params.add(new BasicNameValuePair("email", username));
 			params.add(new BasicNameValuePair("password", password));
-			
-			String url = getResources().getString(R.string.server_url) + 
-			getResources().getString(R.string.server_path_training_list); 
-			
+
+			String url = getResources().getString(R.string.server_url)
+					+ getResources().getString(
+							R.string.server_path_training_list);
+
 			Log.d(TAG, "Get training list from " + url);
 
-			HttpGet httpget = new HttpGet(String.format("%s?%s",
-					url, URLEncodedUtils.format(params, "utf-8")));
+			HttpGet httpget = new HttpGet(String.format("%s?%s", url,
+					URLEncodedUtils.format(params, "utf-8")));
 
 			HttpResponse response = httpClient.execute(httpget);
 			int status = response.getStatusLine().getStatusCode();
@@ -323,24 +375,13 @@ public class DataUploaderService extends IntentService {
 				while ((line = reader.readLine()) != null) {
 					builder.append(line);
 				}
-				String jsonString = builder.toString();
-				JSONArray ja = new JSONArray(jsonString);
-				JSONObject jo = (JSONObject)ja.get(0);
-				int id = jo.getInt("id");
-				String name = jo.getString("name");
-				
-				ContentValues trainingPlan = new ContentValues();
-				trainingPlan.put(TrainingPlan._ID, id);
-				trainingPlan.put(TrainingPlan.NAME, name);
-				
-				getContentResolver().insert(TrainingPlan.CONTENT_URI, trainingPlan);
-				
-				int z= 0;
-				z++;
+				return builder.toString();
 			}
 		} catch (Exception e) {
 			Log.e(TAG, e.getLocalizedMessage());
 		}
+
+		return null;
 	}
 
 	private void uploadFile(String path) {

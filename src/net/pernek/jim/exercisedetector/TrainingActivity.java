@@ -32,6 +32,7 @@ public class TrainingActivity extends Activity {
 	private final static int MENU_SYNC = Menu.FIRST;
 	private final static int MENU_SWIPE = Menu.FIRST + 1;
 	private final static int MENU_LOGOUT = Menu.FIRST + 2;
+	private final static int MENU_FETCH_17 = Menu.FIRST + 3;
 
 	private static final int ACTIVITY_REQUEST_TRAININGS_LIST = 0;
 
@@ -233,6 +234,7 @@ public class TrainingActivity extends Activity {
 		}
 		menu.add(1, MENU_SWIPE, 2, "Swipe");
 		menu.add(1, MENU_LOGOUT, 3, "Logout");
+		menu.add(1, MENU_FETCH_17, 3, "Fetch 17");
 		return true;
 	};
 
@@ -264,6 +266,20 @@ public class TrainingActivity extends Activity {
 			mSettings.saveUsername("");
 			mSettings.savePassword("");
 			finish();
+
+			break;
+		}
+		case MENU_FETCH_17: {
+			Intent intent = new Intent(this, DataUploaderService.class);
+			intent.putExtra(DataUploaderService.INTENT_KEY_ACTION,
+					DataUploaderService.ACTION_GET_TRAINING);
+			intent.putExtra(DataUploaderService.INTENT_KEY_USERNAME,
+					mSettings.getUsername());
+			intent.putExtra(DataUploaderService.INTENT_KEY_PASSWORD,
+					mSettings.getPassword());
+			intent.putExtra(DataUploaderService.INTENT_KEY_TRAINING_ID,
+					17);
+			startService(intent);
 
 			break;
 		}

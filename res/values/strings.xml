@@ -23,4 +23,5 @@
 	<string name="server_url">https://dev.trainerjim.com</string>
 	<string name="server_path_training_list">/mapi/training/list</string>
 	<string name="server_path_auth">/mapi/users/authenticate</string>
+	<string name="server_path_training">/mapi/training/get</string>
 </resources>

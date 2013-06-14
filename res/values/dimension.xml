@@ -12,4 +12,5 @@
     <dimen name="login_element_margin">10dp</dimen>
     <dimen name="login_button_top_margin">30dp</dimen>
     <dimen name="login_logo_margin">30dp</dimen>
+    <dimen name="list_item_text_size">40dp</dimen>
 </resources>
