@@ -68,7 +68,12 @@ public class DataUploaderService extends IntentService {
 
 	public static final String ACTION_DONE = "action_done";
 	public static final String ACTION_FETCH_TRAINNGS_DONE = "fetch_trainings_done";
+	public static final String ACTION_FETCH_TRAINNGS_LIST_DOWNLOADED = "fetch_trainings_list_downloaded";
+	public static final String ACTION_FETCH_TRAINNGS_ITEM_DOWNLOADED = "fetch_trainings_item_downloaded";
 	public static final String PARAM_OP_SUCCESSFUL = "operation_successful";
+	public static final String PARAM_FETCH_TRAINNGS_NUM_ITEMS = "fetch_trainings_num_items";
+	public static final String PARAM_FETCH_TRAINNGS_CUR_ITEM_NAME = "fetch_trainings_cur_item_name";
+	public static final String PARAM_FETCH_TRAINNGS_CUR_ITEM_CNT = "fetch_trainings_cur_item_cnt";
 	public static final String PARAM_GET_TRAINING_SUCCESSFUL = "get_training_successful";
 
 	public static final String ACTION_UPLOAD = "action-upload";
@@ -196,17 +201,32 @@ public class DataUploaderService extends IntentService {
 			sendBroadcast(broadcastIntent);
 
 		} else if (action.equals(ACTION_FETCH_TRAININGS)) {
-			// get list of all trainings for the user
-			String jsonTrainingPlans = getTrainingList(username, password);
-			boolean getTrainingsSucessful = true;
-
-			// download each training and save all the information to be later
-			// written to the database
-			List<Integer> trainingIds = new ArrayList<Integer>();
-			List<String> trainingNames = new ArrayList<String>();
-			List<String> fetchedTrainings = new ArrayList<String>();
+			boolean getTrainingsSucessful = false;
 			try {
-				JSONArray jaTrainingsPlans = new JSONArray(jsonTrainingPlans);
+				// get list of all trainings for the user
+				String jsonTrainingPlans = getTrainingList(username, password);
+				getTrainingsSucessful = jsonTrainingPlans != null;
+
+				JSONArray jaTrainingsPlans = null;
+				if (getTrainingsSucessful) {
+					jaTrainingsPlans = new JSONArray(jsonTrainingPlans);
+					Intent broadcastIntent = new Intent();
+					broadcastIntent
+							.setAction(ACTION_FETCH_TRAINNGS_LIST_DOWNLOADED);
+					broadcastIntent.addCategory(Intent.CATEGORY_DEFAULT);
+					broadcastIntent.putExtra(PARAM_FETCH_TRAINNGS_NUM_ITEMS,
+					jaTrainingsPlans.length());
+					sendBroadcast(broadcastIntent);
+
+				}
+
+				// download each training and save all the information to be
+				// later
+				// written to the database
+				List<Integer> trainingIds = new ArrayList<Integer>();
+				List<String> trainingNames = new ArrayList<String>();
+				List<String> fetchedTrainings = new ArrayList<String>();
+
 				for (int i = 0; i < jaTrainingsPlans.length(); i++) {
 					JSONObject joTrainingPlan = (JSONObject) jaTrainingsPlans
 							.get(i);
@@ -214,33 +234,48 @@ public class DataUploaderService extends IntentService {
 					int trainingId = joTrainingPlan.getInt("id");
 					String trainingName = joTrainingPlan.getString("name");
 					
+					Intent broadcastIntent = new Intent();
+					broadcastIntent
+							.setAction(ACTION_FETCH_TRAINNGS_ITEM_DOWNLOADED);
+					broadcastIntent.addCategory(Intent.CATEGORY_DEFAULT);
+					broadcastIntent.putExtra(PARAM_FETCH_TRAINNGS_CUR_ITEM_NAME,
+					trainingName);
+					broadcastIntent.putExtra(PARAM_FETCH_TRAINNGS_CUR_ITEM_CNT,
+							i);
+					broadcastIntent.putExtra(PARAM_FETCH_TRAINNGS_NUM_ITEMS,
+							jaTrainingsPlans.length());
+					sendBroadcast(broadcastIntent);
+
 					String jsonTraining = getTraining(trainingId, username,
 							password);
-					if(jsonTraining == null){
+					if (jsonTraining == null) {
 						getTrainingsSucessful = false;
 						break;
 					}
-					
+
 					trainingIds.add(trainingId);
 					trainingNames.add(trainingName);
 					fetchedTrainings.add(jsonTraining);
 				}
-				
-				if(getTrainingsSucessful){
+
+				if (getTrainingsSucessful) {
 					// clear the database
-					getContentResolver().delete(TrainingPlan.CONTENT_URI, null, null);
-					
+					getContentResolver().delete(TrainingPlan.CONTENT_URI, null,
+							null);
+
 					// store fetched trainings to the database
 					for (int i = 0; i < fetchedTrainings.size(); i++) {
 						ContentValues trainingPlan = new ContentValues();
-						 trainingPlan.put(TrainingPlan._ID, trainingIds.get(i));
-						 trainingPlan.put(TrainingPlan.NAME, trainingNames.get(i));
-						 trainingPlan.put(TrainingPlan.DATA, fetchedTrainings.get(i));
-						
-						 getContentResolver().insert(TrainingPlan.CONTENT_URI,
-						 trainingPlan);
+						trainingPlan.put(TrainingPlan._ID, trainingIds.get(i));
+						trainingPlan.put(TrainingPlan.NAME,
+								trainingNames.get(i));
+						trainingPlan.put(TrainingPlan.DATA,
+								fetchedTrainings.get(i));
+
+						getContentResolver().insert(TrainingPlan.CONTENT_URI,
+								trainingPlan);
 					}
-					
+
 				}
 			} catch (Exception e) {
 				getTrainingsSucessful = false;
@@ -252,9 +287,9 @@ public class DataUploaderService extends IntentService {
 			Intent broadcastIntent = new Intent();
 			broadcastIntent.setAction(ACTION_FETCH_TRAINNGS_DONE);
 			broadcastIntent.addCategory(Intent.CATEGORY_DEFAULT);
-			broadcastIntent.putExtra(PARAM_OP_SUCCESSFUL, getTrainingsSucessful);
+			broadcastIntent
+					.putExtra(PARAM_OP_SUCCESSFUL, getTrainingsSucessful);
 			sendBroadcast(broadcastIntent);
-
 
 		} else if (action.equalsIgnoreCase(ACTION_GET_TRAINING)) {
 			int trainingId = intent.getExtras().getInt(INTENT_KEY_TRAINING_ID);

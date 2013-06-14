@@ -5,6 +5,7 @@ import net.pernek.jim.exercisedetector.ui.SwipeControl;
 import net.pernek.jim.exercisedetector.ui.TrainingSelectionList;
 import net.pernek.jim.exercisedetector.util.Utils;
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -41,6 +42,7 @@ public class TrainingActivity extends Activity {
 	private ViewFlipper mViewFlipper;
 	private SwipeControl mSwipeControl;
 	private LinearLayout mTrainingSelector;
+	private ProgressDialog mProgressDialog;
 
 	private int mTrainingCounter = 0;
 	private int mExerciseCounter = 0;
@@ -166,7 +168,11 @@ public class TrainingActivity extends Activity {
 		// communication logic (ResponseReciver for different intents) and define all (e.g.
 		// DetectiorSettings, TAG, etc)
 		IntentFilter filter = new IntentFilter(DataUploaderService.ACTION_FETCH_TRAINNGS_DONE);
+		filter.addAction(DataUploaderService.ACTION_FETCH_TRAINNGS_LIST_DOWNLOADED);
+		filter.addAction(DataUploaderService.ACTION_FETCH_TRAINNGS_ITEM_DOWNLOADED);
+		
 		filter.addCategory(Intent.CATEGORY_DEFAULT);
+				
 		mBroadcastReceiver = new ResponseReceiver();
 		registerReceiver(mBroadcastReceiver, filter);
 	}
@@ -257,6 +263,13 @@ public class TrainingActivity extends Activity {
 			intent.putExtra(DataUploaderService.INTENT_KEY_PASSWORD,
 					mSettings.getPassword());
 			startService(intent);
+			
+			mProgressDialog = new ProgressDialog(this);
+			mProgressDialog.setIndeterminate(false);
+			mProgressDialog.setMessage("Fetching training list ...");
+			mProgressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+			mProgressDialog.show();
+			
 			break;
 		}
 		case MENU_SWIPE: {
@@ -301,23 +314,35 @@ public class TrainingActivity extends Activity {
 
 		@Override
 		public void onReceive(Context context, Intent intent) {
-			boolean getTrainingSuccessful = intent.getExtras().getBoolean(
-					DataUploaderService.PARAM_OP_SUCCESSFUL);
+			if(intent.getAction().equals(DataUploaderService.ACTION_FETCH_TRAINNGS_DONE)){
+				boolean getTrainingSuccessful = intent.getExtras().getBoolean(
+						DataUploaderService.PARAM_OP_SUCCESSFUL);
 
-			//mLoginProgress.dismiss();
+				mProgressDialog.dismiss();
 
-			if (getTrainingSuccessful) {
-				Toast.makeText(
-						getApplicationContext(),
-						"Wuhu! Trainings downloaded. Let's go!",
-						Toast.LENGTH_SHORT).show();
-			} else {
-				Toast.makeText(
-						getApplicationContext(),
-						"Ups. Unable to fetch trainings. There should be a nicer UI for this message!",
-						Toast.LENGTH_SHORT).show();
+				if (getTrainingSuccessful) {
+					Toast.makeText(
+							getApplicationContext(),
+							"Wuhu! Trainings downloaded. Let's go!",
+							Toast.LENGTH_SHORT).show();
+				} else {
+					Toast.makeText(
+							getApplicationContext(),
+							"Ups. Unable to fetch trainings. There should be a nicer UI for this message!",
+							Toast.LENGTH_SHORT).show();
+				}
+			} else if(intent.getAction().equals(DataUploaderService.ACTION_FETCH_TRAINNGS_LIST_DOWNLOADED)){
+				int totalNumberOfTrainings = intent.getExtras().getInt(DataUploaderService.PARAM_FETCH_TRAINNGS_NUM_ITEMS);
+				int progress = Math.round(1f / totalNumberOfTrainings * 100f);
+				mProgressDialog.setProgress(progress);
+			} else if(intent.getAction().equals(DataUploaderService.ACTION_FETCH_TRAINNGS_ITEM_DOWNLOADED)){
+				int totalNumberOfTrainings = intent.getExtras().getInt(DataUploaderService.PARAM_FETCH_TRAINNGS_NUM_ITEMS);
+				int trainingCount = intent.getExtras().getInt(DataUploaderService.PARAM_FETCH_TRAINNGS_CUR_ITEM_CNT);
+				String trainingName = intent.getExtras().getString(DataUploaderService.PARAM_FETCH_TRAINNGS_CUR_ITEM_NAME);
+				int progress = Math.round((1f + trainingCount) / totalNumberOfTrainings * 100f);
+				mProgressDialog.setMessage("Fetching " + trainingName);
+				mProgressDialog.setProgress(progress);
 			}
-
 		}
 	}
 
