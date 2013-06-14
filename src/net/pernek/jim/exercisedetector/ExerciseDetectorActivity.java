@@ -146,7 +146,7 @@ public class ExerciseDetectorActivity extends Activity {
 
 			Intent intent = new Intent(this, DataUploaderService.class);
 			intent.putExtra(DataUploaderService.INTENT_KEY_ACTION,
-					DataUploaderService.ACTION_GET_TRAINING_LIST);
+					DataUploaderService.ACTION_FETCH_TRAININGS);
 			startService(intent);
 
 			break;

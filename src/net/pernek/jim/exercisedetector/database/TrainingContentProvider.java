@@ -2,28 +2,27 @@ package net.pernek.jim.exercisedetector.database;
 
 import java.util.HashMap;
 
-import net.pernek.jim.exercisedetector.database.JimTables.TrainingPlan;
 import net.pernek.jim.exercisedetector.util.Utils;
 import android.content.ContentProvider;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.UriMatcher;
-import android.content.res.Resources;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteQueryBuilder;
-import android.database.sqlite.SQLiteDatabase.CursorFactory;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
-import android.provider.LiveFolders;
+import android.provider.BaseColumns;
 import android.text.TextUtils;
 import android.util.Log;
 
 public class TrainingContentProvider extends ContentProvider {
 
 	private static final String TAG = Utils.getApplicationTag();
+	
+	public static final String AUTHORITY = "net.pernek.jim.provider.JimContentProvider";
 
 	private static final String TRAINING_PLANS_TABLE_NAME = "training_plans";
 
@@ -47,7 +46,8 @@ public class TrainingContentProvider extends ContentProvider {
 		public void onCreate(SQLiteDatabase db) {
 			db.execSQL("CREATE TABLE " + TRAINING_PLANS_TABLE_NAME + " ("
 					+ TrainingPlan._ID + " INTEGER PRIMARY KEY,"
-					+ TrainingPlan.NAME + " TEXT" + ");");
+					+ TrainingPlan.NAME + " TEXT,"
+					+ TrainingPlan.DATA + " TEXT" + ");");
 
 		}
 
@@ -119,7 +119,8 @@ public class TrainingContentProvider extends ContentProvider {
 
 		// Make sure that the fields are all set
 		if (!values.containsKey(TrainingPlan._ID)
-				|| !values.containsKey(TrainingPlan.NAME)) {
+				|| !values.containsKey(TrainingPlan.NAME)
+				|| !values.containsKey(TrainingPlan.DATA)) {
 			throw new IllegalArgumentException("Incomplete training plan data.");
 		}
 
@@ -223,14 +224,54 @@ public class TrainingContentProvider extends ContentProvider {
 	private static final UriMatcher sUriMatcher;
 	static {
 		sUriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
-		sUriMatcher.addURI(JimTables.AUTHORITY, "training_plans",
+		sUriMatcher.addURI(AUTHORITY, "training_plans",
 				TRAINING_PLANS);
-		sUriMatcher.addURI(JimTables.AUTHORITY, "training_plans/#",
+		sUriMatcher.addURI(AUTHORITY, "training_plans/#",
 				TRAINING_PLAN_ID);
 
 		sTrainingPlansProjectionMap = new HashMap<String, String>();
 		sTrainingPlansProjectionMap.put(TrainingPlan._ID, TrainingPlan._ID);
 		sTrainingPlansProjectionMap.put(TrainingPlan.NAME, TrainingPlan.NAME);
+		sTrainingPlansProjectionMap.put(TrainingPlan.DATA, TrainingPlan.DATA);
 	}
 
+	/**
+     * Defines structure of the TrainingPlan table.
+     */
+    public static final class TrainingPlan implements BaseColumns {
+        // This class cannot be instantiated
+        private TrainingPlan() {}
+
+        /**
+         * The content:// style URL for this table
+         */
+        public static final Uri CONTENT_URI = Uri.parse("content://" + AUTHORITY + "/training_plans");
+
+        /**
+         * The MIME type of {@link #CONTENT_URI} providing a directory of training plans.
+         */
+        public static final String CONTENT_TYPE = "vnd.android.cursor.dir/vnd.jim.training_plan";
+
+        /**
+         * The MIME type of a {@link #CONTENT_URI} sub-directory of a single training plan.
+         */
+        public static final String CONTENT_ITEM_TYPE = "vnd.android.cursor.item/vnd.jim.training_plan";
+
+        /**
+         * The default sort order for this table
+         */
+        public static final String DEFAULT_SORT_ORDER = "name ASC";
+
+        /**
+         * The name of the training plan.
+         * <P>Type: TEXT</P>
+         */
+        public static final String NAME = "name";
+        
+        /**
+         * JSON encoded training plan string.
+         * <P>Type: TEXT</P>
+         */
+        public static final String DATA = "data";
+    }
 }

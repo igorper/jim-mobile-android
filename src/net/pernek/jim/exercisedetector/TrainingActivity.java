@@ -1,21 +1,18 @@
 package net.pernek.jim.exercisedetector;
 
-import java.util.Hashtable;
-
 import net.pernek.jim.exercisedetector.CircularProgressControl.CircularProgressState;
 import net.pernek.jim.exercisedetector.ui.SwipeControl;
 import net.pernek.jim.exercisedetector.ui.TrainingSelectionList;
 import net.pernek.jim.exercisedetector.util.Utils;
 import android.app.Activity;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
-import android.graphics.PixelFormat;
-import android.opengl.Visibility;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.DropBoxManager.Entry;
 import android.preference.PreferenceManager;
 import android.util.Log;
-import android.util.TypedValue;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -37,6 +34,8 @@ public class TrainingActivity extends Activity {
 	private static final int ACTIVITY_REQUEST_TRAININGS_LIST = 0;
 
 	private DetectorSettings mSettings;
+	
+	private ResponseReceiver mBroadcastReceiver;
 
 	private CircularProgressControl mCircularProgress;
 	private ViewFlipper mViewFlipper;
@@ -162,6 +161,14 @@ public class TrainingActivity extends Activity {
 
 			}
 		});
+		
+		// TODO: We could create a class called JimActivity which could handle all the
+		// communication logic (ResponseReciver for different intents) and define all (e.g.
+		// DetectiorSettings, TAG, etc)
+		IntentFilter filter = new IntentFilter(DataUploaderService.ACTION_FETCH_TRAINNGS_DONE);
+		filter.addCategory(Intent.CATEGORY_DEFAULT);
+		mBroadcastReceiver = new ResponseReceiver();
+		registerReceiver(mBroadcastReceiver, filter);
 	}
 
 	public void testClick(View v) {
@@ -244,7 +251,7 @@ public class TrainingActivity extends Activity {
 		case MENU_SYNC: {
 			Intent intent = new Intent(this, DataUploaderService.class);
 			intent.putExtra(DataUploaderService.INTENT_KEY_ACTION,
-					DataUploaderService.ACTION_GET_TRAINING_LIST);
+					DataUploaderService.ACTION_FETCH_TRAININGS);
 			intent.putExtra(DataUploaderService.INTENT_KEY_USERNAME,
 					mSettings.getUsername());
 			intent.putExtra(DataUploaderService.INTENT_KEY_PASSWORD,
@@ -288,6 +295,30 @@ public class TrainingActivity extends Activity {
 		}
 
 		return super.onOptionsItemSelected(item);
+	}
+	
+	private class ResponseReceiver extends BroadcastReceiver {
+
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			boolean getTrainingSuccessful = intent.getExtras().getBoolean(
+					DataUploaderService.PARAM_OP_SUCCESSFUL);
+
+			//mLoginProgress.dismiss();
+
+			if (getTrainingSuccessful) {
+				Toast.makeText(
+						getApplicationContext(),
+						"Wuhu! Trainings downloaded. Let's go!",
+						Toast.LENGTH_SHORT).show();
+			} else {
+				Toast.makeText(
+						getApplicationContext(),
+						"Ups. Unable to fetch trainings. There should be a nicer UI for this message!",
+						Toast.LENGTH_SHORT).show();
+			}
+
+		}
 	}
 
 }

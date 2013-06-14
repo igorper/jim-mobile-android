@@ -19,8 +19,7 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
-import net.pernek.jim.exercisedetector.database.JimTables;
-import net.pernek.jim.exercisedetector.database.JimTables.TrainingPlan;
+import net.pernek.jim.exercisedetector.database.TrainingContentProvider.TrainingPlan;
 import net.pernek.jim.exercisedetector.util.Utils;
 
 import org.apache.http.HttpEntity;
@@ -68,11 +67,12 @@ public class DataUploaderService extends IntentService {
 	private static final String TAG = Utils.getApplicationTag();
 
 	public static final String ACTION_DONE = "action_done";
-	public static final String PARAM_LOGIN_SUCCESSFUL = "login_successful";
+	public static final String ACTION_FETCH_TRAINNGS_DONE = "fetch_trainings_done";
+	public static final String PARAM_OP_SUCCESSFUL = "operation_successful";
 	public static final String PARAM_GET_TRAINING_SUCCESSFUL = "get_training_successful";
 
 	public static final String ACTION_UPLOAD = "action-upload";
-	public static final String ACTION_GET_TRAINING_LIST = "action-get-training-list";
+	public static final String ACTION_FETCH_TRAININGS = "action-get-training-list";
 	public static final String ACTION_GET_TRAINING = "action-get-training";
 	public static final String ACTION_LOGIN = "action-login";
 
@@ -192,35 +192,69 @@ public class DataUploaderService extends IntentService {
 			Intent broadcastIntent = new Intent();
 			broadcastIntent.setAction(ACTION_DONE);
 			broadcastIntent.addCategory(Intent.CATEGORY_DEFAULT);
-			broadcastIntent.putExtra(PARAM_LOGIN_SUCCESSFUL, loginSuccessful);
+			broadcastIntent.putExtra(PARAM_OP_SUCCESSFUL, loginSuccessful);
 			sendBroadcast(broadcastIntent);
 
-		} else if (action.equals(ACTION_GET_TRAINING_LIST)) {
+		} else if (action.equals(ACTION_FETCH_TRAININGS)) {
+			// get list of all trainings for the user
 			String jsonTrainingPlans = getTrainingList(username, password);
+			boolean getTrainingsSucessful = true;
 
-			List<Integer> fetchedTrainingIds = new ArrayList<Integer>();
+			// download each training and save all the information to be later
+			// written to the database
+			List<Integer> trainingIds = new ArrayList<Integer>();
+			List<String> trainingNames = new ArrayList<String>();
+			List<String> fetchedTrainings = new ArrayList<String>();
 			try {
 				JSONArray jaTrainingsPlans = new JSONArray(jsonTrainingPlans);
 				for (int i = 0; i < jaTrainingsPlans.length(); i++) {
 					JSONObject joTrainingPlan = (JSONObject) jaTrainingsPlans
 							.get(i);
-					fetchedTrainingIds.add(joTrainingPlan.getInt("id"));
 
-					// String jsonTraining =
-
+					int trainingId = joTrainingPlan.getInt("id");
+					String trainingName = joTrainingPlan.getString("name");
+					
+					String jsonTraining = getTraining(trainingId, username,
+							password);
+					if(jsonTraining == null){
+						getTrainingsSucessful = false;
+						break;
+					}
+					
+					trainingIds.add(trainingId);
+					trainingNames.add(trainingName);
+					fetchedTrainings.add(jsonTraining);
 				}
-			} catch (JSONException e) {
+				
+				if(getTrainingsSucessful){
+					// clear the database
+					getContentResolver().delete(TrainingPlan.CONTENT_URI, null, null);
+					
+					// store fetched trainings to the database
+					for (int i = 0; i < fetchedTrainings.size(); i++) {
+						ContentValues trainingPlan = new ContentValues();
+						 trainingPlan.put(TrainingPlan._ID, trainingIds.get(i));
+						 trainingPlan.put(TrainingPlan.NAME, trainingNames.get(i));
+						 trainingPlan.put(TrainingPlan.DATA, fetchedTrainings.get(i));
+						
+						 getContentResolver().insert(TrainingPlan.CONTENT_URI,
+						 trainingPlan);
+					}
+					
+				}
+			} catch (Exception e) {
+				getTrainingsSucessful = false;
 				e.printStackTrace();
-				Log.d(TAG, "Get training list json exeception");
+				Log.e(TAG, "Get training list json exeception");
 			}
 
-			// ContentValues trainingPlan = new ContentValues();
-			// trainingPlan.put(TrainingPlan._ID, id);
-			// trainingPlan.put(TrainingPlan.NAME, name);
-			//
-			//
-			// getContentResolver().insert(TrainingPlan.CONTENT_URI,
-			// trainingPlan);
+			// send status intent
+			Intent broadcastIntent = new Intent();
+			broadcastIntent.setAction(ACTION_FETCH_TRAINNGS_DONE);
+			broadcastIntent.addCategory(Intent.CATEGORY_DEFAULT);
+			broadcastIntent.putExtra(PARAM_OP_SUCCESSFUL, getTrainingsSucessful);
+			sendBroadcast(broadcastIntent);
+
 
 		} else if (action.equalsIgnoreCase(ACTION_GET_TRAINING)) {
 			int trainingId = intent.getExtras().getInt(INTENT_KEY_TRAINING_ID);
@@ -260,11 +294,15 @@ public class DataUploaderService extends IntentService {
 	 * @param trainingId
 	 * @param username
 	 * @param password
-	 * @return a JSON encoded training string or null if Http return status code was not OK.
-	 * @throws IOException if unable to extract stream from JSON
-	 * @throws ClientProtocolException could happen during Http comunication
+	 * @return a JSON encoded training string or null if Http return status code
+	 *         was not OK.
+	 * @throws IOException
+	 *             if unable to extract stream from JSON
+	 * @throws ClientProtocolException
+	 *             could happen during Http comunication
 	 */
-	private String getTraining(int trainingId, String username, String password) throws ClientProtocolException, IOException{
+	private String getTraining(int trainingId, String username, String password)
+			throws ClientProtocolException, IOException {
 		HttpClient httpClient = getDangerousHttpClient();
 
 		List<NameValuePair> params = new ArrayList<NameValuePair>();
@@ -290,10 +328,13 @@ public class DataUploaderService extends IntentService {
 				.getEntity().getContent()) : null;
 	}
 
-	/** This method extracts a JSON string from stream.
+	/**
+	 * This method extracts a JSON string from stream.
+	 * 
 	 * @param content
 	 * @return
-	 * @throws IOException could happen while reading the from stream.
+	 * @throws IOException
+	 *             could happen while reading the from stream.
 	 */
 	private static String extractJsonFromStream(InputStream content)
 			throws IOException {

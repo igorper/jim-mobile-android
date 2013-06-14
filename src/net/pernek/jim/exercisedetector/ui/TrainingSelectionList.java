@@ -1,7 +1,7 @@
 package net.pernek.jim.exercisedetector.ui;
 
 import net.pernek.jim.exercisedetector.R;
-import net.pernek.jim.exercisedetector.database.JimTables.TrainingPlan;
+import net.pernek.jim.exercisedetector.database.TrainingContentProvider.TrainingPlan;
 import android.app.ListActivity;
 import android.content.Intent;
 import android.database.Cursor;

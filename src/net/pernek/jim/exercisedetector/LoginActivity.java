@@ -1,6 +1,5 @@
 package net.pernek.jim.exercisedetector;
 
-import net.pernek.jim.exercisedetector.UploadSessionActivity.ResponseReceiver;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
@@ -8,7 +7,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
-import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.view.KeyEvent;
 import android.view.View;
@@ -84,7 +82,7 @@ public class LoginActivity extends Activity {
 		@Override
 		public void onReceive(Context context, Intent intent) {
 			boolean loginSuccessful = intent.getExtras().getBoolean(
-					DataUploaderService.PARAM_LOGIN_SUCCESSFUL);
+					DataUploaderService.PARAM_OP_SUCCESSFUL);
 
 			mLoginProgress.dismiss();
 
