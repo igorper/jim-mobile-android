@@ -66,11 +66,11 @@
                                 android:layout_centerInParent="true" >
 
                                 <TextView
+                                    android:id="@+id/trainingSelectorText"
                                     android:layout_width="wrap_content"
                                     android:layout_height="match_parent"
                                     android:layout_gravity="center_vertical"
                                     android:gravity="center_vertical"
-                                    android:text="Fit before summer"
                                     android:textColor="@color/jim_red"
                                     android:textSize="@dimen/status_rect_training_selection_font_size" />
 

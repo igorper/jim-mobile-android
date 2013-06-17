@@ -1,6 +1,7 @@
 package net.pernek.jim.exercisedetector;
 
 import net.pernek.jim.exercisedetector.CircularProgressControl.CircularProgressState;
+import net.pernek.jim.exercisedetector.database.TrainingContentProvider.TrainingPlan;
 import net.pernek.jim.exercisedetector.ui.SwipeControl;
 import net.pernek.jim.exercisedetector.ui.TrainingSelectionList;
 import net.pernek.jim.exercisedetector.util.Utils;
@@ -10,6 +11,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.database.Cursor;
 import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
@@ -20,6 +22,7 @@ import android.view.View;
 import android.view.View.OnLongClickListener;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ViewFlipper;
 
@@ -35,7 +38,7 @@ public class TrainingActivity extends Activity {
 	private static final int ACTIVITY_REQUEST_TRAININGS_LIST = 0;
 
 	private DetectorSettings mSettings;
-	
+
 	private ResponseReceiver mBroadcastReceiver;
 
 	private CircularProgressControl mCircularProgress;
@@ -43,6 +46,7 @@ public class TrainingActivity extends Activity {
 	private SwipeControl mSwipeControl;
 	private LinearLayout mTrainingSelector;
 	private ProgressDialog mProgressDialog;
+	private TextView mTrainingSelectorText;
 
 	private int mTrainingCounter = 0;
 	private int mExerciseCounter = 0;
@@ -127,6 +131,9 @@ public class TrainingActivity extends Activity {
 		mViewFlipper = (ViewFlipper) findViewById(R.id.viewFlipper);
 		mSwipeControl = (SwipeControl) findViewById(R.id.swipeControl);
 		mTrainingSelector = (LinearLayout) findViewById(R.id.trainingSelector);
+		mTrainingSelectorText = (TextView) findViewById(R.id.trainingSelectorText);
+
+		updateTrainingSelector(-1);
 
 		mCircularProgress.setRestMaxProgress(100);
 		mCircularProgress.setRestMinProgress(0);
@@ -163,18 +170,49 @@ public class TrainingActivity extends Activity {
 
 			}
 		});
-		
-		// TODO: We could create a class called JimActivity which could handle all the
-		// communication logic (ResponseReciver for different intents) and define all (e.g.
+
+		// TODO: We could create a class called JimActivity which could handle
+		// all the
+		// communication logic (ResponseReciver for different intents) and
+		// define all (e.g.
 		// DetectiorSettings, TAG, etc)
-		IntentFilter filter = new IntentFilter(DataUploaderService.ACTION_FETCH_TRAINNGS_DONE);
+		IntentFilter filter = new IntentFilter(
+				DataUploaderService.ACTION_FETCH_TRAINNGS_DONE);
 		filter.addAction(DataUploaderService.ACTION_FETCH_TRAINNGS_LIST_DOWNLOADED);
 		filter.addAction(DataUploaderService.ACTION_FETCH_TRAINNGS_ITEM_DOWNLOADED);
-		
+
 		filter.addCategory(Intent.CATEGORY_DEFAULT);
-				
+
 		mBroadcastReceiver = new ResponseReceiver();
 		registerReceiver(mBroadcastReceiver, filter);
+	}
+
+	/**
+	 * This method updates the training selector text to the first training plan
+	 * in the database or to the plan corresponding with the @param trainingPlanID.
+	 */
+	/**
+	 * @param trainingPlanID
+	 */
+	private void updateTrainingSelector(long trainingPlanID) {
+		String[] projection = { TrainingPlan._ID, TrainingPlan.NAME };
+		String selection = trainingPlanID == -1 ? null : String.format(
+				"%s == %d", TrainingPlan._ID, trainingPlanID);
+		Cursor trainings = managedQuery(TrainingPlan.CONTENT_URI, projection,
+				selection, null, null);
+
+		if (trainings.moveToNext()) {
+			String trainingName = trainings.getString(trainings
+					.getColumnIndex(TrainingPlan.NAME));
+			mTrainingSelectorText.setText(trainingName);
+		}
+	}
+
+	@Override
+	protected void onDestroy() {
+		unregisterReceiver(mBroadcastReceiver);
+
+		super.onDestroy();
 	}
 
 	public void testClick(View v) {
@@ -225,11 +263,20 @@ public class TrainingActivity extends Activity {
 		switch (requestCode) {
 		case ACTIVITY_REQUEST_TRAININGS_LIST: {
 			if (data != null
+					&& resultCode == RESULT_OK
 					&& data.hasExtra(TrainingSelectionList.INTENT_EXTRA_SELECTED_TRAINING_KEY)) {
-				Toast.makeText(
-						this,
-						data.getStringExtra(TrainingSelectionList.INTENT_EXTRA_SELECTED_TRAINING_KEY),
-						Toast.LENGTH_LONG).show();
+				final long trainingId = data
+						.getExtras()
+						.getLong(TrainingSelectionList.INTENT_EXTRA_SELECTED_TRAINING_KEY,
+								-1);
+
+				mUiHandler.post(new Runnable() {
+
+					@Override
+					public void run() {
+						updateTrainingSelector(trainingId);
+					}
+				});
 			}
 			break;
 		}
@@ -263,13 +310,13 @@ public class TrainingActivity extends Activity {
 			intent.putExtra(DataUploaderService.INTENT_KEY_PASSWORD,
 					mSettings.getPassword());
 			startService(intent);
-			
+
 			mProgressDialog = new ProgressDialog(this);
 			mProgressDialog.setIndeterminate(false);
 			mProgressDialog.setMessage("Fetching training list ...");
 			mProgressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
 			mProgressDialog.show();
-			
+
 			break;
 		}
 		case MENU_SWIPE: {
@@ -297,8 +344,7 @@ public class TrainingActivity extends Activity {
 					mSettings.getUsername());
 			intent.putExtra(DataUploaderService.INTENT_KEY_PASSWORD,
 					mSettings.getPassword());
-			intent.putExtra(DataUploaderService.INTENT_KEY_TRAINING_ID,
-					17);
+			intent.putExtra(DataUploaderService.INTENT_KEY_TRAINING_ID, 17);
 			startService(intent);
 
 			break;
@@ -309,20 +355,20 @@ public class TrainingActivity extends Activity {
 
 		return super.onOptionsItemSelected(item);
 	}
-	
+
 	private class ResponseReceiver extends BroadcastReceiver {
 
 		@Override
 		public void onReceive(Context context, Intent intent) {
-			if(intent.getAction().equals(DataUploaderService.ACTION_FETCH_TRAINNGS_DONE)){
+			if (intent.getAction().equals(
+					DataUploaderService.ACTION_FETCH_TRAINNGS_DONE)) {
 				boolean getTrainingSuccessful = intent.getExtras().getBoolean(
 						DataUploaderService.PARAM_OP_SUCCESSFUL);
 
 				mProgressDialog.dismiss();
 
 				if (getTrainingSuccessful) {
-					Toast.makeText(
-							getApplicationContext(),
+					Toast.makeText(getApplicationContext(),
 							"Wuhu! Trainings downloaded. Let's go!",
 							Toast.LENGTH_SHORT).show();
 				} else {
@@ -331,19 +377,25 @@ public class TrainingActivity extends Activity {
 							"Ups. Unable to fetch trainings. There should be a nicer UI for this message!",
 							Toast.LENGTH_SHORT).show();
 				}
-			} else if(intent.getAction().equals(DataUploaderService.ACTION_FETCH_TRAINNGS_LIST_DOWNLOADED)){
-				int totalNumberOfTrainings = intent.getExtras().getInt(DataUploaderService.PARAM_FETCH_TRAINNGS_NUM_ITEMS);
+			} else if (intent.getAction().equals(
+					DataUploaderService.ACTION_FETCH_TRAINNGS_LIST_DOWNLOADED)) {
+				int totalNumberOfTrainings = intent.getExtras().getInt(
+						DataUploaderService.PARAM_FETCH_TRAINNGS_NUM_ITEMS);
 				int progress = Math.round(1f / totalNumberOfTrainings * 100f);
 				mProgressDialog.setProgress(progress);
-			} else if(intent.getAction().equals(DataUploaderService.ACTION_FETCH_TRAINNGS_ITEM_DOWNLOADED)){
-				int totalNumberOfTrainings = intent.getExtras().getInt(DataUploaderService.PARAM_FETCH_TRAINNGS_NUM_ITEMS);
-				int trainingCount = intent.getExtras().getInt(DataUploaderService.PARAM_FETCH_TRAINNGS_CUR_ITEM_CNT);
-				String trainingName = intent.getExtras().getString(DataUploaderService.PARAM_FETCH_TRAINNGS_CUR_ITEM_NAME);
-				int progress = Math.round((1f + trainingCount) / totalNumberOfTrainings * 100f);
+			} else if (intent.getAction().equals(
+					DataUploaderService.ACTION_FETCH_TRAINNGS_ITEM_DOWNLOADED)) {
+				int totalNumberOfTrainings = intent.getExtras().getInt(
+						DataUploaderService.PARAM_FETCH_TRAINNGS_NUM_ITEMS);
+				int trainingCount = intent.getExtras().getInt(
+						DataUploaderService.PARAM_FETCH_TRAINNGS_CUR_ITEM_CNT);
+				String trainingName = intent.getExtras().getString(
+						DataUploaderService.PARAM_FETCH_TRAINNGS_CUR_ITEM_NAME);
+				int progress = Math.round((1f + trainingCount)
+						/ totalNumberOfTrainings * 100f);
 				mProgressDialog.setMessage("Fetching " + trainingName);
 				mProgressDialog.setProgress(progress);
 			}
 		}
 	}
-
 }
