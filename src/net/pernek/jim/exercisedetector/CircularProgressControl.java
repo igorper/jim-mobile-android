@@ -95,11 +95,31 @@ public class CircularProgressControl extends View {
 	 * Start and stop button strong text color.
 	 */
 	private static final int START_STRONG_TEXT_COLOR = 0xFF424242;
-	
+
 	/**
 	 * Rest counter text color.
 	 */
 	private static final int REST_COUNTER_TEXT_COLOR = 0xFFFFFFFF;
+
+	/**
+	 * Current repetition text color.
+	 */
+	private static final int CURRENT_REPETITION_TEXT_COLOR = 0xFF000000;
+
+	/**
+	 * Total repetitions text color.
+	 */
+	private static final int TOTAL_REPETITIONS_TEXT_COLOR = 0xFFFFFFFF;
+
+	/**
+	 * Current series text color.
+	 */
+	private static final int CURRENT_SERIES_TEXT_COLOR = 0xFF55A0C0;
+
+	/**
+	 * Total series text color.
+	 */
+	private static final int TOTAL_SERIES_TEXT_COLOR = 0xFFFFFFFF;
 
 	/**
 	 * Start and stop button thin text color.
@@ -140,11 +160,31 @@ public class CircularProgressControl extends View {
 	 * Overview state "min active/total" text size in dp.
 	 */
 	private static final int OVERVIEW_TEXT_SIZE_IN_DIP = 20;
-	
+
 	/**
 	 * Rest counter text size in dp.
 	 */
 	private static final int REST_COUNTER_TEXT_SIZE_IN_DIP = 100;
+
+	/**
+	 * Current repetition text size in dp.
+	 */
+	private static final int CURRENT_REPETITION_TEXT_SIZE_IN_DIP = 150;
+
+	/**
+	 * Total repetitions text size in dp.
+	 */
+	private static final int TOTAL_REPETITIONS_TEXT_SIZE_IN_DIP = 70;
+
+	/**
+	 * Current series text size in dp.
+	 */
+	private static final int CURRENT_SERIES_TEXT_SIZE_IN_DIP = 40;
+
+	/**
+	 * Total series text size in dp.
+	 */
+	private static final int TOTAL_SERIES_TEXT_SIZE_IN_DIP = 40;
 
 	/**
 	 * Overview state big total and active number text size in dp.
@@ -240,11 +280,31 @@ public class CircularProgressControl extends View {
 	 * Paint for the "total" and "active" text in the overview state.
 	 */
 	private Paint mTextOverviewTotalPaint;
-	
+
 	/**
 	 * Paint for the rest counter text in the rest state.
 	 */
 	private Paint mTextRestCounterPaint;
+
+	/**
+	 * Paint for the current repetition text in the exercise state.
+	 */
+	private Paint mTextCurrentRepetitionPaint;
+
+	/**
+	 * Paint for the total repetitions text in the exercise state.
+	 */
+	private Paint mTextTotalRepetitionsPaint;
+
+	/**
+	 * Paint for the current series text in the exercise state.
+	 */
+	private Paint mTextCurrentSeriesPaint;
+
+	/**
+	 * Paint for the total series text in the exercise state.
+	 */
+	private Paint mTextTotalSeriesPaint;
 
 	/**
 	 * Paint for the big total and active number in the overview state.
@@ -332,6 +392,11 @@ public class CircularProgressControl extends View {
 	 * Y value of circle center.
 	 */
 	private float mCenterY;
+	
+	/**
+	 * Y value of repetition counter text.
+	 */
+	private float mRepetitionCounterTextY;
 
 	/**
 	 * Training circle radius.
@@ -420,6 +485,8 @@ public class CircularProgressControl extends View {
 	private Typeface mCooperBlackTypeface;
 
 	private Typeface mHaginCapsThinTypeface;
+	
+	private Typeface mFinenessRegularTypeface;
 
 	private String mStartButtonStrongText = "PUSH";
 
@@ -438,8 +505,16 @@ public class CircularProgressControl extends View {
 	private int mNumberActive = 70;
 
 	private int mNumberTotal = 120;
-	
+
 	private int mRestCounter = 888;
+
+	private int mCurrentRepetition = 9;
+
+	private int mTotalRepetitions = 10;
+
+	private int mCurrentSeries = 1;
+
+	private int mTotalSeries = 3;
 
 	/**
 	 * Calculates the arc length based on the input values.
@@ -719,6 +794,9 @@ public class CircularProgressControl extends View {
 				.getAssets(), "fonts/Cooper Black.ttf");
 		mHaginCapsThinTypeface = Typeface.createFromAsset(getContext()
 				.getAssets(), "fonts/Hagin Caps Thin.ttf");
+		
+		mFinenessRegularTypeface  = Typeface.createFromAsset(getContext()
+				.getAssets(), "fonts/FinenessRegular.ttf");
 
 		// exercise state variables
 		mTrainingProgressBackgroundPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -817,13 +895,45 @@ public class CircularProgressControl extends View {
 		mTextOverviewNumberPaint.setTextSize(TypedValue.applyDimension(
 				TypedValue.COMPLEX_UNIT_DIP, OVERVIEW_TEXT_NUMBER_SIZE_IN_DIP,
 				getResources().getDisplayMetrics()));
-		
+
 		mTextRestCounterPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 		mTextRestCounterPaint.setColor(REST_COUNTER_TEXT_COLOR);
-		mTextRestCounterPaint.setTypeface(Typeface.DEFAULT_BOLD);
 		mTextRestCounterPaint.setTextSize(TypedValue.applyDimension(
 				TypedValue.COMPLEX_UNIT_DIP, REST_COUNTER_TEXT_SIZE_IN_DIP,
 				getResources().getDisplayMetrics()));
+
+		mTextCurrentRepetitionPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+		mTextCurrentRepetitionPaint.setColor(CURRENT_REPETITION_TEXT_COLOR);
+		mTextCurrentRepetitionPaint.setTypeface(Typeface.DEFAULT_BOLD);
+		mTextCurrentRepetitionPaint.setTextSize(TypedValue.applyDimension(
+				TypedValue.COMPLEX_UNIT_DIP,
+				CURRENT_REPETITION_TEXT_SIZE_IN_DIP, getResources()
+						.getDisplayMetrics()));
+		mTextCurrentRepetitionPaint.setTypeface(mFinenessRegularTypeface);
+
+		mTextTotalRepetitionsPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+		mTextTotalRepetitionsPaint.setColor(TOTAL_REPETITIONS_TEXT_COLOR);
+		mTextTotalRepetitionsPaint.setTextSize(TypedValue.applyDimension(
+				TypedValue.COMPLEX_UNIT_DIP,
+				TOTAL_REPETITIONS_TEXT_SIZE_IN_DIP, getResources()
+						.getDisplayMetrics()));
+		mTextTotalRepetitionsPaint.setTypeface(mFinenessRegularTypeface);
+		
+		mTextCurrentSeriesPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+		mTextCurrentSeriesPaint.setColor(CURRENT_SERIES_TEXT_COLOR);
+		mTextCurrentSeriesPaint.setTextSize(TypedValue.applyDimension(
+				TypedValue.COMPLEX_UNIT_DIP,
+				CURRENT_SERIES_TEXT_SIZE_IN_DIP, getResources()
+						.getDisplayMetrics()));
+		mTextCurrentSeriesPaint.setTypeface(mFinenessRegularTypeface);
+		
+		mTextTotalSeriesPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+		mTextTotalSeriesPaint.setColor(TOTAL_SERIES_TEXT_COLOR);
+		mTextTotalSeriesPaint.setTextSize(TypedValue.applyDimension(
+				TypedValue.COMPLEX_UNIT_DIP,
+				TOTAL_SERIES_TEXT_SIZE_IN_DIP, getResources()
+						.getDisplayMetrics()));
+		mTextTotalSeriesPaint.setTypeface(mFinenessRegularTypeface);
 
 		// hide the default button background
 		setBackgroundDrawable(null);
@@ -840,6 +950,7 @@ public class CircularProgressControl extends View {
 
 		// precalculate all variables used for drawing
 		mCenterX = mCenterY = width / 2;
+		mRepetitionCounterTextY = width / 3 * 2;
 		mTrainingCircleRadius = width / 2;
 		mExerciseCircleRadius = mTrainingCircleRadius - mProgThicknessInPx;
 		mRestCircleRadius = mExerciseCircleRadius - mProgThicknessInPx;
@@ -1005,7 +1116,7 @@ public class CircularProgressControl extends View {
 					mIsPressedState ? mRestProgressClickBackgroundPaint
 							: mRestProgressBackgroundPaint);
 
-			if (mCurrentState ==  CircularProgressState.REST) {
+			if (mCurrentState == CircularProgressState.REST) {
 				canvas.drawArc(mRestCircleOval, 270, mCalculatedRestArc, true,
 						mIsPressedState ? mRestProgressClickForegroundPaint
 								: mRestProgressForegroundPaint);
@@ -1015,7 +1126,46 @@ public class CircularProgressControl extends View {
 
 				float restCounterTextDescent = mTextRestCounterPaint.descent();
 				canvas.drawText(Integer.toString(mRestCounter), mCenterX
-						- restCounterLength / 2, mCenterY + restCounterTextDescent, mTextRestCounterPaint);
+						- restCounterLength / 2, mCenterY
+						+ restCounterTextDescent, mTextRestCounterPaint);
+			} else if (mCurrentState == CircularProgressState.EXERCISE) {
+
+				float currentRepetitionLength = mTextCurrentRepetitionPaint
+						.measureText(Integer.toString(mCurrentRepetition));
+
+				float totalRepetitionsLength = mTextTotalRepetitionsPaint
+						.measureText(String.format("/%d", mTotalRepetitions));
+
+				float startCurrentRepetitionX = mCenterX
+						- (currentRepetitionLength + totalRepetitionsLength)
+						/ 2;
+				
+				canvas.drawText(Integer.toString(mCurrentRepetition),
+						startCurrentRepetitionX, mRepetitionCounterTextY,
+						mTextCurrentRepetitionPaint);
+				canvas.drawText(
+						String.format("/%d", mTotalRepetitions),
+						startCurrentRepetitionX + currentRepetitionLength, mRepetitionCounterTextY, mTextTotalRepetitionsPaint);
+
+				float currentSeriesLength = mTextCurrentSeriesPaint
+						.measureText(Integer.toString(mCurrentSeries));
+
+				float totalSeriesLength = mTextTotalSeriesPaint
+						.measureText(String.format("/%d", mTotalSeries));
+
+				float startCurrentSeriesX = mCenterX
+						- (currentSeriesLength + totalSeriesLength)
+						/ 2;
+				
+				float seriesTextY = mRepetitionCounterTextY - mTextCurrentSeriesPaint.ascent() * 4 / 3;
+
+				canvas.drawText(Integer.toString(mCurrentSeries),
+						startCurrentSeriesX, seriesTextY,
+						mTextCurrentSeriesPaint);
+				canvas.drawText(
+						String.format("/%d", mTotalSeries),
+						startCurrentSeriesX + currentSeriesLength, seriesTextY, mTextTotalSeriesPaint);
+				
 			}
 
 			break;
