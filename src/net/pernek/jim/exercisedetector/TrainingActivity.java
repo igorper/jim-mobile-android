@@ -148,7 +148,7 @@ public class TrainingActivity extends Activity {
 				Toast.makeText(getApplicationContext(), "test",
 						Toast.LENGTH_LONG).show();
 				mCircularProgress.setCurrentState(CircularProgressState
-						.values()[++stateCount % 4]);
+						.values()[++stateCount % (CircularProgressState.values().length)]);
 
 				if (mCircularProgress.getCurrentState() == CircularProgressState.REST) {
 					mTrainingCounter = 0;

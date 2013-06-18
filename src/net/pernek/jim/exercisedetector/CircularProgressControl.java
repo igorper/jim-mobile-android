@@ -31,7 +31,7 @@ public class CircularProgressControl extends View {
 	 * 
 	 */
 	public enum CircularProgressState {
-		START, REST, EXERCISE, STOP, OVERVIEW
+		START, REST, EXERCISE, STOP, OVERVIEW, COUNTDOWN
 	}
 
 	private static final String TAG = Utils.getApplicationTag();
@@ -100,6 +100,16 @@ public class CircularProgressControl extends View {
 	 * Rest counter text color.
 	 */
 	private static final int REST_COUNTER_TEXT_COLOR = 0xFFFFFFFF;
+	
+	/**
+	 * Timer message text color.
+	 */
+	private static final int TIMER_MESSAGE_TEXT_COLOR = 0xFFE1563E;
+	
+	/**
+	 * Dash color in the overview screen.
+	 */
+	private static final int OVERVIEW_DASH_COLOR = 0xFFE1563E;
 
 	/**
 	 * Current repetition text color.
@@ -165,6 +175,11 @@ public class CircularProgressControl extends View {
 	 * Rest counter text size in dp.
 	 */
 	private static final int REST_COUNTER_TEXT_SIZE_IN_DIP = 100;
+	
+	/**
+	 * Timer message text size in dp.
+	 */
+	private static final int TIMER_MESSAGE_TEXT_SIZE_IN_DIP = 40;
 
 	/**
 	 * Current repetition text size in dp.
@@ -282,9 +297,14 @@ public class CircularProgressControl extends View {
 	private Paint mTextOverviewTotalPaint;
 
 	/**
-	 * Paint for the rest counter text in the rest state.
+	 * Paint for the timer text in rest and countdown state.
 	 */
-	private Paint mTextRestCounterPaint;
+	private Paint mTextTimerPaint;
+	
+	/**
+	 * Paint for the timer message text in rest and countdown state.
+	 */
+	private Paint mTextTimerMessagePaint;
 
 	/**
 	 * Paint for the current repetition text in the exercise state.
@@ -392,11 +412,16 @@ public class CircularProgressControl extends View {
 	 * Y value of circle center.
 	 */
 	private float mCenterY;
-	
+
 	/**
 	 * Y value of repetition counter text.
 	 */
 	private float mRepetitionCounterTextY;
+	
+	/**
+	 * Y value of message visible in screens with timer (rest and countdown). 
+	 */
+	private float mTimerMessageTextY;
 
 	/**
 	 * Training circle radius.
@@ -485,7 +510,7 @@ public class CircularProgressControl extends View {
 	private Typeface mCooperBlackTypeface;
 
 	private Typeface mHaginCapsThinTypeface;
-	
+
 	private Typeface mFinenessRegularTypeface;
 
 	private String mStartButtonStrongText = "PUSH";
@@ -506,7 +531,7 @@ public class CircularProgressControl extends View {
 
 	private int mNumberTotal = 120;
 
-	private int mRestCounter = 888;
+	private int mTimer = 5;
 
 	private int mCurrentRepetition = 9;
 
@@ -515,6 +540,8 @@ public class CircularProgressControl extends View {
 	private int mCurrentSeries = 1;
 
 	private int mTotalSeries = 3;
+	
+	private String mTimerMessage = "Get ready!";
 
 	/**
 	 * Calculates the arc length based on the input values.
@@ -794,8 +821,8 @@ public class CircularProgressControl extends View {
 				.getAssets(), "fonts/Cooper Black.ttf");
 		mHaginCapsThinTypeface = Typeface.createFromAsset(getContext()
 				.getAssets(), "fonts/Hagin Caps Thin.ttf");
-		
-		mFinenessRegularTypeface  = Typeface.createFromAsset(getContext()
+
+		mFinenessRegularTypeface = Typeface.createFromAsset(getContext()
 				.getAssets(), "fonts/FinenessRegular.ttf");
 
 		// exercise state variables
@@ -869,7 +896,7 @@ public class CircularProgressControl extends View {
 				getResources().getDisplayMetrics());
 
 		mOverviewDashPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-		mOverviewDashPaint.setColor(REST_PROG_FG_COLOR);
+		mOverviewDashPaint.setColor(OVERVIEW_DASH_COLOR);
 		mOverviewDashPaint.setStyle(Style.STROKE);
 		mOverviewDashPaint.setPathEffect(new DashPathEffect(new float[] {
 				dashPartLenInPx, dashPartLenInPx }, 0));
@@ -896,11 +923,18 @@ public class CircularProgressControl extends View {
 				TypedValue.COMPLEX_UNIT_DIP, OVERVIEW_TEXT_NUMBER_SIZE_IN_DIP,
 				getResources().getDisplayMetrics()));
 
-		mTextRestCounterPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-		mTextRestCounterPaint.setColor(REST_COUNTER_TEXT_COLOR);
-		mTextRestCounterPaint.setTextSize(TypedValue.applyDimension(
+		mTextTimerPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+		mTextTimerPaint.setColor(REST_COUNTER_TEXT_COLOR);
+		mTextTimerPaint.setTextSize(TypedValue.applyDimension(
 				TypedValue.COMPLEX_UNIT_DIP, REST_COUNTER_TEXT_SIZE_IN_DIP,
 				getResources().getDisplayMetrics()));
+		
+		mTextTimerMessagePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+		mTextTimerMessagePaint.setColor(TIMER_MESSAGE_TEXT_COLOR);
+		mTextTimerMessagePaint.setTextSize(TypedValue.applyDimension(
+				TypedValue.COMPLEX_UNIT_DIP, TIMER_MESSAGE_TEXT_SIZE_IN_DIP,
+				getResources().getDisplayMetrics()));
+		mTextTimerMessagePaint.setTypeface(mFinenessRegularTypeface);
 
 		mTextCurrentRepetitionPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 		mTextCurrentRepetitionPaint.setColor(CURRENT_REPETITION_TEXT_COLOR);
@@ -918,21 +952,19 @@ public class CircularProgressControl extends View {
 				TOTAL_REPETITIONS_TEXT_SIZE_IN_DIP, getResources()
 						.getDisplayMetrics()));
 		mTextTotalRepetitionsPaint.setTypeface(mFinenessRegularTypeface);
-		
+
 		mTextCurrentSeriesPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 		mTextCurrentSeriesPaint.setColor(CURRENT_SERIES_TEXT_COLOR);
 		mTextCurrentSeriesPaint.setTextSize(TypedValue.applyDimension(
-				TypedValue.COMPLEX_UNIT_DIP,
-				CURRENT_SERIES_TEXT_SIZE_IN_DIP, getResources()
-						.getDisplayMetrics()));
+				TypedValue.COMPLEX_UNIT_DIP, CURRENT_SERIES_TEXT_SIZE_IN_DIP,
+				getResources().getDisplayMetrics()));
 		mTextCurrentSeriesPaint.setTypeface(mFinenessRegularTypeface);
-		
+
 		mTextTotalSeriesPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 		mTextTotalSeriesPaint.setColor(TOTAL_SERIES_TEXT_COLOR);
 		mTextTotalSeriesPaint.setTextSize(TypedValue.applyDimension(
-				TypedValue.COMPLEX_UNIT_DIP,
-				TOTAL_SERIES_TEXT_SIZE_IN_DIP, getResources()
-						.getDisplayMetrics()));
+				TypedValue.COMPLEX_UNIT_DIP, TOTAL_SERIES_TEXT_SIZE_IN_DIP,
+				getResources().getDisplayMetrics()));
 		mTextTotalSeriesPaint.setTypeface(mFinenessRegularTypeface);
 
 		// hide the default button background
@@ -951,6 +983,7 @@ public class CircularProgressControl extends View {
 		// precalculate all variables used for drawing
 		mCenterX = mCenterY = width / 2;
 		mRepetitionCounterTextY = width / 3 * 2;
+		mTimerMessageTextY = width / 4 * 3;
 		mTrainingCircleRadius = width / 2;
 		mExerciseCircleRadius = mTrainingCircleRadius - mProgThicknessInPx;
 		mRestCircleRadius = mExerciseCircleRadius - mProgThicknessInPx;
@@ -1101,6 +1134,7 @@ public class CircularProgressControl extends View {
 			}
 			break;
 		}
+		case COUNTDOWN:
 		case REST:
 		case EXERCISE: {
 			// draw training, exercise and rest progress bars
@@ -1116,18 +1150,30 @@ public class CircularProgressControl extends View {
 					mIsPressedState ? mRestProgressClickBackgroundPaint
 							: mRestProgressBackgroundPaint);
 
-			if (mCurrentState == CircularProgressState.REST) {
-				canvas.drawArc(mRestCircleOval, 270, mCalculatedRestArc, true,
-						mIsPressedState ? mRestProgressClickForegroundPaint
-								: mRestProgressForegroundPaint);
+			if (mCurrentState == CircularProgressState.REST
+					|| mCurrentState == CircularProgressState.COUNTDOWN) {
+				// show the collapsing pie progress bar only during rest
+				if (mCurrentState == CircularProgressState.REST) {
+					canvas.drawArc(mRestCircleOval, 270, mCalculatedRestArc,
+							true,
+							mIsPressedState ? mRestProgressClickForegroundPaint
+									: mRestProgressForegroundPaint);
+				} else {
+					float timerMessageLength = mTextTimerMessagePaint.measureText(mTimerMessage);
+					
+					canvas.drawText(mTimerMessage, mCenterX - timerMessageLength / 2
+							, mTimerMessageTextY, mTextTimerMessagePaint);
+				}
 
-				float restCounterLength = mTextRestCounterPaint
-						.measureText(Integer.toString(mRestCounter));
+				float timerLength = mTextTimerPaint
+						.measureText(Integer
+								.toString(mTimer));
 
-				float restCounterTextDescent = mTextRestCounterPaint.descent();
-				canvas.drawText(Integer.toString(mRestCounter), mCenterX
-						- restCounterLength / 2, mCenterY
-						+ restCounterTextDescent, mTextRestCounterPaint);
+				float timerTextDescent = mTextTimerPaint.descent();
+				canvas.drawText(Integer.toString(mTimer), mCenterX
+						- timerLength / 2, mCenterY
+						+ timerTextDescent, mTextTimerPaint);
+				
 			} else if (mCurrentState == CircularProgressState.EXERCISE) {
 
 				float currentRepetitionLength = mTextCurrentRepetitionPaint
@@ -1139,13 +1185,13 @@ public class CircularProgressControl extends View {
 				float startCurrentRepetitionX = mCenterX
 						- (currentRepetitionLength + totalRepetitionsLength)
 						/ 2;
-				
+
 				canvas.drawText(Integer.toString(mCurrentRepetition),
 						startCurrentRepetitionX, mRepetitionCounterTextY,
 						mTextCurrentRepetitionPaint);
-				canvas.drawText(
-						String.format("/%d", mTotalRepetitions),
-						startCurrentRepetitionX + currentRepetitionLength, mRepetitionCounterTextY, mTextTotalRepetitionsPaint);
+				canvas.drawText(String.format("/%d", mTotalRepetitions),
+						startCurrentRepetitionX + currentRepetitionLength,
+						mRepetitionCounterTextY, mTextTotalRepetitionsPaint);
 
 				float currentSeriesLength = mTextCurrentSeriesPaint
 						.measureText(Integer.toString(mCurrentSeries));
@@ -1154,18 +1200,17 @@ public class CircularProgressControl extends View {
 						.measureText(String.format("/%d", mTotalSeries));
 
 				float startCurrentSeriesX = mCenterX
-						- (currentSeriesLength + totalSeriesLength)
-						/ 2;
-				
-				float seriesTextY = mRepetitionCounterTextY - mTextCurrentSeriesPaint.ascent() * 4 / 3;
+						- (currentSeriesLength + totalSeriesLength) / 2;
+
+				float seriesTextY = mRepetitionCounterTextY
+						- mTextCurrentSeriesPaint.ascent() * 4 / 3;
 
 				canvas.drawText(Integer.toString(mCurrentSeries),
 						startCurrentSeriesX, seriesTextY,
 						mTextCurrentSeriesPaint);
-				canvas.drawText(
-						String.format("/%d", mTotalSeries),
-						startCurrentSeriesX + currentSeriesLength, seriesTextY, mTextTotalSeriesPaint);
-				
+				canvas.drawText(String.format("/%d", mTotalSeries),
+						startCurrentSeriesX + currentSeriesLength, seriesTextY,
+						mTextTotalSeriesPaint);
 			}
 
 			break;
