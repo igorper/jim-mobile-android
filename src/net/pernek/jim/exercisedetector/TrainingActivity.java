@@ -150,7 +150,7 @@ public class TrainingActivity extends Activity {
 				mCircularProgress.setCurrentState(CircularProgressState
 						.values()[++stateCount % 4]);
 
-				if (mCircularProgress.getCurrentState() == CircularProgressState.EXERCISE) {
+				if (mCircularProgress.getCurrentState() == CircularProgressState.REST) {
 					mTrainingCounter = 0;
 					mExerciseCounter = 0;
 					mRestCounter = 100;

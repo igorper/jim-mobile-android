@@ -16,9 +16,10 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
-/** A circular progress control.
- * NOTE: At this point this button ignores the padding property
- * (this should be added in the future). 
+/**
+ * A circular progress control. NOTE: At this point this button ignores the
+ * padding property (this should be added in the future).
+ * 
  * @author Igor
  * 
  */
@@ -30,7 +31,7 @@ public class CircularProgressControl extends View {
 	 * 
 	 */
 	public enum CircularProgressState {
-		START, EXERCISE, STOP, OVERVIEW
+		START, REST, EXERCISE, STOP, OVERVIEW
 	}
 
 	private static final String TAG = Utils.getApplicationTag();
@@ -94,6 +95,11 @@ public class CircularProgressControl extends View {
 	 * Start and stop button strong text color.
 	 */
 	private static final int START_STRONG_TEXT_COLOR = 0xFF424242;
+	
+	/**
+	 * Rest counter text color.
+	 */
+	private static final int REST_COUNTER_TEXT_COLOR = 0xFFFFFFFF;
 
 	/**
 	 * Start and stop button thin text color.
@@ -134,6 +140,11 @@ public class CircularProgressControl extends View {
 	 * Overview state "min active/total" text size in dp.
 	 */
 	private static final int OVERVIEW_TEXT_SIZE_IN_DIP = 20;
+	
+	/**
+	 * Rest counter text size in dp.
+	 */
+	private static final int REST_COUNTER_TEXT_SIZE_IN_DIP = 100;
 
 	/**
 	 * Overview state big total and active number text size in dp.
@@ -229,6 +240,11 @@ public class CircularProgressControl extends View {
 	 * Paint for the "total" and "active" text in the overview state.
 	 */
 	private Paint mTextOverviewTotalPaint;
+	
+	/**
+	 * Paint for the rest counter text in the rest state.
+	 */
+	private Paint mTextRestCounterPaint;
 
 	/**
 	 * Paint for the big total and active number in the overview state.
@@ -422,6 +438,8 @@ public class CircularProgressControl extends View {
 	private int mNumberActive = 70;
 
 	private int mNumberTotal = 120;
+	
+	private int mRestCounter = 888;
 
 	/**
 	 * Calculates the arc length based on the input values.
@@ -435,10 +453,11 @@ public class CircularProgressControl extends View {
 	public static float calculateArc(float value, float max, float min) {
 		return (value - min) / (max - min) * 360;
 	}
-	
 
-	/** Checks if the input parameters are in legal order (value has to be in
+	/**
+	 * Checks if the input parameters are in legal order (value has to be in
 	 * [min, max] interval)
+	 * 
 	 * @param value
 	 * @param max
 	 * @param min
@@ -501,7 +520,7 @@ public class CircularProgressControl extends View {
 	 * Sets the active value of the training progress bar and invalidates the
 	 * screen. The training progress bar visualizes the training completion.
 	 * Note: Nothing happens if the min, max and progress values are not legal
-	 * (progress value has to be included in the [min,max] interval) 
+	 * (progress value has to be included in the [min,max] interval)
 	 */
 	public void setTrainingProgressValue(int value) {
 		if (isValueCombinationLegal(value, mTrainingMaxProgress,
@@ -537,9 +556,9 @@ public class CircularProgressControl extends View {
 
 	/**
 	 * Sets the active value of the rest progress bar and invalidates the
-	 * screen. The rest progress bar visualizes the rest interval.
-	 * Note: Nothing happens if the min, max and progress values are not legal
-	 * (progress value has to be included in the [min,max] interval)
+	 * screen. The rest progress bar visualizes the rest interval. Note: Nothing
+	 * happens if the min, max and progress values are not legal (progress value
+	 * has to be included in the [min,max] interval)
 	 */
 	public void setRestProgressValue(int value) {
 		if (isValueCombinationLegal(value, mRestMaxProgress, mRestMinProgress)) {
@@ -590,9 +609,9 @@ public class CircularProgressControl extends View {
 
 	/**
 	 * Sets the max value of the rest progress bar and invalidates the screen.
-	 * This value indicates when the rest progress bar is full.
-	 * Note: Nothing happens if the min, max and progress values are not legal
-	 * (progress value has to be included in the [min,max] interval)
+	 * This value indicates when the rest progress bar is full. Note: Nothing
+	 * happens if the min, max and progress values are not legal (progress value
+	 * has to be included in the [min,max] interval)
 	 */
 	public void setRestMaxProgress(int value) {
 		if (isValueCombinationLegal(mRestProgressValue, value, mRestMinProgress)) {
@@ -607,9 +626,9 @@ public class CircularProgressControl extends View {
 
 	/**
 	 * Sets the min value of the rest progress bar and invalidates the screen.
-	 * This value indicates when the rest progress bar is empty.
-	 * Note: Nothing happens if the min, max and progress values are not legal
-	 * (progress value has to be included in the [min,max] interval)
+	 * This value indicates when the rest progress bar is empty. Note: Nothing
+	 * happens if the min, max and progress values are not legal (progress value
+	 * has to be included in the [min,max] interval)
 	 */
 	public void setRestMinProgress(int value) {
 		if (isValueCombinationLegal(mRestProgressValue, mRestMaxProgress, value)) {
@@ -642,9 +661,9 @@ public class CircularProgressControl extends View {
 
 	/**
 	 * Sets the min value of the rest progress bar and invalidates the screen.
-	 * This value indicates when the rest progress bar is empty.
-	 * Note: Nothing happens if the min, max and progress values are not legal
-	 * (progress value has to be included in the [min,max] interval)
+	 * This value indicates when the rest progress bar is empty. Note: Nothing
+	 * happens if the min, max and progress values are not legal (progress value
+	 * has to be included in the [min,max] interval)
 	 */
 	public void setExerciseMinProgress(int value) {
 		if (isValueCombinationLegal(mExerciseProgressValue,
@@ -797,6 +816,13 @@ public class CircularProgressControl extends View {
 		mTextOverviewNumberPaint.setColor(START_STRONG_TEXT_COLOR);
 		mTextOverviewNumberPaint.setTextSize(TypedValue.applyDimension(
 				TypedValue.COMPLEX_UNIT_DIP, OVERVIEW_TEXT_NUMBER_SIZE_IN_DIP,
+				getResources().getDisplayMetrics()));
+		
+		mTextRestCounterPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+		mTextRestCounterPaint.setColor(REST_COUNTER_TEXT_COLOR);
+		mTextRestCounterPaint.setTypeface(Typeface.DEFAULT_BOLD);
+		mTextRestCounterPaint.setTextSize(TypedValue.applyDimension(
+				TypedValue.COMPLEX_UNIT_DIP, REST_COUNTER_TEXT_SIZE_IN_DIP,
 				getResources().getDisplayMetrics()));
 
 		// hide the default button background
@@ -964,6 +990,7 @@ public class CircularProgressControl extends View {
 			}
 			break;
 		}
+		case REST:
 		case EXERCISE: {
 			// draw training, exercise and rest progress bars
 			canvas.drawCircle(mCenterX, mCenterY, mTrainingCircleRadius,
@@ -977,9 +1004,20 @@ public class CircularProgressControl extends View {
 			canvas.drawCircle(mCenterX, mCenterY, mRestCircleRadius,
 					mIsPressedState ? mRestProgressClickBackgroundPaint
 							: mRestProgressBackgroundPaint);
-			canvas.drawArc(mRestCircleOval, 270, mCalculatedRestArc, true,
-					mIsPressedState ? mRestProgressClickForegroundPaint
-							: mRestProgressForegroundPaint);
+
+			if (mCurrentState ==  CircularProgressState.REST) {
+				canvas.drawArc(mRestCircleOval, 270, mCalculatedRestArc, true,
+						mIsPressedState ? mRestProgressClickForegroundPaint
+								: mRestProgressForegroundPaint);
+
+				float restCounterLength = mTextRestCounterPaint
+						.measureText(Integer.toString(mRestCounter));
+
+				float restCounterTextDescent = mTextRestCounterPaint.descent();
+				canvas.drawText(Integer.toString(mRestCounter), mCenterX
+						- restCounterLength / 2, mCenterY + restCounterTextDescent, mTextRestCounterPaint);
+			}
+
 			break;
 		}
 		default:
@@ -996,9 +1034,10 @@ public class CircularProgressControl extends View {
 		boolean isInCircle = Math.pow(event.getX() - mCenterX, 2)
 				+ Math.pow(event.getY() - mCenterY, 2) < Math.pow(
 				mTrainingCircleRadius, 2);
-		
-		if(isInCircle){
-			// propagate event further (for longclick and other events detection)
+
+		if (isInCircle) {
+			// propagate event further (for longclick and other events
+			// detection)
 			super.onTouchEvent(event);
 		}
 
