@@ -24,25 +24,18 @@ public class Training {
 	/**
 	 * Fields deserialized from local data.
 	 */
-	private int mCurrentExerciseToDoIndex;
-	private int mCurrentSeriesIndex;
 	private List<Integer> mExercisesToDo;
 	private long mLastPauseStart;
 	private Date mTrainingStarted;
 
-	public Training() {
-
-	}
-
 	public void startTraining() {
-		mCurrentExerciseToDoIndex = 0;
-		mCurrentSeriesIndex = 0;
 		mExercisesToDo = new ArrayList<Integer>();
 		mTrainingStarted = Calendar.getInstance().getTime();
 		mLastPauseStart = System.currentTimeMillis();
 
 		for (int exerciseIndex = 0; exerciseIndex < exercises.size(); exerciseIndex++) {
 			mExercisesToDo.add(exerciseIndex);
+			exercises.get(exerciseIndex).initializeExercise();
 		}
 	}
 
@@ -52,8 +45,8 @@ public class Training {
 	 * @return
 	 */
 	public int getCurrentRest() {
-		return exercises.get(mExercisesToDo.get(mCurrentExerciseToDoIndex))
-				.getSeries().get(mCurrentSeriesIndex).getRestTime();
+		Exercise currentExercise = exercises.get(mExercisesToDo.get(0));
+		return currentExercise.getSeries().get(currentExercise.getCurrentSeriesId()).getRestTime();
 	}
 
 	/**
@@ -68,15 +61,18 @@ public class Training {
 		long diff = getCurrentRest() * 1000 - (now - mLastPauseStart);
 		return Math.round((float)diff / 1000);
 	}
-
-	public boolean moveToNextExercise() {
-		mCurrentExerciseToDoIndex++;
-
-		return true;
+	
+	public boolean hasNextExercise(){
+		return mExercisesToDo.size() > 0;
 	}
 
-	public boolean moveToNextSeries() {
-		mCurrentSeriesIndex++;
+	public void moveToNextExercise() {
+		if(mExercisesToDo.size() > 1){
+			mExercisesToDo.remove(0);
+		}
+	}
+
+	public boolean moveToNextSeriesOrExercise() {
 
 		return true;
 	}

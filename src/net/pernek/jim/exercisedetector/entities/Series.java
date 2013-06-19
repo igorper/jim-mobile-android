@@ -1,5 +1,7 @@
 package net.pernek.jim.exercisedetector.entities;
 
+import java.util.List;
+
 public class Series {
 	
 	private int id;

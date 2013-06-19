@@ -262,7 +262,7 @@ public class SwipeControl extends HorizontalScrollView {
 	protected void onScrollChanged(int l, int t, int oldl, int oldt) {
 		super.onScrollChanged(l, t, oldl, oldt);
 
-		if (l == 0) {
+		if (l == 0 && !mSwipeDetected) {
 			// swipe right			
 			handler.post(new Runnable() {
 
@@ -277,7 +277,7 @@ public class SwipeControl extends HorizontalScrollView {
 					mSwipeDetected = true;
 				}
 			});
-		} else if (l == mScrollerStart * 2) {
+		} else if (l == mScrollerStart * 2 && !mSwipeDetected) {
 			// swipe left
 			handler.post(new Runnable() {
 
