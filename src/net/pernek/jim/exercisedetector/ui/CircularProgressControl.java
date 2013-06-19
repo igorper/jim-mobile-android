@@ -531,7 +531,27 @@ public class CircularProgressControl extends View {
 
 	private int mNumberTotal = 120;
 
-	private int mTimer = 5;
+	/**
+	 * Contains the numerical timer value.
+	 */
+	private int mTimer;
+	
+	/** Sets the timer value and invalidates the screen.
+	 * @param value
+	 */
+	public void setTimer(int value){
+		if(mTimer != value){
+			mTimer = value;
+			invalidate();
+		}
+	}
+	
+	/** Gets the timer value and invalidates the screen.
+	 * @return
+	 */
+	public int getTimer(){
+		return mTimer;
+	}
 
 	/**
 	 * Contains the current repetition number.

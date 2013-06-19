@@ -43,6 +43,16 @@ public class TrainingActivity extends Activity implements SwipeListener {
 	private final static int MENU_FETCH_17 = Menu.FIRST + 3;
 
 	private static final int ACTIVITY_REQUEST_TRAININGS_LIST = 0;
+	
+	/**
+	 * In ms.
+	 */
+	private static final int REST_PROGRESS_UPDATE_RATE = 300;
+
+	/**
+	 * Hold ID of the training plan currently selected in the training selector.
+	 */
+	private int mSelectedTrainingId = -1;
 
 	private DetectorSettings mSettings;
 
@@ -58,6 +68,12 @@ public class TrainingActivity extends Activity implements SwipeListener {
 	private int mTrainingCounter = 0;
 	private int mExerciseCounter = 0;
 	private int mRestCounter = 100;
+
+	/**
+	 * Holds the currently active training or {@code null} if no training is
+	 * active;
+	 */
+	private Training mCurrentTraining;
 
 	private Handler mUiHandler = new Handler();
 	private Runnable mRunTimerUpdate = new Runnable() {
@@ -113,8 +129,6 @@ public class TrainingActivity extends Activity implements SwipeListener {
 		}
 	}
 
-	private int stateCount = 0;
-
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 
@@ -132,8 +146,6 @@ public class TrainingActivity extends Activity implements SwipeListener {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_training);
 
-		initializeTrainingRatings();
-
 		mCircularProgress = (CircularProgressControl) findViewById(R.id.circularProgress);
 		mViewFlipper = (ViewFlipper) findViewById(R.id.viewFlipper);
 		mSwipeControl = (SwipeControl) findViewById(R.id.swipeControl);
@@ -141,30 +153,26 @@ public class TrainingActivity extends Activity implements SwipeListener {
 		mTrainingSelectorText = (TextView) findViewById(R.id.trainingSelectorText);
 
 		updateTrainingSelector(-1);
+		initializeTrainingRatings();
+		loadCurrentTraining();
 
 		mCircularProgress.setRestMaxProgress(100);
 		mCircularProgress.setRestMinProgress(0);
 
-		CircularProgressState currentState = CircularProgressState.values()[stateCount];
+		if (mCurrentTraining == null) {
+			// no training started yet, show the start button
+			mCircularProgress.setCurrentState(CircularProgressState.START);
+		} else {
+			// training was already started, show the appropriate state based
+			// on the number of exercise still to be performed
+			mCircularProgress.setCurrentState(CircularProgressState.STOP);
+		}
 
-		mCircularProgress.setCurrentState(currentState);
 		mCircularProgress.setOnLongClickListener(new OnLongClickListener() {
 
 			@Override
 			public boolean onLongClick(View v) {
-				Toast.makeText(getApplicationContext(), "test",
-						Toast.LENGTH_LONG).show();
-				mCircularProgress.setCurrentState(CircularProgressState
-						.values()[++stateCount % (CircularProgressState.values().length)]);
 
-				if (mCircularProgress.getCurrentState() == CircularProgressState.REST) {
-					mTrainingCounter = 0;
-					mExerciseCounter = 0;
-					mRestCounter = 100;
-
-					mUiHandler.removeCallbacks(mRunTimerUpdate);
-					mUiHandler.postDelayed(mRunTimerUpdate, 100);
-				}
 				return true;
 			}
 		});
@@ -173,7 +181,38 @@ public class TrainingActivity extends Activity implements SwipeListener {
 
 			@Override
 			public void onClick(View v) {
-				mViewFlipper.showNext();
+				if (mCurrentTraining == null) {
+					// start button was clicked
+					String[] projection = { TrainingPlan._ID, TrainingPlan.DATA };
+					String selection = String.format("%s == %d",
+							TrainingPlan._ID, mSelectedTrainingId);
+					Cursor trainings = managedQuery(TrainingPlan.CONTENT_URI,
+							projection, selection, null, null);
+
+					if (trainings.moveToNext()) {
+						String jsonEncodedTraining = trainings
+								.getString(trainings
+										.getColumnIndex(TrainingPlan.DATA));
+						
+						// save to persistent storage
+						mSettings.saveCurrentTrainingPlan(jsonEncodedTraining);
+						
+						// load to memory
+						mCurrentTraining = new Gson().fromJson(jsonEncodedTraining, Training.class);
+						mCurrentTraining.startTraining();
+						
+						// show the rest counter
+
+						mCircularProgress.setRestMaxProgress(mCurrentTraining.getCurrentRest());
+						mCircularProgress.setTimer(mCurrentTraining.getCurrentRest());
+						mCircularProgress.setRestMinProgress(0);
+						mCircularProgress.setRestProgressValue(mCurrentTraining.getCurrentRest());
+						mCircularProgress.setCurrentState(CircularProgressState.REST);
+						mUiHandler.postDelayed(mUpdateRestTimer, REST_PROGRESS_UPDATE_RATE);
+					}
+				} else {
+					
+				}
 
 			}
 		});
@@ -195,10 +234,39 @@ public class TrainingActivity extends Activity implements SwipeListener {
 		mBroadcastReceiver = new ResponseReceiver();
 		registerReceiver(mBroadcastReceiver, filter);
 	}
+	
+	private Runnable mUpdateRestTimer = new Runnable() {
+		
+		@Override
+		public void run() {
+			int restTime = mCurrentTraining.getCurrentRestLeft();
+			mCircularProgress.setTimer(restTime);
+			mCircularProgress.setRestProgressValue(restTime);
+			
+			mUiHandler.postDelayed(this, REST_PROGRESS_UPDATE_RATE);
+		}
+	};
+
+	/**
+	 * This method loads the currently active training to a memory object from
+	 * json string saved in application settings. If the json string is
+	 * {@code null} the memory object gets set to {@code null} as well.
+	 */
+	private void loadCurrentTraining() {
+		if (!mSettings.getCurrentTrainingPlan().equals("")) {
+			Gson gson = new Gson();
+			mCurrentTraining = gson.fromJson(
+					mSettings.getCurrentTrainingPlan(), Training.class);
+		} else {
+			mCurrentTraining = null;
+		}
+
+	}
 
 	/**
 	 * This method updates the training selector text to the first training plan
-	 * in the database or to the plan corresponding with the @param trainingPlanID.
+	 * in the database or to the plan corresponding with the @param
+	 * trainingPlanID.
 	 */
 	/**
 	 * @param trainingPlanID
@@ -211,6 +279,8 @@ public class TrainingActivity extends Activity implements SwipeListener {
 				selection, null, null);
 
 		if (trainings.moveToNext()) {
+			mSelectedTrainingId = trainings.getInt(trainings
+					.getColumnIndex(TrainingPlan._ID));
 			String trainingName = trainings.getString(trainings
 					.getColumnIndex(TrainingPlan.NAME));
 			mTrainingSelectorText.setText(trainingName);
@@ -277,7 +347,8 @@ public class TrainingActivity extends Activity implements SwipeListener {
 					&& data.hasExtra(TrainingSelectionList.INTENT_EXTRA_SELECTED_TRAINING_KEY)) {
 				final long trainingId = data
 						.getExtras()
-						.getLong(TrainingSelectionList.INTENT_EXTRA_SELECTED_TRAINING_KEY,
+						.getLong(
+								TrainingSelectionList.INTENT_EXTRA_SELECTED_TRAINING_KEY,
 								-1);
 
 				mUiHandler.post(new Runnable() {
@@ -347,31 +418,31 @@ public class TrainingActivity extends Activity implements SwipeListener {
 			break;
 		}
 		case MENU_FETCH_17: {
-//			Intent intent = new Intent(this, DataUploaderService.class);
-//			intent.putExtra(DataUploaderService.INTENT_KEY_ACTION,
-//					DataUploaderService.ACTION_GET_TRAINING);
-//			intent.putExtra(DataUploaderService.INTENT_KEY_USERNAME,
-//					mSettings.getUsername());
-//			intent.putExtra(DataUploaderService.INTENT_KEY_PASSWORD,
-//					mSettings.getPassword());
-//			intent.putExtra(DataUploaderService.INTENT_KEY_TRAINING_ID, 17);
-//			startService(intent);
-			
-			String[] projection = { TrainingPlan._ID, TrainingPlan.NAME, TrainingPlan.DATA };
-			String selection = String.format(
-					"%s == %d", TrainingPlan._ID, 17);
-			Cursor trainings = managedQuery(TrainingPlan.CONTENT_URI, projection,
-					selection, null, null);
+			// Intent intent = new Intent(this, DataUploaderService.class);
+			// intent.putExtra(DataUploaderService.INTENT_KEY_ACTION,
+			// DataUploaderService.ACTION_GET_TRAINING);
+			// intent.putExtra(DataUploaderService.INTENT_KEY_USERNAME,
+			// mSettings.getUsername());
+			// intent.putExtra(DataUploaderService.INTENT_KEY_PASSWORD,
+			// mSettings.getPassword());
+			// intent.putExtra(DataUploaderService.INTENT_KEY_TRAINING_ID, 17);
+			// startService(intent);
+
+			String[] projection = { TrainingPlan._ID, TrainingPlan.NAME,
+					TrainingPlan.DATA };
+			String selection = String.format("%s == %d", TrainingPlan._ID, 17);
+			Cursor trainings = managedQuery(TrainingPlan.CONTENT_URI,
+					projection, selection, null, null);
 
 			if (trainings.moveToNext()) {
 				String trainingData = trainings.getString(trainings
 						.getColumnIndex(TrainingPlan.DATA));
-				
+
 				Gson gson = new Gson();
 				Training t = gson.fromJson(trainingData, Training.class);
-				
+
 				List<Exercise> exerr = t.getExercises();
-				int z=0;
+				int z = 0;
 				z++;
 			}
 
@@ -399,6 +470,7 @@ public class TrainingActivity extends Activity implements SwipeListener {
 					Toast.makeText(getApplicationContext(),
 							"Wuhu! Trainings downloaded. Let's go!",
 							Toast.LENGTH_SHORT).show();
+					updateTrainingSelector(-1);
 				} else {
 					Toast.makeText(
 							getApplicationContext(),
@@ -429,12 +501,13 @@ public class TrainingActivity extends Activity implements SwipeListener {
 
 	@Override
 	public void onSwipeLeft() {
-		mCircularProgress.setCurrentRepetition(mCircularProgress.getCurrentRepetition() + 1);
+		mCircularProgress.setCurrentRepetition(mCircularProgress
+				.getCurrentRepetition() + 1);
 	}
 
 	@Override
 	public void onSwipeRight() {
 		// TODO Auto-generated method stub
-		
+
 	}
 }
