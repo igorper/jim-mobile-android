@@ -5,8 +5,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import net.pernek.jim.exercisedetector.entities.Exercise;
-import net.pernek.jim.exercisedetector.entities.Series;
 import net.pernek.jim.exercisedetector.entities.TrainingPlanOld;
 import net.pernek.jim.exercisedetector.util.Utils;
 import android.app.ExpandableListActivity;
@@ -71,13 +69,13 @@ public class TrainingManifestActivity extends ExpandableListActivity {
 
 	private List<HashMap<String, String>> createGroupList() {
 		List<HashMap<String, String>> result = new ArrayList<HashMap<String, String>>();
-		List<Exercise> exercises = mTrainingPlan.getExercises();
-		for (int i = 0; i < exercises.size(); ++i) {
-			HashMap<String, String> m = new HashMap<String, String>();
-			String exerciseName = exercises.get(i).getName();
-			m.put(EXERCISE_ITEM, exerciseName);
-			result.add(m);
-		}
+//		List<Exercise> exercises = mTrainingPlan.getExercises();
+//		for (int i = 0; i < exercises.size(); ++i) {
+//			HashMap<String, String> m = new HashMap<String, String>();
+//			String exerciseName = exercises.get(i).getName();
+//			m.put(EXERCISE_ITEM, exerciseName);
+//			result.add(m);
+//		}
 		return result;
 	}
 
@@ -85,22 +83,22 @@ public class TrainingManifestActivity extends ExpandableListActivity {
 
 		List<List<HashMap<String, String>>> result = new ArrayList<List<HashMap<String, String>>>();
 
-		List<Exercise> exercises = mTrainingPlan.getExercises();
-		for (int i = 0; i < exercises.size(); ++i) {
-			List<Series> series = exercises.get(i).getSeries();
-			List<HashMap<String, String>> secList = new ArrayList<HashMap<String, String>>();
-			for (int n = 0; n < series.size(); n++) {
-				HashMap<String, String> child = new HashMap<String, String>();
-				Series currentSeries = series.get(n);
-				String seriesString = String.format(
-						"Series #%d (rep: %d, wgh: %d)", n + 1,
-						currentSeries.getNumRepetitions(),
-						currentSeries.getWeight());
-				child.put(SERIES_ITEM, seriesString);
-				secList.add(child);
-			}
-			result.add(secList);
-		}
+//		List<Exercise> exercises = mTrainingPlan.getExercises();
+//		for (int i = 0; i < exercises.size(); ++i) {
+//			List<Series> series = exercises.get(i).getSeries();
+//			List<HashMap<String, String>> secList = new ArrayList<HashMap<String, String>>();
+//			for (int n = 0; n < series.size(); n++) {
+//				HashMap<String, String> child = new HashMap<String, String>();
+//				Series currentSeries = series.get(n);
+//				String seriesString = String.format(
+//						"Series #%d (rep: %d, wgh: %d)", n + 1,
+//						currentSeries.getNumRepetitions(),
+//						currentSeries.getWeight());
+//				child.put(SERIES_ITEM, seriesString);
+//				secList.add(child);
+//			}
+//			result.add(secList);
+//		}
 		return result;
 	}
 
@@ -118,10 +116,10 @@ public class TrainingManifestActivity extends ExpandableListActivity {
 				Toast.LENGTH_SHORT).show();
 
 		// experimentally we increase num repetitions and weight for 10
-		Series seriesClicked = mTrainingPlan.getExercises().get(groupPosition)
-				.getSeries().get(childPosition);
-		seriesClicked.setNumRepetitions(seriesClicked.getNumRepetitions() + 10);
-		seriesClicked.setWeight(seriesClicked.getWeight() + 10);
+//		Series seriesClicked = mTrainingPlan.getExercises().get(groupPosition)
+//				.getSeries().get(childPosition);
+//		seriesClicked.setNumRepetitions(seriesClicked.getNumRepetitions() + 10);
+//		seriesClicked.setWeight(seriesClicked.getWeight() + 10);
 
 		// refresh activity adapter
 		setListAdapter(createTrainingData());

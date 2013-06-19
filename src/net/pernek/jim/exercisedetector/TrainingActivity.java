@@ -1,7 +1,10 @@
 package net.pernek.jim.exercisedetector;
 
+import com.google.gson.Gson;
+
 import net.pernek.jim.exercisedetector.CircularProgressControl.CircularProgressState;
 import net.pernek.jim.exercisedetector.database.TrainingContentProvider.TrainingPlan;
+import net.pernek.jim.exercisedetector.entities.Training;
 import net.pernek.jim.exercisedetector.ui.SwipeControl;
 import net.pernek.jim.exercisedetector.ui.SwipeListener;
 import net.pernek.jim.exercisedetector.ui.TrainingSelectionList;
@@ -341,15 +344,32 @@ public class TrainingActivity extends Activity implements SwipeListener {
 			break;
 		}
 		case MENU_FETCH_17: {
-			Intent intent = new Intent(this, DataUploaderService.class);
-			intent.putExtra(DataUploaderService.INTENT_KEY_ACTION,
-					DataUploaderService.ACTION_GET_TRAINING);
-			intent.putExtra(DataUploaderService.INTENT_KEY_USERNAME,
-					mSettings.getUsername());
-			intent.putExtra(DataUploaderService.INTENT_KEY_PASSWORD,
-					mSettings.getPassword());
-			intent.putExtra(DataUploaderService.INTENT_KEY_TRAINING_ID, 17);
-			startService(intent);
+//			Intent intent = new Intent(this, DataUploaderService.class);
+//			intent.putExtra(DataUploaderService.INTENT_KEY_ACTION,
+//					DataUploaderService.ACTION_GET_TRAINING);
+//			intent.putExtra(DataUploaderService.INTENT_KEY_USERNAME,
+//					mSettings.getUsername());
+//			intent.putExtra(DataUploaderService.INTENT_KEY_PASSWORD,
+//					mSettings.getPassword());
+//			intent.putExtra(DataUploaderService.INTENT_KEY_TRAINING_ID, 17);
+//			startService(intent);
+			
+			String[] projection = { TrainingPlan._ID, TrainingPlan.NAME, TrainingPlan.DATA };
+			String selection = String.format(
+					"%s == %d", TrainingPlan._ID, 17);
+			Cursor trainings = managedQuery(TrainingPlan.CONTENT_URI, projection,
+					selection, null, null);
+
+			if (trainings.moveToNext()) {
+				String trainingData = trainings.getString(trainings
+						.getColumnIndex(TrainingPlan.DATA));
+				
+				Gson gson = new Gson();
+				Training t = gson.fromJson(trainingData, Training.class);
+				
+				int z=0;
+				z++;
+			}
 
 			break;
 		}

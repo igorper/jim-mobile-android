@@ -1,7 +1,5 @@
 package net.pernek.jim.exercisedetector;
 
-import net.pernek.jim.exercisedetector.entities.Exercise;
-import net.pernek.jim.exercisedetector.entities.Series;
 import net.pernek.jim.exercisedetector.entities.TrainingPlanOld;
 import net.pernek.jim.exercisedetector.util.Utils;
 
@@ -398,26 +396,26 @@ public class ExerciseDetectorActivity extends Activity {
 	}
 
 	private void updateTrainingInfoUI() {
-		if (mDetectorService != null) {
-			int exerciseIndex = mDetectorService.getCurrentExerciseIdx();
-			int seriesIndex = mDetectorService.getCurrentSeriesIdx();
-			TrainingPlanOld curTraining = mDetectorService
-					.getCurrentTrainingPlan();
-			Exercise curExercise = curTraining.getExercises()
-					.get(exerciseIndex);
-			Series curSeries = curExercise.getSeries().get(seriesIndex);
-
-			mTvCurrentTraining.setText(curTraining.getName());
-			mTvCurrentExercise.setText(curExercise.getName());
-			mTvCurrentSeries.setText(Integer.toString(seriesIndex));
-			mTvExpectedRepetitions.setText(Integer.toString(curSeries
-					.getNumRepetitions()));
-			mTvExpectedWeight.setText(Integer.toString(curSeries.getWeight()));
-
-			mLlTrainingPlan.setVisibility(View.VISIBLE);
-		} else {
-			mLlTrainingPlan.setVisibility(View.INVISIBLE);
-		}
+//		if (mDetectorService != null) {
+//			int exerciseIndex = mDetectorService.getCurrentExerciseIdx();
+//			int seriesIndex = mDetectorService.getCurrentSeriesIdx();
+//			TrainingPlanOld curTraining = mDetectorService
+//					.getCurrentTrainingPlan();
+//			Exercise curExercise = curTraining.getExercises()
+//					.get(exerciseIndex);
+//			Series curSeries = curExercise.getSeries().get(seriesIndex);
+//
+//			mTvCurrentTraining.setText(curTraining.getName());
+//			mTvCurrentExercise.setText(curExercise.getName());
+//			mTvCurrentSeries.setText(Integer.toString(seriesIndex));
+//			mTvExpectedRepetitions.setText(Integer.toString(curSeries
+//					.getNumRepetitions()));
+//			mTvExpectedWeight.setText(Integer.toString(curSeries.getWeight()));
+//
+//			mLlTrainingPlan.setVisibility(View.VISIBLE);
+//		} else {
+//			mLlTrainingPlan.setVisibility(View.INVISIBLE);
+//		}
 	}
 
 	@Override

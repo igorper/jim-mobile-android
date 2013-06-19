@@ -25,15 +25,15 @@ public class TrainingPlanOld {
 
 	private String mName;
 
-	private List<Exercise> mExercises;
+//	private List<Exercise> mExercises;
 
 	private TrainingPlanOld() {
 	}
 
 	public static TrainingPlanOld create(String name) {
 		TrainingPlanOld retVal = new TrainingPlanOld();
-		retVal.mName = name;
-		retVal.mExercises = new ArrayList<Exercise>();
+//		retVal.mName = name;
+//		retVal.mExercises = new ArrayList<Exercise>();
 
 		return retVal;
 	}
@@ -52,33 +52,33 @@ public class TrainingPlanOld {
 		for (int i = 0; i < jExercises.length(); i++) {
 			JSONObject jCurrentExercise = jExercises.getJSONObject(i);
 			JSONArray jSeries = jCurrentExercise.getJSONArray("series");
-			Exercise newExercise = Exercise.create(jCurrentExercise
-					.getString("name"));
-			for (int j = 0; j < jSeries.length(); j++) {
-				JSONObject jCurrentSeries = jSeries.getJSONObject(j);
-				Series newSeries = Series.create(
-						jCurrentSeries.getInt("repeat_count"),
-						jCurrentSeries.getInt("weight"));
-				newExercise.addSeries(newSeries);
-			}
-			retVal.addExercise(newExercise);
+//			Exercise newExercise = Exercise.create(jCurrentExercise
+//					.getString("name"));
+//			for (int j = 0; j < jSeries.length(); j++) {
+//				JSONObject jCurrentSeries = jSeries.getJSONObject(j);
+//				Series newSeries = Series.create(
+//						jCurrentSeries.getInt("repeat_count"),
+//						jCurrentSeries.getInt("weight"));
+//				newExercise.addSeries(newSeries);
+//			}
+//			retVal.addExercise(newExercise);
 		}
 
 		return retVal;
 	}
 
-	public void addExercise(Exercise newExercise) {
-		mExercises.add(newExercise);
-	}
+//	public void addExercise(Exercise newExercise) {
+//		mExercises.add(newExercise);
+//	}
 
 	public String getName() {
 		return mName;
 	}
 
-	public List<Exercise> getExercises() {
-		// TODO make immutable
-		return mExercises;
-	}
+//	public List<Exercise> getExercises() {
+//		// TODO make immutable
+//		return mExercises;
+//	}
 
 	public boolean saveToTempFile(String path) {
 		// first if file already exists remove it
@@ -89,22 +89,22 @@ public class TrainingPlanOld {
 		try {
 			jTraining.put("name", mName);
 			JSONArray jaExercies = new JSONArray();
-			for (int i = 0; i < mExercises.size(); i++) {
-				Exercise curExercise = mExercises.get(i);
-				JSONObject jExercise = new JSONObject();
-				jExercise.put("name", curExercise.getName());
-				JSONArray jaSeries = new JSONArray();
-				for (int j = 0; j < curExercise.getSeries().size(); j++) {
-					Series curSeries = curExercise.getSeries().get(j);
-					JSONObject jSeries = new JSONObject();
-					jSeries.put("weight", curSeries.getWeight());
-					jSeries.put("repeat_count", curSeries.getNumRepetitions());
-					jaSeries.put(jSeries);
-				}
-				jExercise.put("series", jaSeries);
-				jaExercies.put(jExercise);
-
-			}
+//			for (int i = 0; i < mExercises.size(); i++) {
+//				Exercise curExercise = mExercises.get(i);
+//				JSONObject jExercise = new JSONObject();
+//				jExercise.put("name", curExercise.getName());
+//				JSONArray jaSeries = new JSONArray();
+//				for (int j = 0; j < curExercise.getSeries().size(); j++) {
+//					Series curSeries = curExercise.getSeries().get(j);
+//					JSONObject jSeries = new JSONObject();
+//					jSeries.put("weight", curSeries.getWeight());
+//					jSeries.put("repeat_count", curSeries.getNumRepetitions());
+//					jaSeries.put(jSeries);
+//				}
+//				jExercise.put("series", jaSeries);
+//				jaExercies.put(jExercise);
+//
+//			}
 			jTraining.put("exercises", jaExercies);
 
 		} catch (JSONException e) {

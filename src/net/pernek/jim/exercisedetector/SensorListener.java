@@ -449,21 +449,21 @@ public class SensorListener implements SensorEventListener {
 
 	// returns true if moving to the next activity is possible otherwise false
 	public boolean moveToNextActivity() {
-		if (mCurrentSeriesIdx + 1 < mCurrentTrainingPlan.getExercises()
-				.get(mCurrentExerciseIdx).getSeries().size()) {
-			mCurrentSeriesIdx++;
-		} else {
-			mCurrentSeriesIdx = 0;
-
-			// we have move to the next exercise
-			if (mCurrentExerciseIdx + 1 < mCurrentTrainingPlan.getExercises()
-					.size()) {
-				mCurrentExerciseIdx++;
-			} else {
-				// last exercise done
-				return false;
-			}
-		}
+//		if (mCurrentSeriesIdx + 1 < mCurrentTrainingPlan.getExercises()
+//				.get(mCurrentExerciseIdx).getSeries().size()) {
+//			mCurrentSeriesIdx++;
+//		} else {
+//			mCurrentSeriesIdx = 0;
+//
+//			// we have move to the next exercise
+//			if (mCurrentExerciseIdx + 1 < mCurrentTrainingPlan.getExercises()
+//					.size()) {
+//				mCurrentExerciseIdx++;
+//			} else {
+//				// last exercise done
+//				return false;
+//			}
+//		}
 
 		return true;
 	}
