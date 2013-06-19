@@ -1,9 +1,12 @@
 package net.pernek.jim.exercisedetector;
 
+import java.util.List;
+
 import com.google.gson.Gson;
 
 import net.pernek.jim.exercisedetector.CircularProgressControl.CircularProgressState;
 import net.pernek.jim.exercisedetector.database.TrainingContentProvider.TrainingPlan;
+import net.pernek.jim.exercisedetector.entities.Exercise;
 import net.pernek.jim.exercisedetector.entities.Training;
 import net.pernek.jim.exercisedetector.ui.SwipeControl;
 import net.pernek.jim.exercisedetector.ui.SwipeListener;
@@ -367,6 +370,7 @@ public class TrainingActivity extends Activity implements SwipeListener {
 				Gson gson = new Gson();
 				Training t = gson.fromJson(trainingData, Training.class);
 				
+				List<Exercise> exerr = t.getExercises();
 				int z=0;
 				z++;
 			}
