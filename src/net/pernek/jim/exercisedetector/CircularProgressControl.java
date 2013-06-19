@@ -184,12 +184,12 @@ public class CircularProgressControl extends View {
 	/**
 	 * Current repetition text size in dp.
 	 */
-	private static final int CURRENT_REPETITION_TEXT_SIZE_IN_DIP = 150;
+	private static final int CURRENT_REPETITION_TEXT_SIZE_IN_DIP = 130;
 
 	/**
 	 * Total repetitions text size in dp.
 	 */
-	private static final int TOTAL_REPETITIONS_TEXT_SIZE_IN_DIP = 70;
+	private static final int TOTAL_REPETITIONS_TEXT_SIZE_IN_DIP = 60;
 
 	/**
 	 * Current series text size in dp.
@@ -533,15 +533,116 @@ public class CircularProgressControl extends View {
 
 	private int mTimer = 5;
 
+	/**
+	 * Contains the current repetition number.
+	 */
 	private int mCurrentRepetition = 9;
+	
+	/** Sets the current repetition number and invalidates the screen.
+	 * @param value
+	 */
+	public void setCurrentRepetition(int value){
+		if(mCurrentRepetition != value){
+			mCurrentRepetition = value;
+			invalidate();
+		}
+	}
+	
+	/** Gets the current repetition number.
+	 * @return
+	 */
+	public int getCurrentRepetition(){
+		return mCurrentRepetition;
+	}
 
+	/**
+	 * Contains the total repetitions number.
+	 */
 	private int mTotalRepetitions = 10;
+	
+	/** Sets the total repetitions number and invalidates the screen.
+	 * @param value
+	 */
+	public void setTotalRepetitions(int value){
+		if(mTotalRepetitions != value){
+			mTotalRepetitions = value;
+			invalidate();
+		}
+	}
+	
+	/** Gets the total repetitions number.
+	 * @return
+	 */
+	public int getTotalRepetitions(){
+		return mTotalRepetitions;
+	}
 
+	/**
+	 * Contains the current series number.
+	 */
 	private int mCurrentSeries = 1;
+	
+	/** Sets the current series number and invalidates the screen.
+	 * @param value
+	 */
+	public void setCurrentSeries(int value){
+		if(mCurrentSeries != value){
+			mCurrentSeries = value;
+			invalidate();
+		}
+	}
+	
+	/** Gets the current series number.
+	 * @return
+	 */
+	public int getCurrentSeries(){
+		return mCurrentSeries;
+	}
 
+	/**
+	 * Contains the total series number.
+	 */
 	private int mTotalSeries = 3;
 	
+	/** Sets the total series number and invalidates the screen.
+	 * @param value
+	 */
+	public void setTotalSeries(int value){
+		if(mTotalSeries != value){
+			mTotalSeries = value;
+			invalidate();
+		}
+	}
+	
+	/**Gets the total series number.
+	 * @return
+	 */
+	public int getTotalSeries(){
+		return mTotalSeries;
+	}
+	
+	
+	/**
+	 * Contains the timer message.
+	 */
 	private String mTimerMessage = "Get ready!";
+	
+	/** Sets the timer message and invalidates the screen.
+	 * @param value
+	 */
+	public void setTimerMessage(String value){
+		if(!mTimerMessage.equals(value)){
+			mTimerMessage = value;
+			invalidate();
+		}
+	}
+	
+	/** Gets the current timer message and invalidates the screen.
+	 * @return
+	 */
+	public String getTimerMessage(){
+		return mTimerMessage;
+	}
 
 	/**
 	 * Calculates the arc length based on the input values.
@@ -568,7 +669,7 @@ public class CircularProgressControl extends View {
 	public static boolean isValueCombinationLegal(int value, int max, int min) {
 		return value >= min && value <= max;
 	}
-
+	
 	/**
 	 * Returns if the circular button is currently pressed.
 	 * 
@@ -816,7 +917,7 @@ public class CircularProgressControl extends View {
 	 * Initializes all drawing objects.
 	 */
 	private final void init() {
-		// load typefaces
+		// load typefaces 
 		mCooperBlackTypeface = Typeface.createFromAsset(getContext()
 				.getAssets(), "fonts/Cooper Black.ttf");
 		mHaginCapsThinTypeface = Typeface.createFromAsset(getContext()
@@ -982,7 +1083,7 @@ public class CircularProgressControl extends View {
 
 		// precalculate all variables used for drawing
 		mCenterX = mCenterY = width / 2;
-		mRepetitionCounterTextY = width / 3 * 2;
+		mRepetitionCounterTextY = width / 12 * 7;
 		mTimerMessageTextY = width / 4 * 3;
 		mTrainingCircleRadius = width / 2;
 		mExerciseCircleRadius = mTrainingCircleRadius - mProgThicknessInPx;

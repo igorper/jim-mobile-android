@@ -3,6 +3,7 @@ package net.pernek.jim.exercisedetector;
 import net.pernek.jim.exercisedetector.CircularProgressControl.CircularProgressState;
 import net.pernek.jim.exercisedetector.database.TrainingContentProvider.TrainingPlan;
 import net.pernek.jim.exercisedetector.ui.SwipeControl;
+import net.pernek.jim.exercisedetector.ui.SwipeListener;
 import net.pernek.jim.exercisedetector.ui.TrainingSelectionList;
 import net.pernek.jim.exercisedetector.util.Utils;
 import android.app.Activity;
@@ -26,7 +27,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ViewFlipper;
 
-public class TrainingActivity extends Activity {
+public class TrainingActivity extends Activity implements SwipeListener {
 
 	private static final String TAG = Utils.getApplicationTag();
 
@@ -170,6 +171,8 @@ public class TrainingActivity extends Activity {
 
 			}
 		});
+		
+		mSwipeControl.addSwipeListener(this);
 
 		// TODO: We could create a class called JimActivity which could handle
 		// all the
@@ -211,6 +214,7 @@ public class TrainingActivity extends Activity {
 	@Override
 	protected void onDestroy() {
 		unregisterReceiver(mBroadcastReceiver);
+		mSwipeControl.removeSwipeListener(this);
 
 		super.onDestroy();
 	}
@@ -397,5 +401,16 @@ public class TrainingActivity extends Activity {
 				mProgressDialog.setProgress(progress);
 			}
 		}
+	}
+
+	@Override
+	public void onSwipeLeft() {
+		mCircularProgress.setCurrentRepetition(mCircularProgress.getCurrentRepetition() + 1);
+	}
+
+	@Override
+	public void onSwipeRight() {
+		// TODO Auto-generated method stub
+		
 	}
 }
