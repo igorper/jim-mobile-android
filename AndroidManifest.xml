@@ -36,7 +36,7 @@
             android:name="net.pernek.jim.exercisedetector.TrainingManifestActivity"
             android:label="Expandable LV" >
         </activity>
-        <activity android:name="net.pernek.jim.exercisedetector.ui.TrainingSelectionList" />
+        <activity android:name="net.pernek.jim.exercisedetector.TrainingSelectionList" />
         <activity
             android:name="net.pernek.jim.exercisedetector.LoginActivity"
             android:excludeFromRecents="true"

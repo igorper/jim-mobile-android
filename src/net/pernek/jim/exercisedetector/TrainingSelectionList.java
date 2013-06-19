@@ -1,4 +1,4 @@
-package net.pernek.jim.exercisedetector.ui;
+package net.pernek.jim.exercisedetector;
 
 import net.pernek.jim.exercisedetector.R;
 import net.pernek.jim.exercisedetector.database.TrainingContentProvider.TrainingPlan;

@@ -4,13 +4,13 @@ import java.util.List;
 
 import com.google.gson.Gson;
 
-import net.pernek.jim.exercisedetector.CircularProgressControl.CircularProgressState;
 import net.pernek.jim.exercisedetector.database.TrainingContentProvider.TrainingPlan;
 import net.pernek.jim.exercisedetector.entities.Exercise;
 import net.pernek.jim.exercisedetector.entities.Training;
+import net.pernek.jim.exercisedetector.ui.CircularProgressControl;
 import net.pernek.jim.exercisedetector.ui.SwipeControl;
 import net.pernek.jim.exercisedetector.ui.SwipeListener;
-import net.pernek.jim.exercisedetector.ui.TrainingSelectionList;
+import net.pernek.jim.exercisedetector.ui.CircularProgressControl.CircularProgressState;
 import net.pernek.jim.exercisedetector.util.Utils;
 import android.app.Activity;
 import android.app.ProgressDialog;

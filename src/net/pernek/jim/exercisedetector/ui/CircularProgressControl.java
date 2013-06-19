@@ -1,4 +1,4 @@
-package net.pernek.jim.exercisedetector;
+package net.pernek.jim.exercisedetector.ui;
 
 import net.pernek.jim.exercisedetector.util.Utils;
 import android.content.Context;

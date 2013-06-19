@@ -1,8 +1,8 @@
 package net.pernek.jim.exercisedetector.test;
 
 import junit.framework.TestCase;
-import net.pernek.jim.exercisedetector.CircularProgressControl;
 import net.pernek.jim.exercisedetector.alg.CircularArrayInt;
+import net.pernek.jim.exercisedetector.ui.CircularProgressControl;
 
 public class CircularProgressControlTest extends TestCase {
 

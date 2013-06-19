@@ -16,7 +16,7 @@
             android:layout_height="match_parent"
             android:orientation="vertical" >
 
-            <net.pernek.jim.exercisedetector.CircularProgressControl
+            <net.pernek.jim.exercisedetector.ui.CircularProgressControl
                 android:id="@+id/circularProgress"
                 android:layout_width="match_parent"
                 android:layout_height="100dp"

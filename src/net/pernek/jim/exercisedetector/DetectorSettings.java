@@ -16,7 +16,7 @@ public class DetectorSettings {
 	private static final String KEY_CURRENT_SERIES = "current_series";
 	private static final String KEY_AUTH_USERNAME = "auth_username";
 	private static final String KEY_AUTH_PASS = "auth_pass";
-
+	
 	private SharedPreferences mPreferences;
 
 	private DetectorSettings() {
