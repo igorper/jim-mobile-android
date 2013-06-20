@@ -1,5 +1,6 @@
 package net.pernek.jim.exercisedetector;
 
+import java.util.Currency;
 import java.util.List;
 
 import com.google.gson.Gson;
@@ -152,13 +153,31 @@ public class TrainingActivity extends Activity implements SwipeListener {
 						// save to persistent storage
 						mSettings.saveCurrentTrainingPlan(mGsonInstance
 								.toJson(mCurrentTraining));
+						// mUiHandler.postDelayed(mUpdateRestTimer,
+						// REST_PROGRESS_UPDATE_RATE);
 					}
-				} else if(mCurrentTraining.hasNextExercise()){
-					// start exercise
-				} else {
+				} else if(mCurrentTraining.getCurrentExercise() == null){
 					mCurrentTraining = null;
 					mSettings.saveCurrentTrainingPlan("");
-				}
+				}else if (mCurrentTraining.isCurrentRest()) {
+					mCurrentTraining.startExercise();
+				} else {
+					mCurrentTraining.endExercise();
+
+					// advance to the next activity
+					mCurrentTraining.nextActivity();
+				} 
+				// else if (mCurrentTraining.hasMoreSeries()
+				// || mCurrentTraining.hasMoreExercises()) {
+				//
+				// mCurrentTraining.endExercise();
+				//
+				// // advance to the next activity
+				// mCurrentTraining.nextActivity();
+				// } else {
+				// mCurrentTraining = null;
+				// mSettings.saveCurrentTrainingPlan("");
+				// }
 				updateScreen();
 			}
 		});
@@ -185,9 +204,14 @@ public class TrainingActivity extends Activity implements SwipeListener {
 
 		@Override
 		public void run() {
-			int restTime = mCurrentTraining.getCurrentRestLeft();
-			mCircularProgress.setTimer(Math.abs(restTime));
-			mCircularProgress.setRestProgressValue(restTime);
+			int currentRest = mCurrentTraining.getCurrentExercise()
+					.getCurrentSeries().getRestTime();
+			int currentRestLeft = mCurrentTraining.calculateCurrentRestLeft();
+			mCircularProgress.setTimer(Math.abs(currentRestLeft));
+			mCircularProgress.setRestProgressValue(currentRestLeft);
+
+			Log.d(TAG, String.format("Update screen: %d, %d", currentRest,
+					currentRestLeft));
 
 			mUiHandler.postDelayed(this, REST_PROGRESS_UPDATE_RATE);
 		}
@@ -409,10 +433,6 @@ public class TrainingActivity extends Activity implements SwipeListener {
 
 				Gson gson = new Gson();
 				Training t = gson.fromJson(trainingData, Training.class);
-
-				List<Exercise> exerr = t.getExercises();
-				int z = 0;
-				z++;
 			}
 
 			break;
@@ -470,10 +490,10 @@ public class TrainingActivity extends Activity implements SwipeListener {
 
 	@Override
 	public void onSwipeLeft() {
-		if (mCurrentTraining.hasNextExercise()) {
-			mCurrentTraining.moveToNextExercise();
-			updateScreen();
-		}
+		// if (mCurrentTraining.canSkipExercise()) {
+		// mCurrentTraining.skipExercise();
+		// updateScreen();
+		// }
 	}
 
 	private void updateScreen() {
@@ -481,23 +501,44 @@ public class TrainingActivity extends Activity implements SwipeListener {
 		if (mCurrentTraining == null) {
 			// no training started yet, show the start button
 			mCircularProgress.setCurrentState(CircularProgressState.START);
-		} else if (mCurrentTraining.hasNextExercise()) {
-			mCircularProgress.setRestMaxProgress(mCurrentTraining.getCurrentRest());
-			mCircularProgress.setTimer(mCurrentTraining.getCurrentRestLeft());
-			mCircularProgress.setRestMinProgress(0);
-			mCircularProgress.setRestProgressValue(mCurrentTraining
-					.getCurrentRestLeft());
-			mCircularProgress.setCurrentState(CircularProgressState.REST);
-			mUiHandler.postDelayed(mUpdateRestTimer, REST_PROGRESS_UPDATE_RATE);
-			mSwipeControl.setCenterText("Next:",
-					mCurrentTraining.getCurrentExerciseName());
-		} else {
-			// stop the rest loop
-			mUiHandler.removeCallbacks(mUpdateRestTimer);
-
+		} else if (mCurrentTraining.getCurrentExercise() == null) {
 			// show done button
-			mCircularProgress.setCurrentState(CircularProgressState.STOP);
+						mCircularProgress.setCurrentState(CircularProgressState.STOP);
+		} else if (mCurrentTraining.isCurrentRest()) {
+			int currentRest = mCurrentTraining.getCurrentExercise().getCurrentSeries().getRestTime();
+			int currentRestLeft = mCurrentTraining.calculateCurrentRestLeft();
+			mCircularProgress.setRestMaxProgress(currentRest);
+			mCircularProgress.setTimer(Math.abs(currentRestLeft));
+			mCircularProgress.setRestMinProgress(0);
+			mCircularProgress.setRestProgressValue(currentRestLeft);
+			mCircularProgress.setCurrentState(CircularProgressState.REST);
+			mSwipeControl.setCenterText("Next: ",
+					mCurrentTraining.getCurrentExercise().getExerciseType().getName());
+			Log.d(TAG, String.format("Update screen: %d, %d", currentRest,
+					currentRestLeft));
+		}  else {
+			mCircularProgress
+			 .setCurrentState(CircularProgressState.EXERCISE);
+			 mSwipeControl.setCenterText("", String.format("%s %d",
+			 mCurrentTraining.getCurrentExercise().getExerciseType().getName(),
+			 mCurrentTraining.getCurrentExercise().getCurrentSeries().getWeight()));
 		}
+
+		// else if (mCurrentTraining.hasMoreSeries()
+		// || mCurrentTraining.hasMoreExercises()) {
+		// if (mCurrentTraining.isCurrentRest()) {
+		// 
+		// } else {
+		// mCircularProgress
+		// .setCurrentState(CircularProgressState.EXERCISE);
+		// mSwipeControl.setCenterText("", String.format("%s %d",
+		// mCurrentTraining.getCurrentExerciseName(),
+		// mCurrentTraining.getCurrentExerciseWeight()));
+		// }
+		// } else {
+		// // show done button
+		// 
+		// }
 	}
 
 	@Override

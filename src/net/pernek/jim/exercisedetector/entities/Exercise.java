@@ -40,7 +40,20 @@ public class Exercise {
 		}
 	}
 	
-	public int getCurrentSeriesId(){
-		return mSeriesToDo.size() == 0 ? -1 : mSeriesToDo.get(0);
+	public Series getCurrentSeries() {
+		return mSeriesToDo.size() == 0 ? null : series.get(mSeriesToDo.get(0));
+	}
+	
+	/** Returns {@value true } if this exercise contains some more series.
+	 * @return
+	 */
+	public boolean moveToNextSeries(){
+		if(mSeriesToDo.size() == 0){
+			return false;
+		}
+		
+		mSeriesToDo.remove(0);
+		
+		return mSeriesToDo.size() > 0;
 	}
 }

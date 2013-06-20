@@ -3,6 +3,7 @@ package net.pernek.jim.exercisedetector.entities;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
+import java.util.Currency;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
@@ -27,12 +28,21 @@ public class Training {
 	 */
 	private List<Integer> mExercisesToDo;
 	private long mLastPauseStart;
+	/**
+	 * This one is -1} if exercise is currently not started.
+	 */
+	private long mExerciseStart;
 	private Date mTrainingStarted;
+	private boolean mIsCurrentRest;
+
+	private List<SeriesExecution> mSeriesExecutions;
 
 	public void startTraining() {
 		mExercisesToDo = new ArrayList<Integer>();
+		mSeriesExecutions = new ArrayList<SeriesExecution>();
 		mTrainingStarted = Calendar.getInstance().getTime();
 		mLastPauseStart = System.currentTimeMillis();
+		mExerciseStart = -1;
 
 		for (int exerciseIndex = 0; exerciseIndex < exercises.size(); exerciseIndex++) {
 			mExercisesToDo.add(exerciseIndex);
@@ -40,15 +50,13 @@ public class Training {
 		}
 	}
 
-	/**
-	 * Returns the rest time for the current series.
-	 * 
-	 * @return
-	 */
-	public int getCurrentRest() {
-		Exercise currentExercise = exercises.get(mExercisesToDo.get(0));
-		return currentExercise.getSeries()
-				.get(currentExercise.getCurrentSeriesId()).getRestTime();
+	public boolean isCurrentRest() {
+		return mExerciseStart == -1;
+	}
+
+	public Exercise getCurrentExercise() {
+		return mExercisesToDo.size() == 0 ? null : exercises.get(mExercisesToDo
+				.get(0));
 	}
 
 	/**
@@ -58,56 +66,54 @@ public class Training {
 	 * 
 	 * @return
 	 */
-	public int getCurrentRestLeft() {
+	public int calculateCurrentRestLeft() {
 		long now = System.currentTimeMillis();
-		long diff = getCurrentRest() * 1000 - (now - mLastPauseStart);
+		long diff = getCurrentExercise().getCurrentSeries().getRestTime()
+				* 1000 - (now - mLastPauseStart);
 		return Math.round((float) diff / 1000);
 	}
 
+	public void startExercise() {
+		mExerciseStart = System.currentTimeMillis();
+	}
+
 	/**
-	 * At least two more exercises have to be available - the current one and
-	 * the next one.
+	 * Saves data and tries to advance to the next series or exercise.
 	 * 
 	 * @return
 	 */
-	public boolean hasNextExercise() {
-		return mExercisesToDo.size() > 1;
+	public void endExercise() {
+		long exerciseEnd = System.currentTimeMillis();
+		Exercise currentExercise = exercises.get(mExercisesToDo.get(0));
+		Series currentSeries = currentExercise.getCurrentSeries();
+
+		// create series execution
+		SeriesExecution currentSeriesExecution = new SeriesExecution();
+		currentSeriesExecution.rest_time = calculateDurationInSeconds(
+				mLastPauseStart, mExerciseStart);
+		currentSeriesExecution.duration = calculateDurationInSeconds(
+				mExerciseStart, exerciseEnd);
+		currentSeriesExecution.exercise_type_id = currentExercise
+				.getExerciseType().getId();
+		currentSeriesExecution.num_repetitions = currentSeries
+				.getNumberRepetitions();
+		currentSeriesExecution.weight = currentSeries.getWeight();
+
+		// start new rest
+		mLastPauseStart = System.currentTimeMillis();
+		mExerciseStart = -1;
 	}
 
-	/** Returns {@value true} if move forward was successful, othervise {@value false}.
-	 * @return
-	 */
-	public boolean moveToNextExercise() {
-		if (mExercisesToDo.size() > 1) {
+	private static int calculateDurationInSeconds(long startTimeInMs,
+			long endTimeInMs) {
+		return Math.round((float) (endTimeInMs - startTimeInMs) / 1000);
+	}
+
+	public void nextActivity() {
+		Exercise current = getCurrentExercise();
+		if (current != null && !current.moveToNextSeries()) {
 			mExercisesToDo.remove(0);
-			return true;
 		}
-		
-		return false;
-	}
 
-	/** Should only be called if there are still some exercises to do. Throws an OutOfBounds
-	 * exception if attemping to get exercise name if there are no exercises left.
-	 * @return
-	 */
-	public String getCurrentExerciseName() {
-		return exercises.get(mExercisesToDo.get(0)).getExerciseType().getName();
-	}
-
-	public boolean moveToNextSeriesOrExercise() {
-
-		return true;
-	}
-
-	public int getId() {
-		return id;
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public List<Exercise> getExercises() {
-		return Collections.unmodifiableList(exercises);
 	}
 }
