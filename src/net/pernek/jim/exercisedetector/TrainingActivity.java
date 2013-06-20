@@ -153,8 +153,11 @@ public class TrainingActivity extends Activity implements SwipeListener {
 						mSettings.saveCurrentTrainingPlan(mGsonInstance
 								.toJson(mCurrentTraining));
 					}
-				} else {
+				} else if(mCurrentTraining.hasNextExercise()){
 					// start exercise
+				} else {
+					mCurrentTraining = null;
+					mSettings.saveCurrentTrainingPlan("");
 				}
 				updateScreen();
 			}
@@ -480,10 +483,10 @@ public class TrainingActivity extends Activity implements SwipeListener {
 			mCircularProgress.setCurrentState(CircularProgressState.START);
 		} else if (mCurrentTraining.hasNextExercise()) {
 			mCircularProgress.setRestMaxProgress(mCurrentTraining.getCurrentRest());
-			mCircularProgress.setTimer(mCurrentTraining.getCurrentRest());
+			mCircularProgress.setTimer(mCurrentTraining.getCurrentRestLeft());
 			mCircularProgress.setRestMinProgress(0);
 			mCircularProgress.setRestProgressValue(mCurrentTraining
-					.getCurrentRest());
+					.getCurrentRestLeft());
 			mCircularProgress.setCurrentState(CircularProgressState.REST);
 			mUiHandler.postDelayed(mUpdateRestTimer, REST_PROGRESS_UPDATE_RATE);
 			mSwipeControl.setCenterText("Next:",
