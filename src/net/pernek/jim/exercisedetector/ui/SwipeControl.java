@@ -12,6 +12,7 @@ import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.os.Handler;
+import android.os.SystemClock;
 import android.text.Html;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
@@ -35,6 +36,9 @@ import android.widget.Toast;
  */
 public class SwipeControl extends HorizontalScrollView {
 	private static final String TAG = Utils.getApplicationTag();
+	
+	private static final String SWIPE_LEFT = "swipe_left";
+	private static final String SWIPE_RIGHT = "swipe_right";
 
 	private Handler handler;
 
@@ -262,9 +266,9 @@ public class SwipeControl extends HorizontalScrollView {
 	protected void onScrollChanged(int l, int t, int oldl, int oldt) {
 		super.onScrollChanged(l, t, oldl, oldt);
 
-		if (l == 0 && !mSwipeDetected) {
-			// swipe right			
-			handler.post(new Runnable() {
+		if (l == 0 && !handler.hasMessages(0, SWIPE_RIGHT) && !mSwipeDetected) {
+			// swipe right
+			handler.postAtTime(new Runnable() {
 
 				@Override
 				public void run() {
@@ -276,10 +280,10 @@ public class SwipeControl extends HorizontalScrollView {
 							.parseColor(mSwipeRightBackgroundColor));
 					mSwipeDetected = true;
 				}
-			});
-		} else if (l == mScrollerStart * 2 && !mSwipeDetected) {
+			}, SWIPE_RIGHT, SystemClock.uptimeMillis());
+		} else if (l == mScrollerStart * 2 && !handler.hasMessages(0, SWIPE_LEFT) && !mSwipeDetected) {
 			// swipe left
-			handler.post(new Runnable() {
+			handler.postAtTime(new Runnable() {
 
 				@Override
 				public void run() {
@@ -292,7 +296,7 @@ public class SwipeControl extends HorizontalScrollView {
 							.parseColor(mSwipeLeftBackgroundColor));
 					mSwipeDetected = true;
 				}
-			});
+			}, SWIPE_LEFT, SystemClock.uptimeMillis());
 		}
 
 		Log.d(TAG,

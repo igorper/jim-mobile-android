@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 
 import android.text.format.Time;
@@ -46,7 +47,8 @@ public class Training {
 	 */
 	public int getCurrentRest() {
 		Exercise currentExercise = exercises.get(mExercisesToDo.get(0));
-		return currentExercise.getSeries().get(currentExercise.getCurrentSeriesId()).getRestTime();
+		return currentExercise.getSeries()
+				.get(currentExercise.getCurrentSeriesId()).getRestTime();
 	}
 
 	/**
@@ -59,17 +61,37 @@ public class Training {
 	public int getCurrentRestLeft() {
 		long now = System.currentTimeMillis();
 		long diff = getCurrentRest() * 1000 - (now - mLastPauseStart);
-		return Math.round((float)diff / 1000);
-	}
-	
-	public boolean hasNextExercise(){
-		return mExercisesToDo.size() > 0;
+		return Math.round((float) diff / 1000);
 	}
 
-	public void moveToNextExercise() {
-		if(mExercisesToDo.size() > 1){
+	/**
+	 * At least two more exercises have to be available - the current one and
+	 * the next one.
+	 * 
+	 * @return
+	 */
+	public boolean hasNextExercise() {
+		return mExercisesToDo.size() > 1;
+	}
+
+	/** Returns {@value true} if move forward was successful, othervise {@value false}.
+	 * @return
+	 */
+	public boolean moveToNextExercise() {
+		if (mExercisesToDo.size() > 1) {
 			mExercisesToDo.remove(0);
+			return true;
 		}
+		
+		return false;
+	}
+
+	/** Should only be called if there are still some exercises to do. Throws an OutOfBounds
+	 * exception if attemping to get exercise name if there are no exercises left.
+	 * @return
+	 */
+	public String getCurrentExerciseName() {
+		return exercises.get(mExercisesToDo.get(0)).getExerciseType().getName();
 	}
 
 	public boolean moveToNextSeriesOrExercise() {

@@ -43,7 +43,7 @@ public class TrainingActivity extends Activity implements SwipeListener {
 	private final static int MENU_FETCH_17 = Menu.FIRST + 3;
 
 	private static final int ACTIVITY_REQUEST_TRAININGS_LIST = 0;
-	
+
 	/**
 	 * In ms.
 	 */
@@ -65,10 +65,6 @@ public class TrainingActivity extends Activity implements SwipeListener {
 	private ProgressDialog mProgressDialog;
 	private TextView mTrainingSelectorText;
 
-	private int mTrainingCounter = 0;
-	private int mExerciseCounter = 0;
-	private int mRestCounter = 100;
-	
 	private Gson mGsonInstance = new Gson();
 
 	/**
@@ -103,23 +99,6 @@ public class TrainingActivity extends Activity implements SwipeListener {
 	 */
 	private ImageView[] mTrainingRatingImages;
 
-	/**
-	 * Initializes a list of training rating ImageViews references.
-	 * Additionally, sets the non-selected images.
-	 */
-	private void initializeTrainingRatings() {
-		mTrainingRatingImages = new ImageView[4];
-		mTrainingRatingImages[0] = (ImageView) findViewById(R.id.trainingRating1);
-		mTrainingRatingImages[1] = (ImageView) findViewById(R.id.trainingRating2);
-		mTrainingRatingImages[2] = (ImageView) findViewById(R.id.trainingRating3);
-		mTrainingRatingImages[3] = (ImageView) findViewById(R.id.trainingRating4);
-
-		for (int i = 0; i < mTrainingRatingImages.length; i++) {
-			mTrainingRatingImages[i]
-					.setImageResource(TRAINING_RATING_IMAGES[i]);
-		}
-	}
-
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 
@@ -146,38 +125,12 @@ public class TrainingActivity extends Activity implements SwipeListener {
 		updateTrainingSelector(-1);
 		initializeTrainingRatings();
 		loadCurrentTraining();
-
-		mCircularProgress.setRestMaxProgress(100);
-		mCircularProgress.setRestMinProgress(0);
-
-		setTrainingSelectorVisible(mCurrentTraining == null);
-		if (mCurrentTraining == null) {
-			// no training started yet, show the start button
-			mCircularProgress.setCurrentState(CircularProgressState.START);
-		} else if (mCurrentTraining.hasNextExercise()){
-			// training was already started, show the appropriate state based
-			// on the number of exercise still to be performed
-			showRestView();
-		} else {
-			mCircularProgress.setCurrentState(CircularProgressState.STOP);
-		}
-		
-
-
-		mCircularProgress.setOnLongClickListener(new OnLongClickListener() {
-
-			@Override
-			public boolean onLongClick(View v) {
-
-				return true;
-			}
-		});
+		updateScreen();
 
 		mCircularProgress.setOnClickListener(new View.OnClickListener() {
 
 			@Override
 			public void onClick(View v) {
-				setTrainingSelectorVisible(mCurrentTraining == null);
 				if (mCurrentTraining == null) {
 					// start button was clicked
 					String[] projection = { TrainingPlan._ID, TrainingPlan.DATA };
@@ -190,24 +143,23 @@ public class TrainingActivity extends Activity implements SwipeListener {
 						String jsonEncodedTraining = trainings
 								.getString(trainings
 										.getColumnIndex(TrainingPlan.DATA));
-												
+
 						// load to memory
-						mCurrentTraining = mGsonInstance.fromJson(jsonEncodedTraining, Training.class);
+						mCurrentTraining = mGsonInstance.fromJson(
+								jsonEncodedTraining, Training.class);
 						mCurrentTraining.startTraining();
-						
+
 						// save to persistent storage
-						mSettings.saveCurrentTrainingPlan(mGsonInstance.toJson(mCurrentTraining));
-						
-						// show the rest counter
-						showRestView();
+						mSettings.saveCurrentTrainingPlan(mGsonInstance
+								.toJson(mCurrentTraining));
 					}
 				} else {
-					mUiHandler.removeCallbacks(mUpdateRestTimer);
+					// start exercise
 				}
-
+				updateScreen();
 			}
 		});
-		
+
 		mSwipeControl.addSwipeListener(this);
 
 		// TODO: We could create a class called JimActivity which could handle
@@ -225,21 +177,39 @@ public class TrainingActivity extends Activity implements SwipeListener {
 		mBroadcastReceiver = new ResponseReceiver();
 		registerReceiver(mBroadcastReceiver, filter);
 	}
-	
+
 	private Runnable mUpdateRestTimer = new Runnable() {
-		
+
 		@Override
 		public void run() {
 			int restTime = mCurrentTraining.getCurrentRestLeft();
 			mCircularProgress.setTimer(Math.abs(restTime));
 			mCircularProgress.setRestProgressValue(restTime);
-			
+
 			mUiHandler.postDelayed(this, REST_PROGRESS_UPDATE_RATE);
 		}
 	};
-	
-	private void setTrainingSelectorVisible(boolean visible){
-		mTrainingSelector.setVisibility(visible ? View.VISIBLE : View.INVISIBLE);
+
+	/**
+	 * Initializes a list of training rating ImageViews references.
+	 * Additionally, sets the non-selected images.
+	 */
+	private void initializeTrainingRatings() {
+		mTrainingRatingImages = new ImageView[4];
+		mTrainingRatingImages[0] = (ImageView) findViewById(R.id.trainingRating1);
+		mTrainingRatingImages[1] = (ImageView) findViewById(R.id.trainingRating2);
+		mTrainingRatingImages[2] = (ImageView) findViewById(R.id.trainingRating3);
+		mTrainingRatingImages[3] = (ImageView) findViewById(R.id.trainingRating4);
+
+		for (int i = 0; i < mTrainingRatingImages.length; i++) {
+			mTrainingRatingImages[i]
+					.setImageResource(TRAINING_RATING_IMAGES[i]);
+		}
+	}
+
+	private void setTrainingSelectorVisible(boolean visible) {
+		mTrainingSelector
+				.setVisibility(visible ? View.VISIBLE : View.INVISIBLE);
 		mSwipeControl.setVisibility(visible ? View.INVISIBLE : View.VISIBLE);
 	}
 
@@ -497,24 +467,39 @@ public class TrainingActivity extends Activity implements SwipeListener {
 
 	@Override
 	public void onSwipeLeft() {
-		if(mCurrentTraining.hasNextExercise()){
+		if (mCurrentTraining.hasNextExercise()) {
 			mCurrentTraining.moveToNextExercise();
+			updateScreen();
 		}
 	}
 
-	
+	private void updateScreen() {
+		setTrainingSelectorVisible(mCurrentTraining == null);
+		if (mCurrentTraining == null) {
+			// no training started yet, show the start button
+			mCircularProgress.setCurrentState(CircularProgressState.START);
+		} else if (mCurrentTraining.hasNextExercise()) {
+			mCircularProgress.setRestMaxProgress(mCurrentTraining.getCurrentRest());
+			mCircularProgress.setTimer(mCurrentTraining.getCurrentRest());
+			mCircularProgress.setRestMinProgress(0);
+			mCircularProgress.setRestProgressValue(mCurrentTraining
+					.getCurrentRest());
+			mCircularProgress.setCurrentState(CircularProgressState.REST);
+			mUiHandler.postDelayed(mUpdateRestTimer, REST_PROGRESS_UPDATE_RATE);
+			mSwipeControl.setCenterText("Next:",
+					mCurrentTraining.getCurrentExerciseName());
+		} else {
+			// stop the rest loop
+			mUiHandler.removeCallbacks(mUpdateRestTimer);
+
+			// show done button
+			mCircularProgress.setCurrentState(CircularProgressState.STOP);
+		}
+	}
+
 	@Override
 	public void onSwipeRight() {
 		// TODO Auto-generated method stub
 
-	}
-
-	private void showRestView() {
-		mCircularProgress.setRestMaxProgress(mCurrentTraining.getCurrentRest());
-		mCircularProgress.setTimer(mCurrentTraining.getCurrentRest());
-		mCircularProgress.setRestMinProgress(0);
-		mCircularProgress.setRestProgressValue(mCurrentTraining.getCurrentRest());
-		mCircularProgress.setCurrentState(CircularProgressState.REST);
-		mUiHandler.postDelayed(mUpdateRestTimer, REST_PROGRESS_UPDATE_RATE);
 	}
 }
