@@ -30,6 +30,7 @@ import android.view.View;
 import android.view.View.OnLongClickListener;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ViewFlipper;
@@ -65,6 +66,7 @@ public class TrainingActivity extends Activity implements SwipeListener {
 	private LinearLayout mTrainingSelector;
 	private ProgressDialog mProgressDialog;
 	private TextView mTrainingSelectorText;
+	private RelativeLayout mBottomContainer;
 
 	private Gson mGsonInstance = new Gson();
 
@@ -122,6 +124,7 @@ public class TrainingActivity extends Activity implements SwipeListener {
 		mSwipeControl = (SwipeControl) findViewById(R.id.swipeControl);
 		mTrainingSelector = (LinearLayout) findViewById(R.id.trainingSelector);
 		mTrainingSelectorText = (TextView) findViewById(R.id.trainingSelectorText);
+		mBottomContainer = (RelativeLayout) findViewById(R.id.bottomContainer);
 
 		updateTrainingSelector(-1);
 		initializeTrainingRatings();
@@ -156,28 +159,17 @@ public class TrainingActivity extends Activity implements SwipeListener {
 						// mUiHandler.postDelayed(mUpdateRestTimer,
 						// REST_PROGRESS_UPDATE_RATE);
 					}
-				} else if(mCurrentTraining.getCurrentExercise() == null){
+				} else if (mCurrentTraining.getCurrentExercise() == null) {
 					mCurrentTraining = null;
 					mSettings.saveCurrentTrainingPlan("");
-				}else if (mCurrentTraining.isCurrentRest()) {
+				} else if (mCurrentTraining.isCurrentRest()) {
 					mCurrentTraining.startExercise();
 				} else {
 					mCurrentTraining.endExercise();
 
 					// advance to the next activity
 					mCurrentTraining.nextActivity();
-				} 
-				// else if (mCurrentTraining.hasMoreSeries()
-				// || mCurrentTraining.hasMoreExercises()) {
-				//
-				// mCurrentTraining.endExercise();
-				//
-				// // advance to the next activity
-				// mCurrentTraining.nextActivity();
-				// } else {
-				// mCurrentTraining = null;
-				// mSettings.saveCurrentTrainingPlan("");
-				// }
+				}
 				updateScreen();
 			}
 		});
@@ -235,6 +227,8 @@ public class TrainingActivity extends Activity implements SwipeListener {
 	}
 
 	private void setTrainingSelectorVisible(boolean visible) {
+		// the container should be visible in either case
+		mBottomContainer.setVisibility(View.VISIBLE);
 		mTrainingSelector
 				.setVisibility(visible ? View.VISIBLE : View.INVISIBLE);
 		mSwipeControl.setVisibility(visible ? View.INVISIBLE : View.VISIBLE);
@@ -503,42 +497,37 @@ public class TrainingActivity extends Activity implements SwipeListener {
 			mCircularProgress.setCurrentState(CircularProgressState.START);
 		} else if (mCurrentTraining.getCurrentExercise() == null) {
 			// show done button
-						mCircularProgress.setCurrentState(CircularProgressState.STOP);
-		} else if (mCurrentTraining.isCurrentRest()) {
-			int currentRest = mCurrentTraining.getCurrentExercise().getCurrentSeries().getRestTime();
-			int currentRestLeft = mCurrentTraining.calculateCurrentRestLeft();
-			mCircularProgress.setRestMaxProgress(currentRest);
-			mCircularProgress.setTimer(Math.abs(currentRestLeft));
-			mCircularProgress.setRestMinProgress(0);
-			mCircularProgress.setRestProgressValue(currentRestLeft);
-			mCircularProgress.setCurrentState(CircularProgressState.REST);
-			mSwipeControl.setCenterText("Next: ",
-					mCurrentTraining.getCurrentExercise().getExerciseType().getName());
-			Log.d(TAG, String.format("Update screen: %d, %d", currentRest,
-					currentRestLeft));
-		}  else {
-			mCircularProgress
-			 .setCurrentState(CircularProgressState.EXERCISE);
-			 mSwipeControl.setCenterText("", String.format("%s %d",
-			 mCurrentTraining.getCurrentExercise().getExerciseType().getName(),
-			 mCurrentTraining.getCurrentExercise().getCurrentSeries().getWeight()));
-		}
+			mCircularProgress.setCurrentState(CircularProgressState.STOP);
 
-		// else if (mCurrentTraining.hasMoreSeries()
-		// || mCurrentTraining.hasMoreExercises()) {
-		// if (mCurrentTraining.isCurrentRest()) {
-		// 
-		// } else {
-		// mCircularProgress
-		// .setCurrentState(CircularProgressState.EXERCISE);
-		// mSwipeControl.setCenterText("", String.format("%s %d",
-		// mCurrentTraining.getCurrentExerciseName(),
-		// mCurrentTraining.getCurrentExerciseWeight()));
-		// }
-		// } else {
-		// // show done button
-		// 
-		// }
+			// hide
+			mBottomContainer.setVisibility(View.INVISIBLE);
+		} else {
+			if (mCurrentTraining.isCurrentRest()) {
+				int currentRest = mCurrentTraining.getCurrentExercise()
+						.getCurrentSeries().getRestTime();
+				int currentRestLeft = mCurrentTraining
+						.calculateCurrentRestLeft();
+				mCircularProgress.setRestMaxProgress(currentRest);
+				mCircularProgress.setTimer(Math.abs(currentRestLeft));
+				mCircularProgress.setRestMinProgress(0);
+				mCircularProgress.setRestProgressValue(currentRestLeft);
+				mCircularProgress.setCurrentState(CircularProgressState.REST);
+				mSwipeControl.setCenterText("Next: ", mCurrentTraining
+						.getCurrentExercise().getExerciseType().getName());
+				Log.d(TAG, String.format("Update screen: %d, %d", currentRest,
+						currentRestLeft));
+			} else {
+				mCircularProgress
+						.setCurrentState(CircularProgressState.EXERCISE);
+				mSwipeControl.setCenterText(
+						"",
+						String.format("%s %d", mCurrentTraining
+								.getCurrentExercise().getExerciseType()
+								.getName(), mCurrentTraining
+								.getCurrentExercise().getCurrentSeries()
+								.getWeight()));
+			}
+		}
 	}
 
 	@Override

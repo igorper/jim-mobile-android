@@ -36,7 +36,7 @@ import android.widget.Toast;
  */
 public class SwipeControl extends HorizontalScrollView {
 	private static final String TAG = Utils.getApplicationTag();
-	
+
 	private static final String SWIPE_LEFT = "swipe_left";
 	private static final String SWIPE_RIGHT = "swipe_right";
 
@@ -58,6 +58,7 @@ public class SwipeControl extends HorizontalScrollView {
 	private TextView tvLeftOff;
 	private TextView tvCenter;
 	private TextView tvRightOff;
+	private boolean mIsSwipeEnabled;
 
 	private List<SwipeListener> mSwipeListeners = new ArrayList<SwipeListener>();
 
@@ -68,6 +69,9 @@ public class SwipeControl extends HorizontalScrollView {
 
 	public SwipeControl(Context context, AttributeSet attrs) {
 		super(context, attrs);
+
+		// the swipe gesture is enabled by default
+		mIsSwipeEnabled = true;
 
 		// background drawable will be used to change back the background color
 		// after the swipe gesture
@@ -104,6 +108,10 @@ public class SwipeControl extends HorizontalScrollView {
 
 			@Override
 			public boolean onTouch(View v, MotionEvent event) {
+				if (!mIsSwipeEnabled) {
+					return true;
+				}
+
 				if (event.getAction() == MotionEvent.ACTION_DOWN) {
 					// using this allows us to stop reporting touch
 					// events after a swipe has ended, and resume at
@@ -135,6 +143,20 @@ public class SwipeControl extends HorizontalScrollView {
 				return mSwipeEnded;
 			}
 		});
+	}
+
+	/**
+	 * Sets if the swipe gesture can be used or not (by default the swipe
+	 * gesture is enabled).
+	 * 
+	 * @param value
+	 */
+	public void setSwipeEnabled(boolean value) {
+		mIsSwipeEnabled = value;
+	}
+
+	public boolean getSwipeEnabled() {
+		return mIsSwipeEnabled;
 	}
 
 	public void addSwipeListener(SwipeListener listener) {
@@ -172,14 +194,14 @@ public class SwipeControl extends HorizontalScrollView {
 				+ mCenterLeftText + "</font><font color='#" + colorRight + "'>"
 				+ mCenterRightText + "</font>"));
 	}
-	
-	private void onSwipeLeft(){
+
+	private void onSwipeLeft() {
 		for (SwipeListener listener : mSwipeListeners) {
 			listener.onSwipeLeft();
 		}
 	}
-	
-	private void onSwipeRight(){
+
+	private void onSwipeRight() {
 		for (SwipeListener listener : mSwipeListeners) {
 			listener.onSwipeRight();
 		}
@@ -272,26 +294,27 @@ public class SwipeControl extends HorizontalScrollView {
 
 				@Override
 				public void run() {
-					
+					Toast.makeText(getContext(), "Test", Toast.LENGTH_SHORT)
+							.show();
 					// report event on UI thread
 					onSwipeRight();
-					
+
 					setBackgroundColor(Color
 							.parseColor(mSwipeRightBackgroundColor));
 					mSwipeDetected = true;
 				}
 			}, SWIPE_RIGHT, SystemClock.uptimeMillis());
-		} else if (l == mScrollerStart * 2 && !handler.hasMessages(0, SWIPE_LEFT) && !mSwipeDetected) {
+		} else if (l == mScrollerStart * 2
+				&& !handler.hasMessages(0, SWIPE_LEFT) && !mSwipeDetected) {
 			// swipe left
 			handler.postAtTime(new Runnable() {
 
 				@Override
 				public void run() {
-					
+
 					// report event on UI thread
 					onSwipeLeft();
 
-					
 					setBackgroundColor(Color
 							.parseColor(mSwipeLeftBackgroundColor));
 					mSwipeDetected = true;

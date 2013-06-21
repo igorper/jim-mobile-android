@@ -114,6 +114,5 @@ public class Training {
 		if (current != null && !current.moveToNextSeries()) {
 			mExercisesToDo.remove(0);
 		}
-
 	}
 }
