@@ -385,9 +385,13 @@ public class TrainingActivity extends Activity implements SwipeListener {
 		startActivityForResult(intent, ACTIVITY_REQUEST_TRAININGS_LIST);
 	}
 
+	/* Schedule exercise later.
+	 * @see net.pernek.jim.exercisedetector.ui.SwipeListener#onSwipeRight()
+	 */
 	@Override
 	public void onSwipeRight() {
-		// TODO Auto-generated method stub
+		mCurrentTraining.scheduleExerciseLater();
+		updateScreen();
 
 	}
 

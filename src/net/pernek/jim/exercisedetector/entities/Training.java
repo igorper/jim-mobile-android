@@ -108,10 +108,25 @@ public class Training {
 			long endTimeInMs) {
 		return Math.round((float) (endTimeInMs - startTimeInMs) / 1000);
 	}
-	
-	public void nextExercise(){
+
+	/**
+	 * Schedules the current exercise to be performed later. Current exercise is
+	 * pushed to the end of the exercises queue.
+	 */
+	public void scheduleExerciseLater() {
+		if (mExercisesToDo.size() > 1) {
+			int newLastExercise = mExercisesToDo.get(0);
+			mExercisesToDo.remove(0);
+			mExercisesToDo.add(newLastExercise);
+		}
+	}
+
+	/**
+	 * Moves to the next exercise.
+	 */
+	public void nextExercise() {
 		Exercise current = getCurrentExercise();
-		if(current != null){
+		if (current != null) {
 			mExercisesToDo.remove(0);
 		}
 	}
