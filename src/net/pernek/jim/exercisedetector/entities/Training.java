@@ -108,7 +108,18 @@ public class Training {
 			long endTimeInMs) {
 		return Math.round((float) (endTimeInMs - startTimeInMs) / 1000);
 	}
+	
+	public void nextExercise(){
+		Exercise current = getCurrentExercise();
+		if(current != null){
+			mExercisesToDo.remove(0);
+		}
+	}
 
+	/**
+	 * Moves either to next series or to next exercise, if the current exercise
+	 * has no series left.
+	 */
 	public void nextActivity() {
 		Exercise current = getCurrentExercise();
 		if (current != null && !current.moveToNextSeries()) {

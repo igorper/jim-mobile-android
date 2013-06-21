@@ -100,12 +100,12 @@ public class CircularProgressControl extends View {
 	 * Rest counter text color.
 	 */
 	private static final int REST_COUNTER_TEXT_COLOR = 0xFFFFFFFF;
-	
+
 	/**
 	 * Timer message text color.
 	 */
 	private static final int TIMER_MESSAGE_TEXT_COLOR = 0xFFE1563E;
-	
+
 	/**
 	 * Dash color in the overview screen.
 	 */
@@ -175,7 +175,7 @@ public class CircularProgressControl extends View {
 	 * Rest counter text size in dp.
 	 */
 	private static final int REST_COUNTER_TEXT_SIZE_IN_DIP = 100;
-	
+
 	/**
 	 * Timer message text size in dp.
 	 */
@@ -300,7 +300,7 @@ public class CircularProgressControl extends View {
 	 * Paint for the timer text in rest and countdown state.
 	 */
 	private Paint mTextTimerPaint;
-	
+
 	/**
 	 * Paint for the timer message text in rest and countdown state.
 	 */
@@ -417,9 +417,9 @@ public class CircularProgressControl extends View {
 	 * Y value of repetition counter text.
 	 */
 	private float mRepetitionCounterTextY;
-	
+
 	/**
-	 * Y value of message visible in screens with timer (rest and countdown). 
+	 * Y value of message visible in screens with timer (rest and countdown).
 	 */
 	private float mTimerMessageTextY;
 
@@ -535,21 +535,25 @@ public class CircularProgressControl extends View {
 	 * Contains the numerical timer value.
 	 */
 	private int mTimer;
-	
-	/** Sets the timer value and invalidates the screen.
+
+	/**
+	 * Sets the timer value and invalidates the screen.
+	 * 
 	 * @param value
 	 */
-	public void setTimer(int value){
-		if(mTimer != value){
+	public void setTimer(int value) {
+		if (mTimer != value) {
 			mTimer = value;
 			invalidate();
 		}
 	}
-	
-	/** Gets the timer value and invalidates the screen.
+
+	/**
+	 * Gets the timer value and invalidates the screen.
+	 * 
 	 * @return
 	 */
-	public int getTimer(){
+	public int getTimer() {
 		return mTimer;
 	}
 
@@ -557,21 +561,25 @@ public class CircularProgressControl extends View {
 	 * Contains the current repetition number.
 	 */
 	private int mCurrentRepetition = 9;
-	
-	/** Sets the current repetition number and invalidates the screen.
+
+	/**
+	 * Sets the current repetition number and invalidates the screen.
+	 * 
 	 * @param value
 	 */
-	public void setCurrentRepetition(int value){
-		if(mCurrentRepetition != value){
+	public void setCurrentRepetition(int value) {
+		if (mCurrentRepetition != value) {
 			mCurrentRepetition = value;
 			invalidate();
 		}
 	}
-	
-	/** Gets the current repetition number.
+
+	/**
+	 * Gets the current repetition number.
+	 * 
 	 * @return
 	 */
-	public int getCurrentRepetition(){
+	public int getCurrentRepetition() {
 		return mCurrentRepetition;
 	}
 
@@ -579,21 +587,25 @@ public class CircularProgressControl extends View {
 	 * Contains the total repetitions number.
 	 */
 	private int mTotalRepetitions = 10;
-	
-	/** Sets the total repetitions number and invalidates the screen.
+
+	/**
+	 * Sets the total repetitions number and invalidates the screen.
+	 * 
 	 * @param value
 	 */
-	public void setTotalRepetitions(int value){
-		if(mTotalRepetitions != value){
+	public void setTotalRepetitions(int value) {
+		if (mTotalRepetitions != value) {
 			mTotalRepetitions = value;
 			invalidate();
 		}
 	}
-	
-	/** Gets the total repetitions number.
+
+	/**
+	 * Gets the total repetitions number.
+	 * 
 	 * @return
 	 */
-	public int getTotalRepetitions(){
+	public int getTotalRepetitions() {
 		return mTotalRepetitions;
 	}
 
@@ -601,21 +613,25 @@ public class CircularProgressControl extends View {
 	 * Contains the current series number.
 	 */
 	private int mCurrentSeries = 1;
-	
-	/** Sets the current series number and invalidates the screen.
+
+	/**
+	 * Sets the current series number and invalidates the screen.
+	 * 
 	 * @param value
 	 */
-	public void setCurrentSeries(int value){
-		if(mCurrentSeries != value){
+	public void setCurrentSeries(int value) {
+		if (mCurrentSeries != value) {
 			mCurrentSeries = value;
 			invalidate();
 		}
 	}
-	
-	/** Gets the current series number.
+
+	/**
+	 * Gets the current series number.
+	 * 
 	 * @return
 	 */
-	public int getCurrentSeries(){
+	public int getCurrentSeries() {
 		return mCurrentSeries;
 	}
 
@@ -623,44 +639,51 @@ public class CircularProgressControl extends View {
 	 * Contains the total series number.
 	 */
 	private int mTotalSeries = 3;
-	
-	/** Sets the total series number and invalidates the screen.
+
+	/**
+	 * Sets the total series number and invalidates the screen.
+	 * 
 	 * @param value
 	 */
-	public void setTotalSeries(int value){
-		if(mTotalSeries != value){
+	public void setTotalSeries(int value) {
+		if (mTotalSeries != value) {
 			mTotalSeries = value;
 			invalidate();
 		}
 	}
-	
-	/**Gets the total series number.
+
+	/**
+	 * Gets the total series number.
+	 * 
 	 * @return
 	 */
-	public int getTotalSeries(){
+	public int getTotalSeries() {
 		return mTotalSeries;
 	}
-	
-	
+
 	/**
 	 * Contains the timer message.
 	 */
 	private String mTimerMessage = "Get ready!";
-	
-	/** Sets the timer message and invalidates the screen.
+
+	/**
+	 * Sets the timer message and invalidates the screen.
+	 * 
 	 * @param value
 	 */
-	public void setTimerMessage(String value){
-		if(!mTimerMessage.equals(value)){
+	public void setTimerMessage(String value) {
+		if (!mTimerMessage.equals(value)) {
 			mTimerMessage = value;
 			invalidate();
 		}
 	}
-	
-	/** Gets the current timer message and invalidates the screen.
+
+	/**
+	 * Gets the current timer message and invalidates the screen.
+	 * 
 	 * @return
 	 */
-	public String getTimerMessage(){
+	public String getTimerMessage() {
 		return mTimerMessage;
 	}
 
@@ -689,7 +712,7 @@ public class CircularProgressControl extends View {
 	public static boolean isValueCombinationLegal(int value, int max, int min) {
 		return value >= min && value <= max;
 	}
-	
+
 	/**
 	 * Returns if the circular button is currently pressed.
 	 * 
@@ -797,107 +820,79 @@ public class CircularProgressControl extends View {
 	/**
 	 * Sets the max value of the training progress bar and invalidates the
 	 * screen. This value indicates when the training progress bar is full.
-	 * Note: Nothing happens if the min, max and progress values are not legal
-	 * (progress value has to be included in the [min,max] interval)
 	 */
 	public void setTrainingMaxProgress(int value) {
-		if (isValueCombinationLegal(mTrainingProgressValue, value,
-				mTrainingMinProgress)) {
-			mTrainingMaxProgress = value;
+		mTrainingMaxProgress = value;
 
-			mCalculatedTrainingArc = calculateArc(mTrainingProgressValue,
-					mTrainingMaxProgress, mTrainingMinProgress);
+		mCalculatedTrainingArc = calculateArc(mTrainingProgressValue,
+				mTrainingMaxProgress, mTrainingMinProgress);
 
-			invalidate();
-		}
+		invalidate();
 	}
 
 	/**
 	 * Sets the min value of the training progress bar and invalidates the
 	 * screen. This value indicates when the training progress bar is empty.
-	 * Note: Nothing happens if the min, max and progress values are not legal
-	 * (progress value has to be included in the [min,max] interval)
 	 */
 	public void setTrainingMinProgress(int value) {
-		if (isValueCombinationLegal(mTrainingProgressValue,
-				mTrainingMaxProgress, value)) {
-			mTrainingMinProgress = value;
+		mTrainingMinProgress = value;
 
-			mCalculatedTrainingArc = calculateArc(mTrainingProgressValue,
-					mTrainingMaxProgress, mTrainingMinProgress);
+		mCalculatedTrainingArc = calculateArc(mTrainingProgressValue,
+				mTrainingMaxProgress, mTrainingMinProgress);
 
-			invalidate();
-		}
+		invalidate();
 	}
 
 	/**
 	 * Sets the max value of the rest progress bar and invalidates the screen.
-	 * This value indicates when the rest progress bar is full. Note: Nothing
-	 * happens if the min, max and progress values are not legal (progress value
-	 * has to be included in the [min,max] interval)
+	 * This value indicates when the rest progress bar is full.
 	 */
 	public void setRestMaxProgress(int value) {
-		if (isValueCombinationLegal(mRestProgressValue, value, mRestMinProgress)) {
-			mRestMaxProgress = value;
+		mRestMaxProgress = value;
 
-			mCalculatedRestArc = calculateArc(mRestProgressValue,
-					mRestMaxProgress, mRestMinProgress);
+		mCalculatedRestArc = calculateArc(mRestProgressValue, mRestMaxProgress,
+				mRestMinProgress);
 
-			invalidate();
-		}
+		invalidate();
 	}
 
 	/**
 	 * Sets the min value of the rest progress bar and invalidates the screen.
-	 * This value indicates when the rest progress bar is empty. Note: Nothing
-	 * happens if the min, max and progress values are not legal (progress value
-	 * has to be included in the [min,max] interval)
+	 * This value indicates when the rest progress bar is empty.
 	 */
 	public void setRestMinProgress(int value) {
-		if (isValueCombinationLegal(mRestProgressValue, mRestMaxProgress, value)) {
-			mRestMinProgress = value;
+		mRestMinProgress = value;
 
-			mCalculatedRestArc = calculateArc(mRestProgressValue,
-					mRestMaxProgress, mRestMinProgress);
+		mCalculatedRestArc = calculateArc(mRestProgressValue, mRestMaxProgress,
+				mRestMinProgress);
 
-			invalidate();
-		}
+		invalidate();
 	}
 
 	/**
 	 * Sets the max value of the exercise progress bar and invalidates the
 	 * screen. This value indicates when the exercise progress bar is full.
-	 * Note: Nothing happens if the min, max and progress values are not legal
-	 * (progress value has to be included in the [min,max] interval)
 	 */
 	public void setExerciseMaxProgress(int value) {
-		if (isValueCombinationLegal(mExerciseProgressValue, value,
-				mExerciseMinProgress)) {
-			mExerciseMaxProgress = value;
+		mExerciseMaxProgress = value;
 
-			mCalculatedExerciseArc = calculateArc(mExerciseProgressValue,
-					mExerciseMaxProgress, mExerciseMinProgress);
+		mCalculatedExerciseArc = calculateArc(mExerciseProgressValue,
+				mExerciseMaxProgress, mExerciseMinProgress);
 
-			invalidate();
-		}
+		invalidate();
 	}
 
 	/**
 	 * Sets the min value of the rest progress bar and invalidates the screen.
-	 * This value indicates when the rest progress bar is empty. Note: Nothing
-	 * happens if the min, max and progress values are not legal (progress value
-	 * has to be included in the [min,max] interval)
+	 * This value indicates when the rest progress bar is empty.
 	 */
 	public void setExerciseMinProgress(int value) {
-		if (isValueCombinationLegal(mExerciseProgressValue,
-				mExerciseMaxProgress, value)) {
-			mExerciseMinProgress = value;
+		mExerciseMinProgress = value;
 
-			mCalculatedExerciseArc = calculateArc(mExerciseProgressValue,
-					mExerciseMaxProgress, mExerciseMinProgress);
+		mCalculatedExerciseArc = calculateArc(mExerciseProgressValue,
+				mExerciseMaxProgress, mExerciseMinProgress);
 
-			invalidate();
-		}
+		invalidate();
 	}
 
 	public void setCurrentState(CircularProgressState state) {
@@ -937,7 +932,7 @@ public class CircularProgressControl extends View {
 	 * Initializes all drawing objects.
 	 */
 	private final void init() {
-		// load typefaces 
+		// load typefaces
 		mCooperBlackTypeface = Typeface.createFromAsset(getContext()
 				.getAssets(), "fonts/Cooper Black.ttf");
 		mHaginCapsThinTypeface = Typeface.createFromAsset(getContext()
@@ -1049,7 +1044,7 @@ public class CircularProgressControl extends View {
 		mTextTimerPaint.setTextSize(TypedValue.applyDimension(
 				TypedValue.COMPLEX_UNIT_DIP, REST_COUNTER_TEXT_SIZE_IN_DIP,
 				getResources().getDisplayMetrics()));
-		
+
 		mTextTimerMessagePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 		mTextTimerMessagePaint.setColor(TIMER_MESSAGE_TEXT_COLOR);
 		mTextTimerMessagePaint.setTextSize(TypedValue.applyDimension(
@@ -1280,21 +1275,22 @@ public class CircularProgressControl extends View {
 							mIsPressedState ? mRestProgressClickForegroundPaint
 									: mRestProgressForegroundPaint);
 				} else {
-					float timerMessageLength = mTextTimerMessagePaint.measureText(mTimerMessage);
-					
-					canvas.drawText(mTimerMessage, mCenterX - timerMessageLength / 2
-							, mTimerMessageTextY, mTextTimerMessagePaint);
+					float timerMessageLength = mTextTimerMessagePaint
+							.measureText(mTimerMessage);
+
+					canvas.drawText(mTimerMessage, mCenterX
+							- timerMessageLength / 2, mTimerMessageTextY,
+							mTextTimerMessagePaint);
 				}
 
-				float timerLength = mTextTimerPaint
-						.measureText(Integer
-								.toString(mTimer));
+				float timerLength = mTextTimerPaint.measureText(Integer
+						.toString(mTimer));
 
 				float timerTextDescent = mTextTimerPaint.descent();
 				canvas.drawText(Integer.toString(mTimer), mCenterX
-						- timerLength / 2, mCenterY
-						+ timerTextDescent, mTextTimerPaint);
-				
+						- timerLength / 2, mCenterY + timerTextDescent,
+						mTextTimerPaint);
+
 			} else if (mCurrentState == CircularProgressState.EXERCISE) {
 
 				float currentRepetitionLength = mTextCurrentRepetitionPaint

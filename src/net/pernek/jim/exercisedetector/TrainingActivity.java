@@ -154,15 +154,17 @@ public class TrainingActivity extends Activity implements SwipeListener {
 		registerReceiver(mBroadcastReceiver, filter);
 	}
 
-	/* TODO: Check if stuff in onCreate and onDestroy should be moved to more
+	/*
+	 * TODO: Check if stuff in onCreate and onDestroy should be moved to more
 	 * appropriate lifecycle methods.
+	 * 
 	 * @see android.app.Activity#onDestroy()
 	 */
 	@Override
 	protected void onDestroy() {
 		unregisterReceiver(mBroadcastReceiver);
 		mSwipeControl.removeSwipeListener(this);
-		
+
 		// remove all periodical tasks
 		mUiHandler.removeCallbacks(mUpdateRestTimer);
 
@@ -344,12 +346,8 @@ public class TrainingActivity extends Activity implements SwipeListener {
 				// if at rest show rest UI
 				int currentRest = mCurrentTraining.getCurrentExercise()
 						.getCurrentSeries().getRestTime();
-				int currentRestLeft = mCurrentTraining
-						.calculateCurrentRestLeft();
 				mCircularProgress.setRestMaxProgress(currentRest);
-				mCircularProgress.setTimer(Math.abs(currentRestLeft));
 				mCircularProgress.setRestMinProgress(0);
-				mCircularProgress.setRestProgressValue(currentRestLeft);
 				mCircularProgress.setCurrentState(CircularProgressState.REST);
 				mSwipeControl.setCenterText("Next: ", mCurrentTraining
 						.getCurrentExercise().getExerciseType().getName());
@@ -357,10 +355,7 @@ public class TrainingActivity extends Activity implements SwipeListener {
 				// also start the periodic timer to update the rest screen
 				mUiHandler.removeCallbacks(mUpdateRestTimer);
 				mUiHandler.postDelayed(mUpdateRestTimer,
-						REST_PROGRESS_UPDATE_RATE);
-
-				Log.d(TAG, String.format("Update screen: %d, %d", currentRest,
-						currentRestLeft));
+						0);
 			} else {
 				// otherwise show exercising UI
 				mCircularProgress
@@ -372,7 +367,7 @@ public class TrainingActivity extends Activity implements SwipeListener {
 								.getName(), mCurrentTraining
 								.getCurrentExercise().getCurrentSeries()
 								.getWeight()));
-				
+
 				// remove any periodic rest timers
 				mUiHandler.removeCallbacks(mUpdateRestTimer);
 			}
@@ -396,12 +391,15 @@ public class TrainingActivity extends Activity implements SwipeListener {
 
 	}
 
+	/*
+	 * Skip exercise.
+	 * 
+	 * @see net.pernek.jim.exercisedetector.ui.SwipeListener#onSwipeLeft()
+	 */
 	@Override
 	public void onSwipeLeft() {
-		// if (mCurrentTraining.canSkipExercise()) {
-		// mCurrentTraining.skipExercise();
-		// updateScreen();
-		// }
+		mCurrentTraining.nextExercise();
+		updateScreen();
 	}
 
 	/**
@@ -448,20 +446,27 @@ public class TrainingActivity extends Activity implements SwipeListener {
 		}
 	};
 
+	/**
+	 * This runnable updates the screen during the rest state.It calls itself recursively until externally stopped
+	 * or until there are no more exercises left.
+	 */
 	private Runnable mUpdateRestTimer = new Runnable() {
 
 		@Override
 		public void run() {
-			int currentRest = mCurrentTraining.getCurrentExercise()
-					.getCurrentSeries().getRestTime();
-			int currentRestLeft = mCurrentTraining.calculateCurrentRestLeft();
-			mCircularProgress.setTimer(Math.abs(currentRestLeft));
-			mCircularProgress.setRestProgressValue(currentRestLeft);
+			Exercise currentExercise = mCurrentTraining.getCurrentExercise();
+			if (currentExercise != null) {
+				int currentRest = currentExercise.getCurrentSeries()
+						.getRestTime();
+				int currentRestLeft = mCurrentTraining
+						.calculateCurrentRestLeft();
+				mCircularProgress.setRestProgressValue(currentRestLeft < 0 ? 0 :currentRestLeft);
+				mCircularProgress.setTimer(Math.abs(currentRestLeft));
+				Log.d(TAG, String.format("Update screen: %d, %d", currentRest,
+						currentRestLeft));
 
-			Log.d(TAG, String.format("Update screen: %d, %d", currentRest,
-					currentRestLeft));
-
-			mUiHandler.postDelayed(this, REST_PROGRESS_UPDATE_RATE);
+				mUiHandler.postDelayed(this, REST_PROGRESS_UPDATE_RATE);
+			}
 		}
 	};
 
