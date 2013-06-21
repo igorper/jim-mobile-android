@@ -83,7 +83,7 @@ public class TrainingActivity extends Activity implements SwipeListener {
 	 * UI thread handler.
 	 */
 	private Handler mUiHandler = new Handler();
-	
+
 	/**
 	 * Holds the ID of the currently selected training rating (or -1 if no
 	 * rating was yet selected).
@@ -153,11 +153,18 @@ public class TrainingActivity extends Activity implements SwipeListener {
 		mBroadcastReceiver = new ResponseReceiver();
 		registerReceiver(mBroadcastReceiver, filter);
 	}
-	
+
+	/* TODO: Check if stuff in onCreate and onDestroy should be moved to more
+	 * appropriate lifecycle methods.
+	 * @see android.app.Activity#onDestroy()
+	 */
 	@Override
 	protected void onDestroy() {
 		unregisterReceiver(mBroadcastReceiver);
 		mSwipeControl.removeSwipeListener(this);
+		
+		// remove all periodical tasks
+		mUiHandler.removeCallbacks(mUpdateRestTimer);
 
 		super.onDestroy();
 	}
@@ -346,6 +353,12 @@ public class TrainingActivity extends Activity implements SwipeListener {
 				mCircularProgress.setCurrentState(CircularProgressState.REST);
 				mSwipeControl.setCenterText("Next: ", mCurrentTraining
 						.getCurrentExercise().getExerciseType().getName());
+
+				// also start the periodic timer to update the rest screen
+				mUiHandler.removeCallbacks(mUpdateRestTimer);
+				mUiHandler.postDelayed(mUpdateRestTimer,
+						REST_PROGRESS_UPDATE_RATE);
+
 				Log.d(TAG, String.format("Update screen: %d, %d", currentRest,
 						currentRestLeft));
 			} else {
@@ -359,11 +372,16 @@ public class TrainingActivity extends Activity implements SwipeListener {
 								.getName(), mCurrentTraining
 								.getCurrentExercise().getCurrentSeries()
 								.getWeight()));
+				
+				// remove any periodic rest timers
+				mUiHandler.removeCallbacks(mUpdateRestTimer);
 			}
 		}
 	}
-	
-	/** Starts the select training activity.
+
+	/**
+	 * Starts the select training activity.
+	 * 
 	 * @param view
 	 */
 	public void onSelectTrainingClick(View view) {
@@ -385,10 +403,10 @@ public class TrainingActivity extends Activity implements SwipeListener {
 		// updateScreen();
 		// }
 	}
-	
+
 	/**
-	 * Defines what should happen on circular button click based on the state of the current
-	 * training  plan (mCurrentTraining).
+	 * Defines what should happen on circular button click based on the state of
+	 * the current training plan (mCurrentTraining).
 	 */
 	private View.OnClickListener mCircularButtonClick = new View.OnClickListener() {
 
@@ -397,15 +415,14 @@ public class TrainingActivity extends Activity implements SwipeListener {
 			if (mCurrentTraining == null) {
 				// start button was clicked
 				String[] projection = { TrainingPlan._ID, TrainingPlan.DATA };
-				String selection = String.format("%s == %d",
-						TrainingPlan._ID, mSelectedTrainingId);
+				String selection = String.format("%s == %d", TrainingPlan._ID,
+						mSelectedTrainingId);
 				Cursor trainings = managedQuery(TrainingPlan.CONTENT_URI,
 						projection, selection, null, null);
 
 				if (trainings.moveToNext()) {
-					String jsonEncodedTraining = trainings
-							.getString(trainings
-									.getColumnIndex(TrainingPlan.DATA));
+					String jsonEncodedTraining = trainings.getString(trainings
+							.getColumnIndex(TrainingPlan.DATA));
 
 					// load to memory
 					mCurrentTraining = mGsonInstance.fromJson(
@@ -415,8 +432,6 @@ public class TrainingActivity extends Activity implements SwipeListener {
 					// save to persistent storage
 					mSettings.saveCurrentTrainingPlan(mGsonInstance
 							.toJson(mCurrentTraining));
-					// mUiHandler.postDelayed(mUpdateRestTimer,
-					// REST_PROGRESS_UPDATE_RATE);
 				}
 			} else if (mCurrentTraining.getCurrentExercise() == null) {
 				mCurrentTraining = null;
