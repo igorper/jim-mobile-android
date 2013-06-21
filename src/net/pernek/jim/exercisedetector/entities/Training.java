@@ -104,6 +104,12 @@ public class Training {
 		mExerciseStart = -1;
 	}
 
+	/** Calculates the duration between the start and end timestamp (both in miliseconds)
+	 * and rounds it to seconds.
+	 * @param startTimeInMs
+	 * @param endTimeInMs
+	 * @return
+	 */
 	private static int calculateDurationInSeconds(long startTimeInMs,
 			long endTimeInMs) {
 		return Math.round((float) (endTimeInMs - startTimeInMs) / 1000);
