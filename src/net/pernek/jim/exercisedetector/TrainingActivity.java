@@ -40,9 +40,7 @@ public class TrainingActivity extends Activity implements SwipeListener {
 	private static final String TAG = Utils.getApplicationTag();
 
 	private final static int MENU_SYNC = Menu.FIRST;
-	private final static int MENU_SWIPE = Menu.FIRST + 1;
-	private final static int MENU_LOGOUT = Menu.FIRST + 2;
-	private final static int MENU_FETCH_17 = Menu.FIRST + 3;
+	private final static int MENU_LOGOUT = Menu.FIRST + 1;
 
 	private static final int ACTIVITY_REQUEST_TRAININGS_LIST = 0;
 
@@ -57,9 +55,11 @@ public class TrainingActivity extends Activity implements SwipeListener {
 	private int mSelectedTrainingId = -1;
 
 	private DetectorSettings mSettings;
-
 	private ResponseReceiver mBroadcastReceiver;
 
+	/**
+	 * References to the XML defined UI controls.
+	 */
 	private CircularProgressControl mCircularProgress;
 	private ViewFlipper mViewFlipper;
 	private SwipeControl mSwipeControl;
@@ -68,6 +68,9 @@ public class TrainingActivity extends Activity implements SwipeListener {
 	private TextView mTrainingSelectorText;
 	private RelativeLayout mBottomContainer;
 
+	/**
+	 * Reference to JSON2Object converter.
+	 */
 	private Gson mGsonInstance = new Gson();
 
 	/**
@@ -76,7 +79,16 @@ public class TrainingActivity extends Activity implements SwipeListener {
 	 */
 	private Training mCurrentTraining;
 
+	/**
+	 * UI thread handler.
+	 */
 	private Handler mUiHandler = new Handler();
+	
+	/**
+	 * Holds the ID of the currently selected training rating (or -1 if no
+	 * rating was yet selected).
+	 */
+	private int mTrainingRatingSelectedID = -1;
 
 	/**
 	 * Contains IDs of training rating images in non-selected (non-clicked)
@@ -84,12 +96,6 @@ public class TrainingActivity extends Activity implements SwipeListener {
 	 */
 	private static int[] TRAINING_RATING_IMAGES = { R.drawable.sm_1_ns,
 			R.drawable.sm_2_ns, R.drawable.sm_3_ns, R.drawable.sm_4_ns };
-
-	/**
-	 * Holds the ID of the currently selected training rating (or -1 if no
-	 * rating was yet selected).
-	 */
-	private int mTrainingRatingSelectedID = -1;
 
 	/**
 	 * Contains IDs of training rating images in selected (touched) state.
@@ -114,8 +120,6 @@ public class TrainingActivity extends Activity implements SwipeListener {
 			finish();
 		}
 
-		// TODO: Use ViewFlipper to change between button circular button view,
-		// and rate training view
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_training);
 
@@ -131,48 +135,7 @@ public class TrainingActivity extends Activity implements SwipeListener {
 		loadCurrentTraining();
 		updateScreen();
 
-		mCircularProgress.setOnClickListener(new View.OnClickListener() {
-
-			@Override
-			public void onClick(View v) {
-				if (mCurrentTraining == null) {
-					// start button was clicked
-					String[] projection = { TrainingPlan._ID, TrainingPlan.DATA };
-					String selection = String.format("%s == %d",
-							TrainingPlan._ID, mSelectedTrainingId);
-					Cursor trainings = managedQuery(TrainingPlan.CONTENT_URI,
-							projection, selection, null, null);
-
-					if (trainings.moveToNext()) {
-						String jsonEncodedTraining = trainings
-								.getString(trainings
-										.getColumnIndex(TrainingPlan.DATA));
-
-						// load to memory
-						mCurrentTraining = mGsonInstance.fromJson(
-								jsonEncodedTraining, Training.class);
-						mCurrentTraining.startTraining();
-
-						// save to persistent storage
-						mSettings.saveCurrentTrainingPlan(mGsonInstance
-								.toJson(mCurrentTraining));
-						// mUiHandler.postDelayed(mUpdateRestTimer,
-						// REST_PROGRESS_UPDATE_RATE);
-					}
-				} else if (mCurrentTraining.getCurrentExercise() == null) {
-					mCurrentTraining = null;
-					mSettings.saveCurrentTrainingPlan("");
-				} else if (mCurrentTraining.isCurrentRest()) {
-					mCurrentTraining.startExercise();
-				} else {
-					mCurrentTraining.endExercise();
-
-					// advance to the next activity
-					mCurrentTraining.nextActivity();
-				}
-				updateScreen();
-			}
-		});
+		mCircularProgress.setOnClickListener(mCircularButtonClick);
 
 		mSwipeControl.addSwipeListener(this);
 
@@ -187,27 +150,17 @@ public class TrainingActivity extends Activity implements SwipeListener {
 		filter.addAction(DataUploaderService.ACTION_FETCH_TRAINNGS_ITEM_DOWNLOADED);
 
 		filter.addCategory(Intent.CATEGORY_DEFAULT);
-
 		mBroadcastReceiver = new ResponseReceiver();
 		registerReceiver(mBroadcastReceiver, filter);
 	}
+	
+	@Override
+	protected void onDestroy() {
+		unregisterReceiver(mBroadcastReceiver);
+		mSwipeControl.removeSwipeListener(this);
 
-	private Runnable mUpdateRestTimer = new Runnable() {
-
-		@Override
-		public void run() {
-			int currentRest = mCurrentTraining.getCurrentExercise()
-					.getCurrentSeries().getRestTime();
-			int currentRestLeft = mCurrentTraining.calculateCurrentRestLeft();
-			mCircularProgress.setTimer(Math.abs(currentRestLeft));
-			mCircularProgress.setRestProgressValue(currentRestLeft);
-
-			Log.d(TAG, String.format("Update screen: %d, %d", currentRest,
-					currentRestLeft));
-
-			mUiHandler.postDelayed(this, REST_PROGRESS_UPDATE_RATE);
-		}
-	};
+		super.onDestroy();
+	}
 
 	/**
 	 * Initializes a list of training rating ImageViews references.
@@ -226,9 +179,16 @@ public class TrainingActivity extends Activity implements SwipeListener {
 		}
 	}
 
+	/**
+	 * This method either shows the training selector control and hides the
+	 * swipe control or vice versa.
+	 * 
+	 * @param visible
+	 */
 	private void setTrainingSelectorVisible(boolean visible) {
 		// the container should be visible in either case
 		mBottomContainer.setVisibility(View.VISIBLE);
+
 		mTrainingSelector
 				.setVisibility(visible ? View.VISIBLE : View.INVISIBLE);
 		mSwipeControl.setVisibility(visible ? View.INVISIBLE : View.VISIBLE);
@@ -253,7 +213,9 @@ public class TrainingActivity extends Activity implements SwipeListener {
 	/**
 	 * This method updates the training selector text to the first training plan
 	 * in the database or to the plan corresponding with the @param
-	 * trainingPlanID.
+	 * trainingPlanID. NOTE: Additionally, this method is responsible for
+	 * settings the mSelectedTrainingId variable, which holds the ID of the
+	 * currently selected training.
 	 */
 	/**
 	 * @param trainingPlanID
@@ -272,18 +234,6 @@ public class TrainingActivity extends Activity implements SwipeListener {
 					.getColumnIndex(TrainingPlan.NAME));
 			mTrainingSelectorText.setText(trainingName);
 		}
-	}
-
-	@Override
-	protected void onDestroy() {
-		unregisterReceiver(mBroadcastReceiver);
-		mSwipeControl.removeSwipeListener(this);
-
-		super.onDestroy();
-	}
-
-	public void testClick(View v) {
-		mViewFlipper.showPrevious();
 	}
 
 	/**
@@ -319,6 +269,103 @@ public class TrainingActivity extends Activity implements SwipeListener {
 		}
 	}
 
+	@Override
+	public boolean onCreateOptionsMenu(android.view.Menu menu) {
+		// add sync option only if the user is logged in (or even better,
+		// disable sync if no user is logged in)
+		if (!mSettings.getUsername().equals("")) {
+			menu.add(1, MENU_SYNC, 1, "Sync");
+		}
+		menu.add(1, MENU_LOGOUT, 3, "Logout");
+		return true;
+	};
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		switch (item.getItemId()) {
+		case MENU_SYNC: {
+			Intent intent = new Intent(this, DataUploaderService.class);
+			intent.putExtra(DataUploaderService.INTENT_KEY_ACTION,
+					DataUploaderService.ACTION_FETCH_TRAININGS);
+			intent.putExtra(DataUploaderService.INTENT_KEY_USERNAME,
+					mSettings.getUsername());
+			intent.putExtra(DataUploaderService.INTENT_KEY_PASSWORD,
+					mSettings.getPassword());
+			startService(intent);
+
+			mProgressDialog = new ProgressDialog(this);
+			mProgressDialog.setIndeterminate(false);
+			mProgressDialog.setMessage("Fetching training list ...");
+			mProgressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+			mProgressDialog.show();
+
+			break;
+		}
+		case MENU_LOGOUT: {
+			mSettings.saveUsername("");
+			mSettings.savePassword("");
+			finish();
+
+			break;
+		}
+		default:
+			break;
+		}
+
+		return super.onOptionsItemSelected(item);
+	}
+
+	/**
+	 * This is the sole method responsible for setting the activity UI (apart
+	 * from runnables, which also have to be registered in this method, and are
+	 * responsible for periodic screen changes)
+	 */
+	private void updateScreen() {
+		setTrainingSelectorVisible(mCurrentTraining == null);
+		if (mCurrentTraining == null) {
+			// no training started yet, show the start button
+			mCircularProgress.setCurrentState(CircularProgressState.START);
+		} else if (mCurrentTraining.getCurrentExercise() == null) {
+			// no more exercises, show the done button
+			mCircularProgress.setCurrentState(CircularProgressState.STOP);
+
+			// also hide the bottom container
+			mBottomContainer.setVisibility(View.INVISIBLE);
+		} else {
+			// there are still some exercises to be performed
+			if (mCurrentTraining.isCurrentRest()) {
+				// if at rest show rest UI
+				int currentRest = mCurrentTraining.getCurrentExercise()
+						.getCurrentSeries().getRestTime();
+				int currentRestLeft = mCurrentTraining
+						.calculateCurrentRestLeft();
+				mCircularProgress.setRestMaxProgress(currentRest);
+				mCircularProgress.setTimer(Math.abs(currentRestLeft));
+				mCircularProgress.setRestMinProgress(0);
+				mCircularProgress.setRestProgressValue(currentRestLeft);
+				mCircularProgress.setCurrentState(CircularProgressState.REST);
+				mSwipeControl.setCenterText("Next: ", mCurrentTraining
+						.getCurrentExercise().getExerciseType().getName());
+				Log.d(TAG, String.format("Update screen: %d, %d", currentRest,
+						currentRestLeft));
+			} else {
+				// otherwise show exercising UI
+				mCircularProgress
+						.setCurrentState(CircularProgressState.EXERCISE);
+				mSwipeControl.setCenterText(
+						"",
+						String.format("%s %d", mCurrentTraining
+								.getCurrentExercise().getExerciseType()
+								.getName(), mCurrentTraining
+								.getCurrentExercise().getCurrentSeries()
+								.getWeight()));
+			}
+		}
+	}
+	
+	/** Starts the select training activity.
+	 * @param view
+	 */
 	public void onSelectTrainingClick(View view) {
 		Intent intent = new Intent(TrainingActivity.this,
 				TrainingSelectionList.class);
@@ -326,9 +373,94 @@ public class TrainingActivity extends Activity implements SwipeListener {
 	}
 
 	@Override
+	public void onSwipeRight() {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void onSwipeLeft() {
+		// if (mCurrentTraining.canSkipExercise()) {
+		// mCurrentTraining.skipExercise();
+		// updateScreen();
+		// }
+	}
+	
+	/**
+	 * Defines what should happen on circular button click based on the state of the current
+	 * training  plan (mCurrentTraining).
+	 */
+	private View.OnClickListener mCircularButtonClick = new View.OnClickListener() {
+
+		@Override
+		public void onClick(View v) {
+			if (mCurrentTraining == null) {
+				// start button was clicked
+				String[] projection = { TrainingPlan._ID, TrainingPlan.DATA };
+				String selection = String.format("%s == %d",
+						TrainingPlan._ID, mSelectedTrainingId);
+				Cursor trainings = managedQuery(TrainingPlan.CONTENT_URI,
+						projection, selection, null, null);
+
+				if (trainings.moveToNext()) {
+					String jsonEncodedTraining = trainings
+							.getString(trainings
+									.getColumnIndex(TrainingPlan.DATA));
+
+					// load to memory
+					mCurrentTraining = mGsonInstance.fromJson(
+							jsonEncodedTraining, Training.class);
+					mCurrentTraining.startTraining();
+
+					// save to persistent storage
+					mSettings.saveCurrentTrainingPlan(mGsonInstance
+							.toJson(mCurrentTraining));
+					// mUiHandler.postDelayed(mUpdateRestTimer,
+					// REST_PROGRESS_UPDATE_RATE);
+				}
+			} else if (mCurrentTraining.getCurrentExercise() == null) {
+				mCurrentTraining = null;
+				mSettings.saveCurrentTrainingPlan("");
+			} else if (mCurrentTraining.isCurrentRest()) {
+				mCurrentTraining.startExercise();
+			} else {
+				mCurrentTraining.endExercise();
+
+				// advance to the next activity
+				mCurrentTraining.nextActivity();
+			}
+			updateScreen();
+		}
+	};
+
+	private Runnable mUpdateRestTimer = new Runnable() {
+
+		@Override
+		public void run() {
+			int currentRest = mCurrentTraining.getCurrentExercise()
+					.getCurrentSeries().getRestTime();
+			int currentRestLeft = mCurrentTraining.calculateCurrentRestLeft();
+			mCircularProgress.setTimer(Math.abs(currentRestLeft));
+			mCircularProgress.setRestProgressValue(currentRestLeft);
+
+			Log.d(TAG, String.format("Update screen: %d, %d", currentRest,
+					currentRestLeft));
+
+			mUiHandler.postDelayed(this, REST_PROGRESS_UPDATE_RATE);
+		}
+	};
+
+	/*
+	 * Gets the results from activities started from this activity.
+	 * 
+	 * @see android.app.Activity#onActivityResult(int, int,
+	 * android.content.Intent)
+	 */
+	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 		switch (requestCode) {
 		case ACTIVITY_REQUEST_TRAININGS_LIST: {
+			// on training selected from list of trainings
 			if (data != null
 					&& resultCode == RESULT_OK
 					&& data.hasExtra(TrainingSelectionList.INTENT_EXTRA_SELECTED_TRAINING_KEY)) {
@@ -354,120 +486,44 @@ public class TrainingActivity extends Activity implements SwipeListener {
 		}
 	}
 
-	@Override
-	public boolean onCreateOptionsMenu(android.view.Menu menu) {
-		// add sync option only if the user is logged in
-		if (!mSettings.getUsername().equals("")) {
-			menu.add(1, MENU_SYNC, 1, "Sync");
-		}
-		menu.add(1, MENU_SWIPE, 2, "Swipe");
-		menu.add(1, MENU_LOGOUT, 3, "Logout");
-		menu.add(1, MENU_FETCH_17, 3, "Fetch 17");
-		return true;
-	};
-
-	@Override
-	public boolean onOptionsItemSelected(MenuItem item) {
-		switch (item.getItemId()) {
-		case MENU_SYNC: {
-			Intent intent = new Intent(this, DataUploaderService.class);
-			intent.putExtra(DataUploaderService.INTENT_KEY_ACTION,
-					DataUploaderService.ACTION_FETCH_TRAININGS);
-			intent.putExtra(DataUploaderService.INTENT_KEY_USERNAME,
-					mSettings.getUsername());
-			intent.putExtra(DataUploaderService.INTENT_KEY_PASSWORD,
-					mSettings.getPassword());
-			startService(intent);
-
-			mProgressDialog = new ProgressDialog(this);
-			mProgressDialog.setIndeterminate(false);
-			mProgressDialog.setMessage("Fetching training list ...");
-			mProgressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-			mProgressDialog.show();
-
-			break;
-		}
-		case MENU_SWIPE: {
-			if (mSwipeControl.getVisibility() == View.VISIBLE) {
-				mSwipeControl.setVisibility(View.INVISIBLE);
-				mTrainingSelector.setVisibility(View.VISIBLE);
-			} else {
-				mSwipeControl.setVisibility(View.VISIBLE);
-				mTrainingSelector.setVisibility(View.INVISIBLE);
-			}
-			break;
-		}
-		case MENU_LOGOUT: {
-			mSettings.saveUsername("");
-			mSettings.savePassword("");
-			finish();
-
-			break;
-		}
-		case MENU_FETCH_17: {
-			// Intent intent = new Intent(this, DataUploaderService.class);
-			// intent.putExtra(DataUploaderService.INTENT_KEY_ACTION,
-			// DataUploaderService.ACTION_GET_TRAINING);
-			// intent.putExtra(DataUploaderService.INTENT_KEY_USERNAME,
-			// mSettings.getUsername());
-			// intent.putExtra(DataUploaderService.INTENT_KEY_PASSWORD,
-			// mSettings.getPassword());
-			// intent.putExtra(DataUploaderService.INTENT_KEY_TRAINING_ID, 17);
-			// startService(intent);
-
-			String[] projection = { TrainingPlan._ID, TrainingPlan.NAME,
-					TrainingPlan.DATA };
-			String selection = String.format("%s == %d", TrainingPlan._ID, 17);
-			Cursor trainings = managedQuery(TrainingPlan.CONTENT_URI,
-					projection, selection, null, null);
-
-			if (trainings.moveToNext()) {
-				String trainingData = trainings.getString(trainings
-						.getColumnIndex(TrainingPlan.DATA));
-
-				Gson gson = new Gson();
-				Training t = gson.fromJson(trainingData, Training.class);
-			}
-
-			break;
-		}
-		default:
-			break;
-		}
-
-		return super.onOptionsItemSelected(item);
-	}
-
+	/**
+	 * This class is used to listen to broadcasts from other services and
+	 * activities.
+	 * 
+	 * @author Igor
+	 * 
+	 */
 	private class ResponseReceiver extends BroadcastReceiver {
 
 		@Override
 		public void onReceive(Context context, Intent intent) {
 			if (intent.getAction().equals(
 					DataUploaderService.ACTION_FETCH_TRAINNGS_DONE)) {
-				boolean getTrainingSuccessful = intent.getExtras().getBoolean(
-						DataUploaderService.PARAM_OP_SUCCESSFUL);
+				// on finished fetching trainings
 
 				mProgressDialog.dismiss();
 
+				boolean getTrainingSuccessful = intent.getExtras().getBoolean(
+						DataUploaderService.PARAM_OP_SUCCESSFUL);
+
 				if (getTrainingSuccessful) {
-					Toast.makeText(getApplicationContext(),
-							"Wuhu! Trainings downloaded. Let's go!",
-							Toast.LENGTH_SHORT).show();
 					updateTrainingSelector(-1);
-				} else {
-					Toast.makeText(
-							getApplicationContext(),
-							"Ups. Unable to fetch trainings. There should be a nicer UI for this message!",
-							Toast.LENGTH_SHORT).show();
 				}
 			} else if (intent.getAction().equals(
 					DataUploaderService.ACTION_FETCH_TRAINNGS_LIST_DOWNLOADED)) {
+				// on list with training names fetched
+
+				// calculate progress bar information and set progress
 				int totalNumberOfTrainings = intent.getExtras().getInt(
 						DataUploaderService.PARAM_FETCH_TRAINNGS_NUM_ITEMS);
 				int progress = Math.round(1f / totalNumberOfTrainings * 100f);
 				mProgressDialog.setProgress(progress);
 			} else if (intent.getAction().equals(
 					DataUploaderService.ACTION_FETCH_TRAINNGS_ITEM_DOWNLOADED)) {
+				// on individual training item downloaded
+
+				// calculate progress bar information and set progress with
+				// training name
 				int totalNumberOfTrainings = intent.getExtras().getInt(
 						DataUploaderService.PARAM_FETCH_TRAINNGS_NUM_ITEMS);
 				int trainingCount = intent.getExtras().getInt(
@@ -482,57 +538,4 @@ public class TrainingActivity extends Activity implements SwipeListener {
 		}
 	}
 
-	@Override
-	public void onSwipeLeft() {
-		// if (mCurrentTraining.canSkipExercise()) {
-		// mCurrentTraining.skipExercise();
-		// updateScreen();
-		// }
-	}
-
-	private void updateScreen() {
-		setTrainingSelectorVisible(mCurrentTraining == null);
-		if (mCurrentTraining == null) {
-			// no training started yet, show the start button
-			mCircularProgress.setCurrentState(CircularProgressState.START);
-		} else if (mCurrentTraining.getCurrentExercise() == null) {
-			// show done button
-			mCircularProgress.setCurrentState(CircularProgressState.STOP);
-
-			// hide
-			mBottomContainer.setVisibility(View.INVISIBLE);
-		} else {
-			if (mCurrentTraining.isCurrentRest()) {
-				int currentRest = mCurrentTraining.getCurrentExercise()
-						.getCurrentSeries().getRestTime();
-				int currentRestLeft = mCurrentTraining
-						.calculateCurrentRestLeft();
-				mCircularProgress.setRestMaxProgress(currentRest);
-				mCircularProgress.setTimer(Math.abs(currentRestLeft));
-				mCircularProgress.setRestMinProgress(0);
-				mCircularProgress.setRestProgressValue(currentRestLeft);
-				mCircularProgress.setCurrentState(CircularProgressState.REST);
-				mSwipeControl.setCenterText("Next: ", mCurrentTraining
-						.getCurrentExercise().getExerciseType().getName());
-				Log.d(TAG, String.format("Update screen: %d, %d", currentRest,
-						currentRestLeft));
-			} else {
-				mCircularProgress
-						.setCurrentState(CircularProgressState.EXERCISE);
-				mSwipeControl.setCenterText(
-						"",
-						String.format("%s %d", mCurrentTraining
-								.getCurrentExercise().getExerciseType()
-								.getName(), mCurrentTraining
-								.getCurrentExercise().getCurrentSeries()
-								.getWeight()));
-			}
-		}
-	}
-
-	@Override
-	public void onSwipeRight() {
-		// TODO Auto-generated method stub
-
-	}
 }
