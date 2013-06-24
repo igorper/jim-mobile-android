@@ -8,6 +8,11 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
+import net.pernek.jim.exercisedetector.DetectorSettings;
+import net.pernek.jim.exercisedetector.database.TrainingContentProvider.TrainingPlan;
+
+import android.content.Context;
+import android.database.Cursor;
 import android.text.format.Time;
 
 /**
@@ -29,12 +34,13 @@ public class Training {
 	private List<Integer> mExercisesToDo;
 	private long mLastPauseStart;
 	/**
-	 * This one is -1} if exercise is currently not started.
+	 * This one is -1 if exercise is currently not started.
 	 */
 	private long mExerciseStart;
 	private Date mTrainingStarted;
 	private boolean mIsCurrentRest;
 
+	private DetectorSettings mStorageHandle;
 	private List<SeriesExecution> mSeriesExecutions;
 
 	public void startTraining() {
@@ -49,7 +55,7 @@ public class Training {
 			exercises.get(exerciseIndex).initializeExercise();
 		}
 	}
-
+	
 	public boolean isCurrentRest() {
 		return mExerciseStart == -1;
 	}

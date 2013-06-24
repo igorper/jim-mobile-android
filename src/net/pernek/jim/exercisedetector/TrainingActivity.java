@@ -220,6 +220,16 @@ public class TrainingActivity extends Activity implements SwipeListener {
 	}
 
 	/**
+	 * Saves current state of the training plan to permanent storage. TODO:
+	 * Currently, we serialize the whole training after each change. We could do
+	 * this a bit lighter in the future.
+	 */
+	private void saveCurrentTraining() {
+		mSettings.saveCurrentTrainingPlan(mCurrentTraining == null ? ""
+				: mGsonInstance.toJson(mCurrentTraining));
+	}
+
+	/**
 	 * This method updates the training selector text to the first training plan
 	 * in the database or to the plan corresponding with the @param
 	 * trainingPlanID. NOTE: Additionally, this method is responsible for
@@ -354,8 +364,7 @@ public class TrainingActivity extends Activity implements SwipeListener {
 
 				// also start the periodic timer to update the rest screen
 				mUiHandler.removeCallbacks(mUpdateRestTimer);
-				mUiHandler.postDelayed(mUpdateRestTimer,
-						0);
+				mUiHandler.postDelayed(mUpdateRestTimer, 0);
 			} else {
 				// otherwise show exercising UI
 				mCircularProgress
@@ -385,12 +394,15 @@ public class TrainingActivity extends Activity implements SwipeListener {
 		startActivityForResult(intent, ACTIVITY_REQUEST_TRAININGS_LIST);
 	}
 
-	/* Schedule exercise later.
+	/*
+	 * Schedule exercise later.
+	 * 
 	 * @see net.pernek.jim.exercisedetector.ui.SwipeListener#onSwipeRight()
 	 */
 	@Override
 	public void onSwipeRight() {
 		mCurrentTraining.scheduleExerciseLater();
+		saveCurrentTraining();
 		updateScreen();
 
 	}
@@ -403,6 +415,7 @@ public class TrainingActivity extends Activity implements SwipeListener {
 	@Override
 	public void onSwipeLeft() {
 		mCurrentTraining.nextExercise();
+		saveCurrentTraining();
 		updateScreen();
 	}
 
@@ -430,14 +443,9 @@ public class TrainingActivity extends Activity implements SwipeListener {
 					mCurrentTraining = mGsonInstance.fromJson(
 							jsonEncodedTraining, Training.class);
 					mCurrentTraining.startTraining();
-
-					// save to persistent storage
-					mSettings.saveCurrentTrainingPlan(mGsonInstance
-							.toJson(mCurrentTraining));
 				}
 			} else if (mCurrentTraining.getCurrentExercise() == null) {
 				mCurrentTraining = null;
-				mSettings.saveCurrentTrainingPlan("");
 			} else if (mCurrentTraining.isCurrentRest()) {
 				mCurrentTraining.startExercise();
 			} else {
@@ -446,13 +454,17 @@ public class TrainingActivity extends Activity implements SwipeListener {
 				// advance to the next activity
 				mCurrentTraining.nextActivity();
 			}
+
+			saveCurrentTraining();
+
 			updateScreen();
 		}
 	};
 
 	/**
-	 * This runnable updates the screen during the rest state.It calls itself recursively until externally stopped
-	 * or until there are no more exercises left.
+	 * This runnable updates the screen during the rest state.It calls itself
+	 * recursively until externally stopped or until there are no more exercises
+	 * left.
 	 */
 	private Runnable mUpdateRestTimer = new Runnable() {
 
@@ -464,7 +476,8 @@ public class TrainingActivity extends Activity implements SwipeListener {
 						.getRestTime();
 				int currentRestLeft = mCurrentTraining
 						.calculateCurrentRestLeft();
-				mCircularProgress.setRestProgressValue(currentRestLeft < 0 ? 0 :currentRestLeft);
+				mCircularProgress.setRestProgressValue(currentRestLeft < 0 ? 0
+						: currentRestLeft);
 				mCircularProgress.setTimer(Math.abs(currentRestLeft));
 				Log.d(TAG, String.format("Update screen: %d, %d", currentRest,
 						currentRestLeft));
