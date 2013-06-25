@@ -3,6 +3,8 @@ package net.pernek.jim.exercisedetector;
 import java.util.Currency;
 import java.util.List;
 
+import org.apache.http.entity.mime.MinimalField;
+
 import com.google.gson.Gson;
 
 import net.pernek.jim.exercisedetector.database.TrainingContentProvider.TrainingPlan;
@@ -67,6 +69,7 @@ public class TrainingActivity extends Activity implements SwipeListener {
 	private ProgressDialog mProgressDialog;
 	private TextView mTrainingSelectorText;
 	private RelativeLayout mBottomContainer;
+	private ImageView mInfoButton;
 
 	/**
 	 * Reference to JSON2Object converter.
@@ -129,6 +132,7 @@ public class TrainingActivity extends Activity implements SwipeListener {
 		mTrainingSelector = (LinearLayout) findViewById(R.id.trainingSelector);
 		mTrainingSelectorText = (TextView) findViewById(R.id.trainingSelectorText);
 		mBottomContainer = (RelativeLayout) findViewById(R.id.bottomContainer);
+		mInfoButton = (ImageView)findViewById(R.id.info_button);
 
 		updateTrainingSelector(-1);
 		initializeTrainingRatings();
@@ -197,6 +201,7 @@ public class TrainingActivity extends Activity implements SwipeListener {
 	private void setTrainingSelectorVisible(boolean visible) {
 		// the container should be visible in either case
 		mBottomContainer.setVisibility(View.VISIBLE);
+		mInfoButton.setVisibility(View.VISIBLE);
 
 		mTrainingSelector
 				.setVisibility(visible ? View.VISIBLE : View.INVISIBLE);
@@ -253,6 +258,10 @@ public class TrainingActivity extends Activity implements SwipeListener {
 					.getColumnIndex(TrainingPlan.NAME));
 			mTrainingSelectorText.setText(trainingName);
 		}
+	}
+	
+	public void onInfoButtonClick(View v){
+		
 	}
 
 	/**
@@ -344,12 +353,14 @@ public class TrainingActivity extends Activity implements SwipeListener {
 		if (mCurrentTraining == null) {
 			// no training started yet, show the start button
 			mCircularProgress.setCurrentState(CircularProgressState.START);
+			mInfoButton.setVisibility(View.INVISIBLE);
 		} else if (mCurrentTraining.getCurrentExercise() == null) {
 			// no more exercises, show the done button
 			mCircularProgress.setCurrentState(CircularProgressState.STOP);
 
 			// also hide the bottom container
 			mBottomContainer.setVisibility(View.INVISIBLE);
+			mInfoButton.setVisibility(View.INVISIBLE);
 		} else {
 			// there are still some exercises to be performed
 			if (mCurrentTraining.isCurrentRest()) {

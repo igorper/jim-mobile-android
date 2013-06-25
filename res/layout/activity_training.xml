@@ -30,11 +30,14 @@
                     android:paddingTop="@dimen/circular_button_top_padding" />
 
                 <ImageView
+                    android:id="@+id/info_button"
                     android:layout_alignParentRight="true"
                     android:padding="@dimen/info_button_padding"
                     android:layout_width="@dimen/info_button_size"
                     android:layout_height="@dimen/info_button_size"
-                    android:src="@drawable/chair_ico" />
+                    android:src="@drawable/chair_ico"
+                    android:visibility="invisible"
+                    android:onClick="onInfoButtonClick" />
             </RelativeLayout>
 
             <LinearLayout
