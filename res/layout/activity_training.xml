@@ -19,11 +19,12 @@
             <net.pernek.jim.exercisedetector.ui.CircularProgressControl
                 android:id="@+id/circularProgress"
                 android:layout_width="match_parent"
-                android:layout_height="100dp"
-                android:layout_marginLeft="20dp"
-                android:layout_marginRight="20dp"
-                android:layout_marginTop="20dp"
-                android:background="#00aa00" />
+                android:layout_height="0dp"
+                android:background="#112233"
+                android:paddingBottom="@dimen/circular_button_bottom_padding"
+                android:paddingLeft="@dimen/circular_button_side_padding"
+                android:paddingRight="@dimen/circular_button_side_padding"
+                android:paddingTop="@dimen/circular_button_top_padding" />
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -34,7 +35,7 @@
                     android:id="@+id/bottomContainer"
                     android:layout_width="match_parent"
                     android:layout_height="@dimen/status_rect_height"
-                    android:layout_gravity="center_vertical"
+                    android:layout_gravity="top"
                     android:background="@color/jim_orange" >
 
                     <LinearLayout
@@ -58,9 +59,12 @@
                             android:layout_height="0dp"
                             android:layout_weight="1" >
 
-                            <!-- It's really hard to pick the optimal triangle size and align
+                            <!--
+                            It's really hard to pick the optimal triangle size and align
                             it with the text (this should be done from scratch with low level
-                            drawing in the future -->
+                            drawing in the future
+                            -->
+
                             <LinearLayout
                                 android:layout_width="wrap_content"
                                 android:layout_height="match_parent"
@@ -76,12 +80,12 @@
                                     android:textSize="@dimen/status_rect_training_selection_font_size" />
 
                                 <ImageView
-                                    android:adjustViewBounds="true"
-                                    android:scaleType="fitCenter"
-                                    android:layout_marginLeft="10dp"
-                                    android:layout_gravity="center_vertical|left"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
+                                    android:layout_gravity="center_vertical|left"
+                                    android:layout_marginLeft="10dp"
+                                    android:adjustViewBounds="true"
+                                    android:scaleType="fitCenter"
                                     android:src="@drawable/arrow_red_down" />
                             </LinearLayout>
                         </RelativeLayout>

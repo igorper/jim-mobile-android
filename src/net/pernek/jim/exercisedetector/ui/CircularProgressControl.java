@@ -18,7 +18,8 @@ import android.widget.Toast;
 
 /**
  * A circular progress control. NOTE: At this point this button ignores the
- * padding property (this should be added in the future).
+ * padding property (this should be added in the future) and the height property
+ * (height gets set to the same values as width).
  * 
  * @author Igor
  * 
@@ -1092,18 +1093,23 @@ public class CircularProgressControl extends View {
 	 */
 	@Override
 	protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-		int width = MeasureSpec.getSize(widthMeasureSpec);
+		int radius = MeasureSpec.getSize(widthMeasureSpec) - getPaddingLeft()
+				- getPaddingRight();
 
-		setMeasuredDimension(width, width);
+		int width = MeasureSpec.getSize(widthMeasureSpec);
+		int height = radius + getPaddingTop() + getPaddingBottom();
+
+		setMeasuredDimension(width, height);
 
 		// precalculate all variables used for drawing
-		mCenterX = mCenterY = width / 2;
-		mRepetitionCounterTextY = width / 12 * 7;
-		mTimerMessageTextY = width / 4 * 3;
-		mTrainingCircleRadius = width / 2;
+		mCenterX = getPaddingLeft() + radius / 2;
+		mCenterY = getPaddingTop() + radius / 2;
+		mRepetitionCounterTextY = getPaddingTop() + radius / 12 * 7;
+		mTimerMessageTextY = getPaddingTop() + radius / 4 * 3;
+		mTrainingCircleRadius = radius / 2;
 		mExerciseCircleRadius = mTrainingCircleRadius - mProgThicknessInPx;
 		mRestCircleRadius = mExerciseCircleRadius - mProgThicknessInPx;
-		mStartOuterCircleRadius = width / 2;
+		mStartOuterCircleRadius = radius / 2;
 		mStartMiddleCircleRadius = mStartOuterCircleRadius
 				- mStartOuterThicknessInPx;
 		mStartInnerCircleRadius = mStartMiddleCircleRadius
@@ -1111,12 +1117,16 @@ public class CircularProgressControl extends View {
 		mStartCenterCircleRadius = mStartInnerCircleRadius
 				- mStartInnerThicknessInPx;
 
-		mTrainingCircleOval = new RectF(0, 0, width, width);
-		mExerciseCircleOval = new RectF(mProgThicknessInPx, mProgThicknessInPx,
-				width - mProgThicknessInPx, width - mProgThicknessInPx);
-		mRestCircleOval = new RectF(2 * mProgThicknessInPx,
-				2 * mProgThicknessInPx, width - 2 * mProgThicknessInPx, width
-						- 2 * mProgThicknessInPx);
+		mTrainingCircleOval = new RectF(getPaddingLeft(), getPaddingTop(),
+				getPaddingLeft() + radius, getPaddingTop() + radius);
+		mExerciseCircleOval = new RectF(getPaddingLeft() + mProgThicknessInPx,
+				getPaddingTop() + mProgThicknessInPx, getPaddingLeft() + radius
+						- mProgThicknessInPx, getPaddingTop() + radius
+						- mProgThicknessInPx);
+		mRestCircleOval = new RectF(getPaddingLeft() + 2 * mProgThicknessInPx,
+				getPaddingTop() + 2 * mProgThicknessInPx, getPaddingLeft()
+						+ radius - 2 * mProgThicknessInPx, getPaddingTop()
+						+ radius - 2 * mProgThicknessInPx);
 	}
 
 	/**
@@ -1127,7 +1137,7 @@ public class CircularProgressControl extends View {
 	@Override
 	protected void onDraw(Canvas canvas) {
 		super.onDraw(canvas);
-
+		
 		if (mCurrentState == null) {
 			Log.d(TAG, "Current state not set yet.");
 			return;
