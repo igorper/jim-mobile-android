@@ -108,6 +108,11 @@ public class CircularProgressControl extends View {
 	private static final int TIMER_MESSAGE_TEXT_COLOR = 0xFFE1563E;
 
 	/**
+	 * Info button text color.
+	 */
+	private static final int INFO_BUTTON_TEXT_COLOR = 0xFFFFFFFF;
+
+	/**
 	 * Dash color in the overview screen.
 	 */
 	private static final int OVERVIEW_DASH_COLOR = 0xFFE1563E;
@@ -138,6 +143,11 @@ public class CircularProgressControl extends View {
 	private static final int START_THIN_TEXT_COLOR = 0xFFFFFFFF;
 
 	/**
+	 * Info button background color.
+	 */
+	private static final int INFO_BUTTON_BG_COLOR = 0xF20080d0;
+
+	/**
 	 * Thickness of training and exercise progress bars in dp.
 	 */
 	private static final int PROG_THICK_IN_DIP = 10;
@@ -156,6 +166,16 @@ public class CircularProgressControl extends View {
 	 * Thickness of start buttons's inner border in dp.
 	 */
 	private static final int START_PROG_IN_THICK_IN_DIP = 6;
+
+	/**
+	 * Info button large text size in dp.
+	 */
+	private static final int INFO_BUTTON_LARGE_TEXT_SIZE_IN_DIP = 40;
+
+	/**
+	 * Info button small text size in dp.
+	 */
+	private static final int INFO_BUTTON_SMALL_TEXT_SIZE_IN_DIP = 20;
 
 	/**
 	 * Start and stop button strong text size in dp.
@@ -216,6 +236,21 @@ public class CircularProgressControl extends View {
 	 * Overview state dashed line part length in dp.
 	 */
 	private static final int OVERVIEW_DASH_PART_LEN_IN_DIP = 5;
+
+	/**
+	 * Info button background paint.
+	 */
+	private Paint mInfoButtonBackgroundPaint;
+
+	/**
+	 * Info button large text paint.
+	 */
+	private Paint mInfoButtonLargeTextPaint;
+
+	/**
+	 * Info button small text paint.
+	 */
+	private Paint mInfoButtonSmallTextPaint;
 
 	/**
 	 * Training progress bar background paint.
@@ -493,6 +528,9 @@ public class CircularProgressControl extends View {
 	 * Precalculated start button inner border thickness in px.
 	 */
 	private float mStartInnerThicknessInPx;
+	
+	private float mChairTextY;
+	private float mChairTapY;
 
 	/*
 	 * END PRECALCULATED VALUES FOR FAST DRAWING.
@@ -514,6 +552,8 @@ public class CircularProgressControl extends View {
 
 	private Typeface mFinenessRegularTypeface;
 
+	private Typeface mOpenSansRegular;
+
 	private String mStartButtonStrongText = "PUSH";
 
 	private String mStartButtonThinText = "TO START";
@@ -531,6 +571,21 @@ public class CircularProgressControl extends View {
 	private int mNumberActive = 70;
 
 	private int mNumberTotal = 120;
+
+	private String mInfoChairLevel = "5";
+
+	private boolean mIsInfoVisible = true;
+
+	public boolean isInfoVisible() {
+		return mIsInfoVisible;
+	}
+
+	public void setInfoVisible(boolean value) {
+		if (mIsInfoVisible != value) {
+			mIsInfoVisible = value;
+			invalidate();
+		}
+	}
 
 	/**
 	 * Contains the numerical timer value.
@@ -938,11 +993,15 @@ public class CircularProgressControl extends View {
 				.getAssets(), "fonts/Cooper Black.ttf");
 		mHaginCapsThinTypeface = Typeface.createFromAsset(getContext()
 				.getAssets(), "fonts/Hagin Caps Thin.ttf");
-
 		mFinenessRegularTypeface = Typeface.createFromAsset(getContext()
 				.getAssets(), "fonts/FinenessRegular.ttf");
+		mOpenSansRegular = Typeface.createFromAsset(getContext().getAssets(),
+				"fonts/OpenSans-Regular.ttf");
 
 		// exercise state variables
+		mInfoButtonBackgroundPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+		mInfoButtonBackgroundPaint.setColor(INFO_BUTTON_BG_COLOR);
+
 		mTrainingProgressBackgroundPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 		mTrainingProgressBackgroundPaint.setColor(TRAIN_PROG_BG_COLOR);
 
@@ -980,6 +1039,22 @@ public class CircularProgressControl extends View {
 
 		mStartProgressInnerPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 		mStartProgressInnerPaint.setColor(START_PROG_IN_COLOR);
+
+		mInfoButtonLargeTextPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+		mInfoButtonLargeTextPaint.setColor(INFO_BUTTON_TEXT_COLOR);
+		mInfoButtonLargeTextPaint.setTextSize(TypedValue.applyDimension(
+				TypedValue.COMPLEX_UNIT_DIP,
+				INFO_BUTTON_LARGE_TEXT_SIZE_IN_DIP, getResources()
+						.getDisplayMetrics()));
+		mInfoButtonLargeTextPaint.setTypeface(mOpenSansRegular);
+		
+		mInfoButtonSmallTextPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+		mInfoButtonSmallTextPaint.setColor(INFO_BUTTON_TEXT_COLOR);
+		mInfoButtonSmallTextPaint.setTextSize(TypedValue.applyDimension(
+				TypedValue.COMPLEX_UNIT_DIP,
+				INFO_BUTTON_LARGE_TEXT_SIZE_IN_DIP, getResources()
+						.getDisplayMetrics()));
+		mInfoButtonSmallTextPaint.setTypeface(mOpenSansRegular);
 
 		mStartButtonStrongTextPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 		mStartButtonStrongTextPaint.setColor(START_STRONG_TEXT_COLOR);
@@ -1106,6 +1181,9 @@ public class CircularProgressControl extends View {
 		mCenterY = getPaddingTop() + radius / 2;
 		mRepetitionCounterTextY = getPaddingTop() + radius / 12 * 7;
 		mTimerMessageTextY = getPaddingTop() + radius / 4 * 3;
+		mChairTextY = getPaddingTop() + radius / 4;
+		mChairTapY = getPaddingTop() + radius / 4 * 3;
+
 		mTrainingCircleRadius = radius / 2;
 		mExerciseCircleRadius = mTrainingCircleRadius - mProgThicknessInPx;
 		mRestCircleRadius = mExerciseCircleRadius - mProgThicknessInPx;
@@ -1137,7 +1215,7 @@ public class CircularProgressControl extends View {
 	@Override
 	protected void onDraw(Canvas canvas) {
 		super.onDraw(canvas);
-		
+
 		if (mCurrentState == null) {
 			Log.d(TAG, "Current state not set yet.");
 			return;
@@ -1345,6 +1423,33 @@ public class CircularProgressControl extends View {
 		default:
 			canvas.drawText("State not set!", mCenterX, mCenterY,
 					mRestProgressForegroundPaint);
+		}
+
+		// overlay the info button
+		if (mIsInfoVisible) {
+			canvas.drawCircle(mCenterX, mCenterY, mTrainingCircleRadius,
+					mInfoButtonBackgroundPaint);
+
+			String staticChairText = "Chair";
+			String staticChairLevel = "level: ";
+
+			float chairLength = mInfoButtonLargeTextPaint
+					.measureText(staticChairText);
+
+			canvas.drawText(staticChairText, mCenterX - chairLength / 2,
+					mChairTextY, mInfoButtonLargeTextPaint);
+
+			float chairLevelY = mChairTextY
+					- mInfoButtonLargeTextPaint.ascent()
+					+ mInfoButtonLargeTextPaint.descent();
+
+			float chairLevelX = mCenterX - (mInfoButtonLargeTextPaint
+					.measureText(staticChairLevel)
+					+ mInfoButtonLargeTextPaint
+							.measureText(mInfoChairLevel)) / 2;
+			
+			canvas.drawText(staticChairLevel + mInfoChairLevel, chairLevelX,
+					chairLevelY, mInfoButtonLargeTextPaint);
 		}
 	}
 
