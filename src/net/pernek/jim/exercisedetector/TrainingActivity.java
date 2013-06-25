@@ -94,6 +94,11 @@ public class TrainingActivity extends Activity implements SwipeListener {
 	private int mTrainingRatingSelectedID = -1;
 
 	/**
+	 * Used to show the appropriate info button state and circular button style.
+	 */
+	private boolean mIsInfoVisible = false;
+
+	/**
 	 * Contains IDs of training rating images in non-selected (non-clicked)
 	 * state.
 	 */
@@ -132,7 +137,7 @@ public class TrainingActivity extends Activity implements SwipeListener {
 		mTrainingSelector = (LinearLayout) findViewById(R.id.trainingSelector);
 		mTrainingSelectorText = (TextView) findViewById(R.id.trainingSelectorText);
 		mBottomContainer = (RelativeLayout) findViewById(R.id.bottomContainer);
-		mInfoButton = (ImageView)findViewById(R.id.info_button);
+		mInfoButton = (ImageView) findViewById(R.id.info_button);
 
 		updateTrainingSelector(-1);
 		initializeTrainingRatings();
@@ -259,9 +264,13 @@ public class TrainingActivity extends Activity implements SwipeListener {
 			mTrainingSelectorText.setText(trainingName);
 		}
 	}
-	
-	public void onInfoButtonClick(View v){
-		
+
+	public void onInfoButtonClick(View v) {
+		mIsInfoVisible = !mIsInfoVisible;
+
+		mInfoButton
+				.setImageResource(mIsInfoVisible ? R.drawable.chair_ico_selected
+						: R.drawable.chair_ico);
 	}
 
 	/**
