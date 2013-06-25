@@ -8,6 +8,7 @@ import android.graphics.Paint;
 import android.graphics.RectF;
 import android.graphics.Typeface;
 import android.graphics.Paint.Style;
+import android.net.NetworkInfo.State;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.util.TypedValue;
@@ -528,7 +529,7 @@ public class CircularProgressControl extends View {
 	 * Precalculated start button inner border thickness in px.
 	 */
 	private float mStartInnerThicknessInPx;
-	
+
 	private float mChairTextY;
 	private float mChairTapY;
 
@@ -574,7 +575,7 @@ public class CircularProgressControl extends View {
 
 	private String mInfoChairLevel = "5";
 
-	private boolean mIsInfoVisible = true;
+	private boolean mIsInfoVisible = false;
 
 	public boolean isInfoVisible() {
 		return mIsInfoVisible;
@@ -1047,12 +1048,12 @@ public class CircularProgressControl extends View {
 				INFO_BUTTON_LARGE_TEXT_SIZE_IN_DIP, getResources()
 						.getDisplayMetrics()));
 		mInfoButtonLargeTextPaint.setTypeface(mOpenSansRegular);
-		
+
 		mInfoButtonSmallTextPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 		mInfoButtonSmallTextPaint.setColor(INFO_BUTTON_TEXT_COLOR);
 		mInfoButtonSmallTextPaint.setTextSize(TypedValue.applyDimension(
 				TypedValue.COMPLEX_UNIT_DIP,
-				INFO_BUTTON_LARGE_TEXT_SIZE_IN_DIP, getResources()
+				INFO_BUTTON_SMALL_TEXT_SIZE_IN_DIP, getResources()
 						.getDisplayMetrics()));
 		mInfoButtonSmallTextPaint.setTypeface(mOpenSansRegular);
 
@@ -1432,6 +1433,7 @@ public class CircularProgressControl extends View {
 
 			String staticChairText = "Chair";
 			String staticChairLevel = "level: ";
+			String staticTap = "tap to close";
 
 			float chairLength = mInfoButtonLargeTextPaint
 					.measureText(staticChairText);
@@ -1443,13 +1445,15 @@ public class CircularProgressControl extends View {
 					- mInfoButtonLargeTextPaint.ascent()
 					+ mInfoButtonLargeTextPaint.descent();
 
-			float chairLevelX = mCenterX - (mInfoButtonLargeTextPaint
-					.measureText(staticChairLevel)
-					+ mInfoButtonLargeTextPaint
+			float chairLevelX = mCenterX
+					- (mInfoButtonLargeTextPaint.measureText(staticChairLevel) + mInfoButtonLargeTextPaint
 							.measureText(mInfoChairLevel)) / 2;
-			
+
 			canvas.drawText(staticChairLevel + mInfoChairLevel, chairLevelX,
 					chairLevelY, mInfoButtonLargeTextPaint);
+
+			float tapLength = mInfoButtonSmallTextPaint.measureText(staticTap);
+			canvas.drawText(staticTap, mCenterX - tapLength / 2, mChairTapY, mInfoButtonSmallTextPaint);
 		}
 	}
 

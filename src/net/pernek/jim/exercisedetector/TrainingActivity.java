@@ -96,7 +96,7 @@ public class TrainingActivity extends Activity implements SwipeListener {
 	/**
 	 * Used to show the appropriate info button state and circular button style.
 	 */
-	private boolean mIsInfoVisible = false;
+	//private boolean mIsInfoVisible = false;
 
 	/**
 	 * Contains IDs of training rating images in non-selected (non-clicked)
@@ -266,10 +266,14 @@ public class TrainingActivity extends Activity implements SwipeListener {
 	}
 
 	public void onInfoButtonClick(View v) {
-		mIsInfoVisible = !mIsInfoVisible;
+		toggleInfoButtonVisible(!mCircularProgress.isInfoVisible());
+	}
+	
+	private void toggleInfoButtonVisible(boolean visible){
+		mCircularProgress.setInfoVisible(visible);
 
 		mInfoButton
-				.setImageResource(mIsInfoVisible ? R.drawable.chair_ico_selected
+				.setImageResource(visible ? R.drawable.chair_ico_selected
 						: R.drawable.chair_ico);
 	}
 
@@ -423,6 +427,7 @@ public class TrainingActivity extends Activity implements SwipeListener {
 	public void onSwipeRight() {
 		mCurrentTraining.scheduleExerciseLater();
 		saveCurrentTraining();
+		toggleInfoButtonVisible(false);
 		updateScreen();
 
 	}
@@ -434,8 +439,10 @@ public class TrainingActivity extends Activity implements SwipeListener {
 	 */
 	@Override
 	public void onSwipeLeft() {
+		// TODO: swipe behavior is not correct when we are in the exercise state.
 		mCurrentTraining.nextExercise();
 		saveCurrentTraining();
+		toggleInfoButtonVisible(false);
 		updateScreen();
 	}
 
@@ -447,7 +454,10 @@ public class TrainingActivity extends Activity implements SwipeListener {
 
 		@Override
 		public void onClick(View v) {
-			if (mCurrentTraining == null) {
+			if (mCircularProgress.isInfoVisible()) {
+				// if info button is visible close it on tap
+				toggleInfoButtonVisible(false);
+			} else if (mCurrentTraining == null) {
 				// start button was clicked
 				String[] projection = { TrainingPlan._ID, TrainingPlan.DATA };
 				String selection = String.format("%s == %d", TrainingPlan._ID,
