@@ -104,6 +104,8 @@ public class Training {
 		currentSeriesExecution.num_repetitions = currentSeries
 				.getNumberRepetitions();
 		currentSeriesExecution.weight = currentSeries.getWeight();
+		
+		mSeriesExecutions.add(currentSeriesExecution);
 
 		// start new rest
 		mLastPauseStart = System.currentTimeMillis();
@@ -152,5 +154,23 @@ public class Training {
 		if (current != null && !current.moveToNextSeries()) {
 			mExercisesToDo.remove(0);
 		}
+	}
+	
+	public int getTotalSeriesCount(){
+		int retVal = 0;
+		for (Exercise ex : exercises) {
+			retVal += ex.getAllSeriesCount();
+		}
+		
+		return retVal;
+	}
+	
+	public int getSeriesPerformedCount(){
+		int retVal = getTotalSeriesCount();
+		for (int i = 0; i < mExercisesToDo.size(); i++) {
+			retVal -= exercises.get(mExercisesToDo.get(i)).getSeriesLeftCount();
+		}
+		
+		return retVal;
 	}
 }

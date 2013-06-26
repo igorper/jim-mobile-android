@@ -28,9 +28,18 @@ public class Exercise {
 		return exercise_type;
 	}
 	
-	public List<Series> getSeries(){
-		return Collections.unmodifiableList(series);
+	public int getAllSeriesCount(){
+		return series.size();
 	}
+	
+	public int getSeriesLeftCount(){
+		return mSeriesToDo.size();
+	}
+	
+//	
+//	public List<Series> getSeries(){
+//		return Collections.unmodifiableList(series);
+//	}
 	
 	public void initializeExercise(){
 		mSeriesToDo = new ArrayList<Integer>();

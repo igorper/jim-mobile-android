@@ -1,20 +1,13 @@
 package net.pernek.jim.exercisedetector;
 
-import java.util.Currency;
-import java.util.List;
-
-import org.apache.http.entity.mime.MinimalField;
-
-import com.google.gson.Gson;
-
 import net.pernek.jim.exercisedetector.database.TrainingContentProvider.TrainingPlan;
 import net.pernek.jim.exercisedetector.entities.Exercise;
 import net.pernek.jim.exercisedetector.entities.Series;
 import net.pernek.jim.exercisedetector.entities.Training;
 import net.pernek.jim.exercisedetector.ui.CircularProgressControl;
+import net.pernek.jim.exercisedetector.ui.CircularProgressControl.CircularProgressState;
 import net.pernek.jim.exercisedetector.ui.SwipeControl;
 import net.pernek.jim.exercisedetector.ui.SwipeListener;
-import net.pernek.jim.exercisedetector.ui.CircularProgressControl.CircularProgressState;
 import net.pernek.jim.exercisedetector.util.Utils;
 import android.app.Activity;
 import android.app.ProgressDialog;
@@ -30,13 +23,13 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.View.OnLongClickListener;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 import android.widget.ViewFlipper;
+
+import com.google.gson.Gson;
 
 public class TrainingActivity extends Activity implements SwipeListener {
 
@@ -99,7 +92,7 @@ public class TrainingActivity extends Activity implements SwipeListener {
 	/**
 	 * Used to show the appropriate info button state and circular button style.
 	 */
-	//private boolean mIsInfoVisible = false;
+	// private boolean mIsInfoVisible = false;
 
 	/**
 	 * Contains IDs of training rating images in non-selected (non-clicked)
@@ -141,8 +134,8 @@ public class TrainingActivity extends Activity implements SwipeListener {
 		mTrainingSelectorText = (TextView) findViewById(R.id.trainingSelectorText);
 		mBottomContainer = (RelativeLayout) findViewById(R.id.bottomContainer);
 		mInfoButton = (ImageView) findViewById(R.id.info_button);
-		mSeriesInformation = (LinearLayout)findViewById(R.id.seriesInformation);
-		mSeriesInfoText = (TextView)findViewById(R.id.nextSeriesText);
+		mSeriesInformation = (LinearLayout) findViewById(R.id.seriesInformation);
+		mSeriesInfoText = (TextView) findViewById(R.id.nextSeriesText);
 
 		updateTrainingSelector(-1);
 		initializeTrainingRatings();
@@ -273,13 +266,12 @@ public class TrainingActivity extends Activity implements SwipeListener {
 	public void onInfoButtonClick(View v) {
 		toggleInfoButtonVisible(!mCircularProgress.isInfoVisible());
 	}
-	
-	private void toggleInfoButtonVisible(boolean visible){
+
+	private void toggleInfoButtonVisible(boolean visible) {
 		mCircularProgress.setInfoVisible(visible);
 
-		mInfoButton
-				.setImageResource(visible ? R.drawable.chair_ico_selected
-						: R.drawable.chair_ico);
+		mInfoButton.setImageResource(visible ? R.drawable.chair_ico_selected
+				: R.drawable.chair_ico);
 	}
 
 	/**
@@ -382,18 +374,24 @@ public class TrainingActivity extends Activity implements SwipeListener {
 			mInfoButton.setVisibility(View.INVISIBLE);
 			mSeriesInformation.setVisibility(View.INVISIBLE);
 		} else {
+			Exercise curExercise = mCurrentTraining.getCurrentExercise();
 			// there are still some exercises to be performed
 			if (mCurrentTraining.isCurrentRest()) {
-				Exercise curExercise = mCurrentTraining.getCurrentExercise();
-				Series curSeries = curExercise.getCurrentSeries(); 
+				Series curSeries = curExercise.getCurrentSeries();
 				// if at rest show rest UI
 				int currentRest = curSeries.getRestTime();
 				mCircularProgress.setRestMaxProgress(currentRest);
 				mCircularProgress.setRestMinProgress(0);
-				mCircularProgress.setCurrentState(CircularProgressState.REST);
-				mSwipeControl.setCenterText("Next: ", curExercise.getExerciseType().getName());
-				mSeriesInfoText.setText(String.format("Series %d (%d reps, %d kg)", curExercise.getCurrentSeriesNumber(), curSeries.getNumberRepetitions(), curSeries.getWeight()));
 				
+				mCircularProgress.setCurrentState(CircularProgressState.REST);
+				mSwipeControl.setCenterText("Next: ", curExercise
+						.getExerciseType().getName());
+				mSeriesInfoText
+						.setText(String.format("Series %d (%d reps, %d kg)",
+								curExercise.getCurrentSeriesNumber(),
+								curSeries.getNumberRepetitions(),
+								curSeries.getWeight()));
+
 				mSeriesInformation.setVisibility(View.VISIBLE);
 
 				// also start the periodic timer to update the rest screen
@@ -410,12 +408,21 @@ public class TrainingActivity extends Activity implements SwipeListener {
 								.getName(), mCurrentTraining
 								.getCurrentExercise().getCurrentSeries()
 								.getWeight()));
-				
+
 				mSeriesInformation.setVisibility(View.INVISIBLE);
 
 				// remove any periodic rest timers
 				mUiHandler.removeCallbacks(mUpdateRestTimer);
 			}
+			
+			// set exercise and training progres bars
+			mCircularProgress.setTrainingMaxProgress(mCurrentTraining.getTotalSeriesCount());
+			mCircularProgress.setTrainingMinProgress(0);
+			mCircularProgress.setTrainingProgressValue(mCurrentTraining.getSeriesPerformedCount());
+			
+			mCircularProgress.setExerciseMaxProgress(curExercise.getAllSeriesCount());
+			mCircularProgress.setExerciseMinProgress(0);
+			mCircularProgress.setExerciseProgressValue(curExercise.getAllSeriesCount() - curExercise.getSeriesLeftCount());
 		}
 	}
 
@@ -431,16 +438,17 @@ public class TrainingActivity extends Activity implements SwipeListener {
 	}
 
 	/*
-	 * Schedule exercise later. Ends the current exercise if in the middle of exercising.
+	 * Schedule exercise later. Ends the current exercise if in the middle of
+	 * exercising.
 	 * 
 	 * @see net.pernek.jim.exercisedetector.ui.SwipeListener#onSwipeRight()
 	 */
 	@Override
 	public void onSwipeRight() {
-		if(!mCurrentTraining.isCurrentRest()){
+		if (!mCurrentTraining.isCurrentRest()) {
 			mCurrentTraining.endExercise();
 		}
-		
+
 		mCurrentTraining.scheduleExerciseLater();
 		saveCurrentTraining();
 		toggleInfoButtonVisible(false);
@@ -455,10 +463,10 @@ public class TrainingActivity extends Activity implements SwipeListener {
 	 */
 	@Override
 	public void onSwipeLeft() {
-		if(!mCurrentTraining.isCurrentRest()){
+		if (!mCurrentTraining.isCurrentRest()) {
 			mCurrentTraining.endExercise();
 		}
-		
+
 		mCurrentTraining.nextExercise();
 		saveCurrentTraining();
 		toggleInfoButtonVisible(false);
