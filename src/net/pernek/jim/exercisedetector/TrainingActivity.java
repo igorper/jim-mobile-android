@@ -419,12 +419,16 @@ public class TrainingActivity extends Activity implements SwipeListener {
 	}
 
 	/*
-	 * Schedule exercise later.
+	 * Schedule exercise later. Ends the current exercise if in the middle of exercising.
 	 * 
 	 * @see net.pernek.jim.exercisedetector.ui.SwipeListener#onSwipeRight()
 	 */
 	@Override
 	public void onSwipeRight() {
+		if(!mCurrentTraining.isCurrentRest()){
+			mCurrentTraining.endExercise();
+		}
+		
 		mCurrentTraining.scheduleExerciseLater();
 		saveCurrentTraining();
 		toggleInfoButtonVisible(false);
@@ -433,13 +437,16 @@ public class TrainingActivity extends Activity implements SwipeListener {
 	}
 
 	/*
-	 * Skip exercise.
+	 * Skip exercise. Ends the current exercise if in the middle of exercising.
 	 * 
 	 * @see net.pernek.jim.exercisedetector.ui.SwipeListener#onSwipeLeft()
 	 */
 	@Override
 	public void onSwipeLeft() {
-		// TODO: swipe behavior is not correct when we are in the exercise state.
+		if(!mCurrentTraining.isCurrentRest()){
+			mCurrentTraining.endExercise();
+		}
+		
 		mCurrentTraining.nextExercise();
 		saveCurrentTraining();
 		toggleInfoButtonVisible(false);
