@@ -38,7 +38,11 @@ public class Training {
 	 */
 	private long mExerciseStart;
 	private Date mTrainingStarted;
+	private Date mTrainingEnded;
 	private boolean mIsCurrentRest;
+	private int mTrainingRating;
+	private String mTrainingComment;
+	private boolean mOverviewDissmised;
 
 	private DetectorSettings mStorageHandle;
 	private List<SeriesExecution> mSeriesExecutions;
@@ -49,6 +53,7 @@ public class Training {
 		mTrainingStarted = Calendar.getInstance().getTime();
 		mLastPauseStart = System.currentTimeMillis();
 		mExerciseStart = -1;
+		mTrainingRating = -1;
 
 		for (int exerciseIndex = 0; exerciseIndex < exercises.size(); exerciseIndex++) {
 			mExercisesToDo.add(exerciseIndex);
@@ -172,5 +177,37 @@ public class Training {
 		}
 		
 		return retVal;
+	}
+	
+	public int getTrainingRating(){
+		return mTrainingRating;
+	}
+	
+	public void setTrainingRating(int value){
+		mTrainingRating = value;
+	}
+	
+	public void endTraining(){
+		mTrainingEnded = Calendar.getInstance().getTime();
+	}
+	
+	public boolean isTrainingEnded(){
+		return mTrainingEnded != null;
+	}
+	
+	public void setTrainingComment(String text){
+		mTrainingComment = text;
+	}
+	
+	public String getTrainingComment(){
+		return mTrainingComment;
+	}
+	
+	public boolean isOverviewDissmised(){
+		return mOverviewDissmised;
+	}
+	
+	public void setOverviewDissmised(boolean value){
+		mOverviewDissmised = value;
 	}
 }

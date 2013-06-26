@@ -210,6 +210,7 @@
             </LinearLayout>
 
             <EditText
+                android:id="@+id/textTrainingComment"
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_margin="@dimen/finnish_button_padding"
@@ -218,7 +219,7 @@
                 android:gravity="top"
                 android:inputType="textShortMessage"
                 android:padding="@dimen/finnish_button_padding"
-                android:text="comment ..."
+                android:hint="comment ..."
                 android:textColor="@color/training_comment_text"
                 android:textSize="@dimen/training_comment_text_size" />
 
@@ -230,7 +231,8 @@
                 android:padding="@dimen/finnish_button_padding"
                 android:text="Finish"
                 android:textColor="@drawable/blue_button_text"
-                android:textSize="@dimen/finnish_button_text_size" />
+                android:textSize="@dimen/finnish_button_text_size"
+                android:onClick="onFinishClick" />
         </LinearLayout>
     </ViewFlipper>
 

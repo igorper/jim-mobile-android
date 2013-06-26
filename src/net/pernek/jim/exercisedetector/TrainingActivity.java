@@ -27,6 +27,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 import android.widget.ViewFlipper;
 
 import com.google.gson.Gson;
@@ -66,6 +67,7 @@ public class TrainingActivity extends Activity implements SwipeListener {
 	private ImageView mInfoButton;
 	private LinearLayout mSeriesInformation;
 	private TextView mSeriesInfoText;
+	private TextView mTrainingCommentText;
 
 	/**
 	 * Reference to JSON2Object converter.
@@ -136,7 +138,8 @@ public class TrainingActivity extends Activity implements SwipeListener {
 		mInfoButton = (ImageView) findViewById(R.id.info_button);
 		mSeriesInformation = (LinearLayout) findViewById(R.id.seriesInformation);
 		mSeriesInfoText = (TextView) findViewById(R.id.nextSeriesText);
-
+		mTrainingCommentText = (TextView)findViewById(R.id.textTrainingComment);
+		
 		updateTrainingSelector(-1);
 		initializeTrainingRatings();
 		loadCurrentTraining();
@@ -262,16 +265,30 @@ public class TrainingActivity extends Activity implements SwipeListener {
 			mTrainingSelectorText.setText(trainingName);
 		}
 	}
-
-	public void onInfoButtonClick(View v) {
-		toggleInfoButtonVisible(!mCircularProgress.isInfoVisible());
-	}
-
+	
 	private void toggleInfoButtonVisible(boolean visible) {
 		mCircularProgress.setInfoVisible(visible);
 
 		mInfoButton.setImageResource(visible ? R.drawable.chair_ico_selected
 				: R.drawable.chair_ico);
+	}
+
+	public void onInfoButtonClick(View v) {
+		toggleInfoButtonVisible(!mCircularProgress.isInfoVisible());
+	}
+	
+	public void onFinishClick(View v){
+		if(mTrainingRatingSelectedID == -1){
+			Toast.makeText(getApplicationContext(), "You should rate the training.", Toast.LENGTH_SHORT).show();
+		} else {
+			mCurrentTraining.setTrainingRating(mTrainingRatingSelectedID);
+			mCurrentTraining.setTrainingComment(mTrainingCommentText.getText().toString());
+			
+			saveCurrentTraining();
+			
+			updateScreen();
+			mViewFlipper.showPrevious();
+		}
 	}
 
 	/**
@@ -366,9 +383,18 @@ public class TrainingActivity extends Activity implements SwipeListener {
 			mInfoButton.setVisibility(View.INVISIBLE);
 			mSeriesInformation.setVisibility(View.INVISIBLE);
 		} else if (mCurrentTraining.getCurrentExercise() == null) {
-			// no more exercises, show the done button
-			mCircularProgress.setCurrentState(CircularProgressState.STOP);
+			if(!mCurrentTraining.isTrainingEnded()){
+				// no more exercises, show the done button
+				mCircularProgress.setCurrentState(CircularProgressState.STOP);
 
+			} else if(mCurrentTraining.getTrainingRating() == -1){
+				// show training rating screen
+				mViewFlipper.showNext();
+			} else if(!mCurrentTraining.isOverviewDissmised()){
+				// show overview
+				mCircularProgress.setCurrentState(CircularProgressState.OVERVIEW);
+			}
+			
 			// also hide the bottom container
 			mBottomContainer.setVisibility(View.INVISIBLE);
 			mInfoButton.setVisibility(View.INVISIBLE);
@@ -453,7 +479,6 @@ public class TrainingActivity extends Activity implements SwipeListener {
 		saveCurrentTraining();
 		toggleInfoButtonVisible(false);
 		updateScreen();
-
 	}
 
 	/*
@@ -502,7 +527,12 @@ public class TrainingActivity extends Activity implements SwipeListener {
 					mCurrentTraining.startTraining();
 				}
 			} else if (mCurrentTraining.getCurrentExercise() == null) {
-				mCurrentTraining = null;
+				if(!mCurrentTraining.isTrainingEnded()){
+					mCurrentTraining.endTraining();
+				} else if (!mCurrentTraining.isOverviewDissmised()){
+					mCurrentTraining = null;
+				}
+				
 			} else if (mCurrentTraining.isCurrentRest()) {
 				mCurrentTraining.startExercise();
 			} else {
