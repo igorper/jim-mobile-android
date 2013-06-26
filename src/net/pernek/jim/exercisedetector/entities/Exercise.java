@@ -56,4 +56,8 @@ public class Exercise {
 		
 		return mSeriesToDo.size() > 0;
 	}
+	
+	public int getCurrentSeriesNumber(){
+		return mSeriesToDo.get(0) + 1;
+	}
 }

@@ -31,13 +31,13 @@
 
                 <ImageView
                     android:id="@+id/info_button"
-                    android:layout_alignParentRight="true"
-                    android:padding="@dimen/info_button_padding"
                     android:layout_width="@dimen/info_button_size"
                     android:layout_height="@dimen/info_button_size"
+                    android:layout_alignParentRight="true"
+                    android:onClick="onInfoButtonClick"
+                    android:padding="@dimen/info_button_padding"
                     android:src="@drawable/chair_ico"
-                    android:visibility="invisible"
-                    android:onClick="onInfoButtonClick" />
+                    android:visibility="invisible" />
             </RelativeLayout>
 
             <LinearLayout
@@ -45,78 +45,108 @@
                 android:layout_height="0dp"
                 android:layout_weight="1" >
 
-                <RelativeLayout
-                    android:id="@+id/bottomContainer"
+                <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="@dimen/status_rect_height"
-                    android:layout_gravity="top"
-                    android:background="@color/jim_orange" >
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:orientation="vertical" >
 
-                    <LinearLayout
-                        android:id="@+id/trainingSelector"
+                    <RelativeLayout
+                        android:id="@+id/bottomContainer"
                         android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:onClick="onSelectTrainingClick"
-                        android:orientation="vertical" >
+                        android:layout_height="@dimen/status_rect_height"
+                        android:layout_gravity="center"
+                        android:background="@color/jim_orange" >
 
-                        <TextView
+                        <LinearLayout
+                            android:id="@+id/trainingSelector"
                             android:layout_width="match_parent"
-                            android:layout_height="0dp"
-                            android:layout_weight="1"
-                            android:gravity="center"
-                            android:text="Workout selected:"
-                            android:textColor="@color/jim_black"
-                            android:textSize="@dimen/status_rect_training_selection_font_size" />
+                            android:layout_height="match_parent"
+                            android:onClick="onSelectTrainingClick"
+                            android:orientation="vertical" >
 
-                        <RelativeLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="0dp"
-                            android:layout_weight="1" >
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="0dp"
+                                android:layout_weight="1"
+                                android:gravity="center"
+                                android:text="Workout selected:"
+                                android:textColor="@color/jim_black"
+                                android:textSize="@dimen/status_rect_training_selection_font_size" />
 
-                            <!--
-                            It's really hard to pick the optimal triangle size and align
-                            it with the text (this should be done from scratch with low level
-                            drawing in the future
-                            -->
+                            <RelativeLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="0dp"
+                                android:layout_weight="1" >
 
-                            <LinearLayout
-                                android:layout_width="wrap_content"
-                                android:layout_height="match_parent"
-                                android:layout_centerInParent="true" >
+                                <!-- It's really hard to pick the optimal triangle size and align it with the text (this should be done from scratch with low level drawing in the future -->
 
-                                <TextView
-                                    android:id="@+id/trainingSelectorText"
+                                <LinearLayout
                                     android:layout_width="wrap_content"
                                     android:layout_height="match_parent"
-                                    android:layout_gravity="center_vertical"
-                                    android:gravity="center_vertical"
-                                    android:textColor="@color/jim_red"
-                                    android:textSize="@dimen/status_rect_training_selection_font_size" />
+                                    android:layout_centerInParent="true" >
 
-                                <ImageView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:layout_gravity="center_vertical|left"
-                                    android:layout_marginLeft="10dp"
-                                    android:adjustViewBounds="true"
-                                    android:scaleType="fitCenter"
-                                    android:src="@drawable/arrow_red_down" />
-                            </LinearLayout>
-                        </RelativeLayout>
+                                    <TextView
+                                        android:id="@+id/trainingSelectorText"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="match_parent"
+                                        android:layout_gravity="center_vertical"
+                                        android:gravity="center_vertical"
+                                        android:textColor="@color/jim_red"
+                                        android:textSize="@dimen/status_rect_training_selection_font_size" />
+
+                                    <ImageView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:layout_gravity="center_vertical|left"
+                                        android:layout_marginLeft="10dp"
+                                        android:adjustViewBounds="true"
+                                        android:scaleType="fitCenter"
+                                        android:src="@drawable/arrow_red_down" />
+                                </LinearLayout>
+                            </RelativeLayout>
+                        </LinearLayout>
+
+                        <net.pernek.jim.exercisedetector.ui.SwipeControl
+                            android:id="@+id/swipeControl"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:fadingEdge="none"
+                            android:fillViewport="true"
+                            android:scrollbars="none"
+                            android:visibility="invisible"
+                            jim:textLeftOff="Later"
+                            jim:textRightOff="Skip"
+                            jim:typefacePathAssets="fonts/OpenSans-Regular.ttf" />
+                    </RelativeLayout>
+
+                    <LinearLayout
+                        android:id="@+id/seriesInformation"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:layout_marginTop="5dp" >
+
+                        <ImageView
+                            android:layout_width="wrap_content"
+                            android:layout_height="15dp"
+                            android:layout_gravity="center_vertical|left"
+                            android:layout_marginRight="5dp"
+                            android:adjustViewBounds="true"
+                            android:scaleType="fitCenter"
+                            android:src="@drawable/arrow_orange_right" />
+
+                        <TextView
+                            android:id="@+id/nextSeriesText"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_vertical"
+                            android:gravity="center_vertical"
+                            android:text="Series 2 (10 reps, 40 kg)"
+                            android:textColor="@color/jim_blue"
+                            android:textSize="20dp" />
                     </LinearLayout>
-
-                    <net.pernek.jim.exercisedetector.ui.SwipeControl
-                        android:id="@+id/swipeControl"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:fadingEdge="none"
-                        android:fillViewport="true"
-                        android:scrollbars="none"
-                        android:visibility="invisible"
-                        jim:textLeftOff="Later"
-                        jim:textRightOff="Skip"
-                        jim:typefacePathAssets="fonts/OpenSans-Regular.ttf" />
-                </RelativeLayout>
+                </LinearLayout>
             </LinearLayout>
         </LinearLayout>
 

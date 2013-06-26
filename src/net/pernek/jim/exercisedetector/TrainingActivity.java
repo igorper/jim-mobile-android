@@ -9,6 +9,7 @@ import com.google.gson.Gson;
 
 import net.pernek.jim.exercisedetector.database.TrainingContentProvider.TrainingPlan;
 import net.pernek.jim.exercisedetector.entities.Exercise;
+import net.pernek.jim.exercisedetector.entities.Series;
 import net.pernek.jim.exercisedetector.entities.Training;
 import net.pernek.jim.exercisedetector.ui.CircularProgressControl;
 import net.pernek.jim.exercisedetector.ui.SwipeControl;
@@ -70,6 +71,8 @@ public class TrainingActivity extends Activity implements SwipeListener {
 	private TextView mTrainingSelectorText;
 	private RelativeLayout mBottomContainer;
 	private ImageView mInfoButton;
+	private LinearLayout mSeriesInformation;
+	private TextView mSeriesInfoText;
 
 	/**
 	 * Reference to JSON2Object converter.
@@ -138,6 +141,8 @@ public class TrainingActivity extends Activity implements SwipeListener {
 		mTrainingSelectorText = (TextView) findViewById(R.id.trainingSelectorText);
 		mBottomContainer = (RelativeLayout) findViewById(R.id.bottomContainer);
 		mInfoButton = (ImageView) findViewById(R.id.info_button);
+		mSeriesInformation = (LinearLayout)findViewById(R.id.seriesInformation);
+		mSeriesInfoText = (TextView)findViewById(R.id.nextSeriesText);
 
 		updateTrainingSelector(-1);
 		initializeTrainingRatings();
@@ -367,6 +372,7 @@ public class TrainingActivity extends Activity implements SwipeListener {
 			// no training started yet, show the start button
 			mCircularProgress.setCurrentState(CircularProgressState.START);
 			mInfoButton.setVisibility(View.INVISIBLE);
+			mSeriesInformation.setVisibility(View.INVISIBLE);
 		} else if (mCurrentTraining.getCurrentExercise() == null) {
 			// no more exercises, show the done button
 			mCircularProgress.setCurrentState(CircularProgressState.STOP);
@@ -374,17 +380,21 @@ public class TrainingActivity extends Activity implements SwipeListener {
 			// also hide the bottom container
 			mBottomContainer.setVisibility(View.INVISIBLE);
 			mInfoButton.setVisibility(View.INVISIBLE);
+			mSeriesInformation.setVisibility(View.INVISIBLE);
 		} else {
 			// there are still some exercises to be performed
 			if (mCurrentTraining.isCurrentRest()) {
+				Exercise curExercise = mCurrentTraining.getCurrentExercise();
+				Series curSeries = curExercise.getCurrentSeries(); 
 				// if at rest show rest UI
-				int currentRest = mCurrentTraining.getCurrentExercise()
-						.getCurrentSeries().getRestTime();
+				int currentRest = curSeries.getRestTime();
 				mCircularProgress.setRestMaxProgress(currentRest);
 				mCircularProgress.setRestMinProgress(0);
 				mCircularProgress.setCurrentState(CircularProgressState.REST);
-				mSwipeControl.setCenterText("Next: ", mCurrentTraining
-						.getCurrentExercise().getExerciseType().getName());
+				mSwipeControl.setCenterText("Next: ", curExercise.getExerciseType().getName());
+				mSeriesInfoText.setText(String.format("Series %d (%d reps, %d kg)", curExercise.getCurrentSeriesNumber(), curSeries.getNumberRepetitions(), curSeries.getWeight()));
+				
+				mSeriesInformation.setVisibility(View.VISIBLE);
 
 				// also start the periodic timer to update the rest screen
 				mUiHandler.removeCallbacks(mUpdateRestTimer);
@@ -400,6 +410,8 @@ public class TrainingActivity extends Activity implements SwipeListener {
 								.getName(), mCurrentTraining
 								.getCurrentExercise().getCurrentSeries()
 								.getWeight()));
+				
+				mSeriesInformation.setVisibility(View.INVISIBLE);
 
 				// remove any periodic rest timers
 				mUiHandler.removeCallbacks(mUpdateRestTimer);
