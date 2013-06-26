@@ -16,6 +16,9 @@ import android.database.Cursor;
 import android.text.format.Time;
 
 /**
+ * This class holds the Training information and is used for management of all
+ * training data.
+ * 
  * @author Igor
  * 
  */
@@ -104,10 +107,9 @@ public class Training {
 			exercises.get(exerciseIndex).initializeExercise();
 		}
 	}
-	
 
 	/**
-	 * This method ends the current training (stores the end timestamp). 
+	 * This method ends the current training (stores the end timestamp).
 	 */
 	public void endTraining() {
 		mTrainingEnded = Calendar.getInstance().getTime();
@@ -233,7 +235,9 @@ public class Training {
 		}
 	}
 
-	/** Gets the total number of series in this training.
+	/**
+	 * Gets the total number of series in this training.
+	 * 
 	 * @return
 	 */
 	public int getTotalSeriesCount() {
@@ -245,7 +249,9 @@ public class Training {
 		return retVal;
 	}
 
-	/** Gets the number of series already performed in this training.
+	/**
+	 * Gets the number of series already performed in this training.
+	 * 
 	 * @return
 	 */
 	public int getSeriesPerformedCount() {
@@ -257,35 +263,45 @@ public class Training {
 		return retVal;
 	}
 
-	/** Gets the users training rating number.
+	/**
+	 * Gets the users training rating number.
+	 * 
 	 * @return
 	 */
 	public int getTrainingRating() {
 		return mTrainingRating;
 	}
 
-	/** Sets the users training rating number.
+	/**
+	 * Sets the users training rating number.
+	 * 
 	 * @param value
 	 */
 	public void setTrainingRating(int value) {
 		mTrainingRating = value;
 	}
 
-	/** Tells if training has already ended.
+	/**
+	 * Tells if training has already ended.
+	 * 
 	 * @return
 	 */
 	public boolean isTrainingEnded() {
 		return mTrainingEnded != null;
 	}
 
-	/** Sets the users training comment.
+	/**
+	 * Sets the users training comment.
+	 * 
 	 * @param text
 	 */
 	public void setTrainingComment(String text) {
 		mTrainingComment = text;
 	}
 
-	/** Gets the users training comment.
+	/**
+	 * Gets the users training comment.
+	 * 
 	 * @return
 	 */
 	public String getTrainingComment() {
