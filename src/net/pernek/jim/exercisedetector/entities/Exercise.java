@@ -36,11 +36,6 @@ public class Exercise {
 		return mSeriesToDo.size();
 	}
 	
-//	
-//	public List<Series> getSeries(){
-//		return Collections.unmodifiableList(series);
-//	}
-	
 	public void initializeExercise(){
 		mSeriesToDo = new ArrayList<Integer>();
 		

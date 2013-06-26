@@ -46,11 +46,6 @@ public class TrainingActivity extends Activity implements SwipeListener {
 	 */
 	private static final int REST_PROGRESS_UPDATE_RATE = 300;
 
-	/**
-	 * Hold ID of the training plan currently selected in the training selector.
-	 */
-	private int mSelectedTrainingId = -1;
-
 	private DetectorSettings mSettings;
 	private ResponseReceiver mBroadcastReceiver;
 
@@ -90,11 +85,11 @@ public class TrainingActivity extends Activity implements SwipeListener {
 	 * rating was yet selected).
 	 */
 	private int mTrainingRatingSelectedID = -1;
-
+	
 	/**
-	 * Used to show the appropriate info button state and circular button style.
+	 * Holds ID of the training plan currently selected in the training selector.
 	 */
-	// private boolean mIsInfoVisible = false;
+	private int mSelectedTrainingId = -1;
 
 	/**
 	 * Contains IDs of training rating images in non-selected (non-clicked)
@@ -138,8 +133,8 @@ public class TrainingActivity extends Activity implements SwipeListener {
 		mInfoButton = (ImageView) findViewById(R.id.info_button);
 		mSeriesInformation = (LinearLayout) findViewById(R.id.seriesInformation);
 		mSeriesInfoText = (TextView) findViewById(R.id.nextSeriesText);
-		mTrainingCommentText = (TextView)findViewById(R.id.textTrainingComment);
-		
+		mTrainingCommentText = (TextView) findViewById(R.id.textTrainingComment);
+
 		updateTrainingSelector(-1);
 		initializeTrainingRatings();
 		loadCurrentTraining();
@@ -265,7 +260,13 @@ public class TrainingActivity extends Activity implements SwipeListener {
 			mTrainingSelectorText.setText(trainingName);
 		}
 	}
-	
+
+	/**
+	 * Toggles the visibility of additional info circular button overlay and
+	 * sets the appropriate icon.
+	 * 
+	 * @param visible
+	 */
 	private void toggleInfoButtonVisible(boolean visible) {
 		mCircularProgress.setInfoVisible(visible);
 
@@ -273,19 +274,31 @@ public class TrainingActivity extends Activity implements SwipeListener {
 				: R.drawable.chair_ico);
 	}
 
+	/**
+	 * Triggered on additional info button click.
+	 * 
+	 * @param v
+	 */
 	public void onInfoButtonClick(View v) {
 		toggleInfoButtonVisible(!mCircularProgress.isInfoVisible());
 	}
-	
-	public void onFinishClick(View v){
-		if(mTrainingRatingSelectedID == -1){
-			Toast.makeText(getApplicationContext(), "You should rate the training.", Toast.LENGTH_SHORT).show();
+
+	/**
+	 * Triggered on finish button click in the training rating screen.
+	 * 
+	 * @param v
+	 */
+	public void onFinishClick(View v) {
+		if (mTrainingRatingSelectedID == -1) {
+			Toast.makeText(getApplicationContext(),
+					"You should rate the training.", Toast.LENGTH_SHORT).show();
 		} else {
 			mCurrentTraining.setTrainingRating(mTrainingRatingSelectedID);
-			mCurrentTraining.setTrainingComment(mTrainingCommentText.getText().toString());
-			
+			mCurrentTraining.setTrainingComment(mTrainingCommentText.getText()
+					.toString());
+
 			saveCurrentTraining();
-			
+
 			updateScreen();
 			mViewFlipper.showPrevious();
 		}
@@ -383,18 +396,19 @@ public class TrainingActivity extends Activity implements SwipeListener {
 			mInfoButton.setVisibility(View.INVISIBLE);
 			mSeriesInformation.setVisibility(View.INVISIBLE);
 		} else if (mCurrentTraining.getCurrentExercise() == null) {
-			if(!mCurrentTraining.isTrainingEnded()){
+			if (!mCurrentTraining.isTrainingEnded()) {
 				// no more exercises, show the done button
 				mCircularProgress.setCurrentState(CircularProgressState.STOP);
 
-			} else if(mCurrentTraining.getTrainingRating() == -1){
+			} else if (mCurrentTraining.getTrainingRating() == -1) {
 				// show training rating screen
 				mViewFlipper.showNext();
-			} else if(!mCurrentTraining.isOverviewDissmised()){
+			} else  {
 				// show overview
-				mCircularProgress.setCurrentState(CircularProgressState.OVERVIEW);
+				mCircularProgress
+						.setCurrentState(CircularProgressState.OVERVIEW);
 			}
-			
+
 			// also hide the bottom container
 			mBottomContainer.setVisibility(View.INVISIBLE);
 			mInfoButton.setVisibility(View.INVISIBLE);
@@ -408,7 +422,7 @@ public class TrainingActivity extends Activity implements SwipeListener {
 				int currentRest = curSeries.getRestTime();
 				mCircularProgress.setRestMaxProgress(currentRest);
 				mCircularProgress.setRestMinProgress(0);
-				
+
 				mCircularProgress.setCurrentState(CircularProgressState.REST);
 				mSwipeControl.setCenterText("Next: ", curExercise
 						.getExerciseType().getName());
@@ -440,15 +454,19 @@ public class TrainingActivity extends Activity implements SwipeListener {
 				// remove any periodic rest timers
 				mUiHandler.removeCallbacks(mUpdateRestTimer);
 			}
-			
+
 			// set exercise and training progres bars
-			mCircularProgress.setTrainingMaxProgress(mCurrentTraining.getTotalSeriesCount());
+			mCircularProgress.setTrainingMaxProgress(mCurrentTraining
+					.getTotalSeriesCount());
 			mCircularProgress.setTrainingMinProgress(0);
-			mCircularProgress.setTrainingProgressValue(mCurrentTraining.getSeriesPerformedCount());
-			
-			mCircularProgress.setExerciseMaxProgress(curExercise.getAllSeriesCount());
+			mCircularProgress.setTrainingProgressValue(mCurrentTraining
+					.getSeriesPerformedCount());
+
+			mCircularProgress.setExerciseMaxProgress(curExercise
+					.getAllSeriesCount());
 			mCircularProgress.setExerciseMinProgress(0);
-			mCircularProgress.setExerciseProgressValue(curExercise.getAllSeriesCount() - curExercise.getSeriesLeftCount());
+			mCircularProgress.setExerciseProgressValue(curExercise
+					.getAllSeriesCount() - curExercise.getSeriesLeftCount());
 		}
 	}
 
@@ -527,12 +545,12 @@ public class TrainingActivity extends Activity implements SwipeListener {
 					mCurrentTraining.startTraining();
 				}
 			} else if (mCurrentTraining.getCurrentExercise() == null) {
-				if(!mCurrentTraining.isTrainingEnded()){
+				if (!mCurrentTraining.isTrainingEnded()) {
 					mCurrentTraining.endTraining();
-				} else if (!mCurrentTraining.isOverviewDissmised()){
+				} else {
 					mCurrentTraining = null;
 				}
-				
+
 			} else if (mCurrentTraining.isCurrentRest()) {
 				mCurrentTraining.startExercise();
 			} else {
