@@ -159,6 +159,7 @@ public class TrainingActivity extends Activity implements SwipeListener {
 		registerReceiver(mBroadcastReceiver, filter);
 	}
 
+
 	/*
 	 * TODO: Check if stuff in onCreate and onDestroy should be moved to more
 	 * appropriate lifecycle methods.
@@ -181,6 +182,9 @@ public class TrainingActivity extends Activity implements SwipeListener {
 	 * Additionally, sets the non-selected images.
 	 */
 	private void initializeTrainingRatings() {
+		mTrainingRatingSelectedID = -1;
+		mTrainingCommentText.setText("");
+		
 		mTrainingRatingImages = new ImageView[4];
 		mTrainingRatingImages[0] = (ImageView) findViewById(R.id.trainingRating1);
 		mTrainingRatingImages[1] = (ImageView) findViewById(R.id.trainingRating2);
@@ -549,6 +553,7 @@ public class TrainingActivity extends Activity implements SwipeListener {
 					mCurrentTraining.endTraining();
 				} else {
 					mCurrentTraining = null;
+					initializeTrainingRatings();
 				}
 
 			} else if (mCurrentTraining.isCurrentRest()) {

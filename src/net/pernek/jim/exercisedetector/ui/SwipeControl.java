@@ -101,7 +101,7 @@ public class SwipeControl extends HorizontalScrollView {
 								.removeGlobalOnLayoutListener(this);
 
 						// scroll to initial position at the beginning
-						scrollTo(mScrollerStart, 0);
+						//scrollTo(mScrollerStart, 0);
 					}
 				});
 		setOnTouchListener(new OnTouchListener() {
@@ -120,9 +120,6 @@ public class SwipeControl extends HorizontalScrollView {
 				} else if (mSwipeDetected
 						|| event.getAction() == MotionEvent.ACTION_UP
 						|| event.getAction() == MotionEvent.ACTION_CANCEL) {
-					// scroll to initial position after the swipe or on
-					// swipe release/cancel
-					smoothScrollTo(mScrollerStart, 0);
 
 					// change back the control color after the swipe (with a
 					// delay)
@@ -143,6 +140,16 @@ public class SwipeControl extends HorizontalScrollView {
 				return mSwipeEnded;
 			}
 		});
+	}
+	
+	@Override
+	protected void onLayout(boolean changed, int l, int t, int r, int b) {
+		// TODO Auto-generated method stub
+		super.onLayout(changed, l, t, r, b);
+		
+		// scroll to initial position on view init, after the swipe or on
+		// swipe release/cancel
+		smoothScrollTo(mScrollerStart, 0);
 	}
 
 	/**
@@ -294,8 +301,6 @@ public class SwipeControl extends HorizontalScrollView {
 
 				@Override
 				public void run() {
-					Toast.makeText(getContext(), "Test", Toast.LENGTH_SHORT)
-							.show();
 					// report event on UI thread
 					onSwipeRight();
 
