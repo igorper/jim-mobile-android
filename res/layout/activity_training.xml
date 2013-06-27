@@ -153,6 +153,16 @@
                     </LinearLayout>
                 </LinearLayout>
             </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/animationRectangle"
+                android:layout_width="match_parent"
+                android:layout_height="1px"
+                android:background="#ff0000"
+                android:orientation="horizontal"
+                android:layout_alignParentBottom="true"
+                android:visibility="gone" >
+            </LinearLayout>
         </RelativeLayout>
 
         <!-- RATE TRAINING SCREEN -->

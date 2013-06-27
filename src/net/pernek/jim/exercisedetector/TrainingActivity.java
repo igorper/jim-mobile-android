@@ -6,9 +6,11 @@ import net.pernek.jim.exercisedetector.entities.Series;
 import net.pernek.jim.exercisedetector.entities.Training;
 import net.pernek.jim.exercisedetector.ui.CircularProgressControl;
 import net.pernek.jim.exercisedetector.ui.CircularProgressControl.CircularProgressState;
+import net.pernek.jim.exercisedetector.ui.RepetitionAnimation;
 import net.pernek.jim.exercisedetector.ui.SwipeControl;
 import net.pernek.jim.exercisedetector.ui.SwipeListener;
 import net.pernek.jim.exercisedetector.util.Utils;
+import android.R.anim;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
@@ -23,6 +25,9 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.Animation.AnimationListener;
+import android.view.animation.ScaleAnimation;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
@@ -63,6 +68,7 @@ public class TrainingActivity extends Activity implements SwipeListener {
 	private LinearLayout mSeriesInformation;
 	private TextView mSeriesInfoText;
 	private TextView mTrainingCommentText;
+	private LinearLayout mAnimationRectangle;
 
 	/**
 	 * Reference to JSON2Object converter.
@@ -85,9 +91,10 @@ public class TrainingActivity extends Activity implements SwipeListener {
 	 * rating was yet selected).
 	 */
 	private int mTrainingRatingSelectedID = -1;
-	
+
 	/**
-	 * Holds ID of the training plan currently selected in the training selector.
+	 * Holds ID of the training plan currently selected in the training
+	 * selector.
 	 */
 	private int mSelectedTrainingId = -1;
 
@@ -134,6 +141,7 @@ public class TrainingActivity extends Activity implements SwipeListener {
 		mSeriesInformation = (LinearLayout) findViewById(R.id.seriesInformation);
 		mSeriesInfoText = (TextView) findViewById(R.id.nextSeriesText);
 		mTrainingCommentText = (TextView) findViewById(R.id.textTrainingComment);
+		mAnimationRectangle = (LinearLayout) findViewById(R.id.animationRectangle);
 
 		updateTrainingSelector(-1);
 		initializeTrainingRatings();
@@ -143,6 +151,9 @@ public class TrainingActivity extends Activity implements SwipeListener {
 		mCircularProgress.setOnClickListener(mCircularButtonClick);
 
 		mSwipeControl.addSwipeListener(this);
+
+		mRepetitionAnimation = new RepetitionAnimation(mAnimationRectangle,
+				mUiHandler);
 
 		// TODO: We could create a class called JimActivity which could handle
 		// all the
@@ -158,7 +169,6 @@ public class TrainingActivity extends Activity implements SwipeListener {
 		mBroadcastReceiver = new ResponseReceiver();
 		registerReceiver(mBroadcastReceiver, filter);
 	}
-
 
 	/*
 	 * TODO: Check if stuff in onCreate and onDestroy should be moved to more
@@ -184,7 +194,7 @@ public class TrainingActivity extends Activity implements SwipeListener {
 	private void initializeTrainingRatings() {
 		mTrainingRatingSelectedID = -1;
 		mTrainingCommentText.setText("");
-		
+
 		mTrainingRatingImages = new ImageView[4];
 		mTrainingRatingImages[0] = (ImageView) findViewById(R.id.trainingRating1);
 		mTrainingRatingImages[1] = (ImageView) findViewById(R.id.trainingRating2);
@@ -374,9 +384,11 @@ public class TrainingActivity extends Activity implements SwipeListener {
 			break;
 		}
 		case MENU_LOGOUT: {
-			mSettings.saveUsername("");
-			mSettings.savePassword("");
-			finish();
+//			mSettings.saveUsername("");
+//			mSettings.savePassword("");
+//			finish();
+			
+			mRepetitionAnimation.startAnimation(mViewFlipper.getMeasuredHeight(), 1000, 400, 4);
 
 			break;
 		}
@@ -386,6 +398,8 @@ public class TrainingActivity extends Activity implements SwipeListener {
 
 		return super.onOptionsItemSelected(item);
 	}
+
+	private RepetitionAnimation mRepetitionAnimation;
 
 	/**
 	 * This is the sole method responsible for setting the activity UI (apart
@@ -407,7 +421,7 @@ public class TrainingActivity extends Activity implements SwipeListener {
 			} else if (mCurrentTraining.getTrainingRating() == -1) {
 				// show training rating screen
 				mViewFlipper.showNext();
-			} else  {
+			} else {
 				// show overview
 				mCircularProgress
 						.setCurrentState(CircularProgressState.OVERVIEW);
@@ -528,7 +542,9 @@ public class TrainingActivity extends Activity implements SwipeListener {
 
 		@Override
 		public void onClick(View v) {
-			if (mCircularProgress.isInfoVisible()) {
+			if (mRepetitionAnimation.isAnimationRunning()) {
+				mRepetitionAnimation.stopAnimation();
+			} else if (mCircularProgress.isInfoVisible()) {
 				// if info button is visible close it on tap
 				toggleInfoButtonVisible(false);
 			} else if (mCurrentTraining == null) {
@@ -589,8 +605,9 @@ public class TrainingActivity extends Activity implements SwipeListener {
 				mCircularProgress.setRestProgressValue(currentRestLeft < 0 ? 0
 						: currentRestLeft);
 				mCircularProgress.setTimer(Math.abs(currentRestLeft));
-				Log.d(TAG, String.format("Update screen: %d, %d", currentRest,
-						currentRestLeft));
+				// Log.d(TAG, String.format("Update screen: %d, %d",
+				// currentRest,
+				// currentRestLeft));
 
 				mUiHandler.postDelayed(this, REST_PROGRESS_UPDATE_RATE);
 			}
