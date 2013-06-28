@@ -177,16 +177,28 @@ public class RepetitionAnimation {
 		mAnimationObject.clearAnimation();
 		mUiHandler.removeCallbacks(mAfterRepetitionRestRunnable);
 		mUiHandler.removeCallbacks(mInterRepetitionRestRunnable);
-		
-		initializeAnimationObject();
 
-		mAnimationObject.setVisibility(View.GONE);
+		// that's a very very ugly hack to hide the animation on cancel - it
+		// seems it works (on cancel in the middle of the repetition animation
+		// the animation hung randomly in the middle, leaving the linear layout
+		// partially scaled; additionally, the animated object did not went
+		// invisible)
+		// inspiration for the solution:
+		// http://stackoverflow.com/questions/8690029/why-doesnt-setvisibility-work-after-a-view-is-animated
+		Animation mAnimationHide = new ScaleAnimation(1f, 1f, 1f, 1f,
+				Animation.RELATIVE_TO_SELF, (float) 0.5,
+				Animation.RELATIVE_TO_SELF, (float) 0.5);
+		mAnimationHide.setFillAfter(false);
+		mAnimationHide.setDuration(0);
+		mAnimationObject.startAnimation(mAnimationHide);
+
+		mAnimationObject.setVisibility(View.INVISIBLE);
 	}
-	
+
 	/**
 	 * This method sets the height of the animation object to 1 px.
 	 */
-	private void initializeAnimationObject(){
+	private void initializeAnimationObject() {
 		RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(
 				LayoutParams.MATCH_PARENT, 1);
 		lp.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
