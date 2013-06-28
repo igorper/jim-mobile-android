@@ -1,34 +1,92 @@
 package net.pernek.jim.exercisedetector.ui;
 
-import android.opengl.Visibility;
 import android.os.Handler;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.animation.Animation;
-import android.view.animation.ScaleAnimation;
 import android.view.animation.Animation.AnimationListener;
+import android.view.animation.ScaleAnimation;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
 import android.widget.RelativeLayout;
 
+/**
+ * This class visualizes the repetition guidance animation.
+ * 
+ * @author Igor
+ * 
+ */
 public class RepetitionAnimation {
+
+	/**
+	 * Object to be animated.
+	 */
 	private LinearLayout mAnimationObject;
-	private float mExpandedHeight;
+
+	/**
+	 * Handler to the activity UI thread.
+	 */
 	private Handler mUiHandler;
 
-	private int mUpDuration;
-	private int mDownDuration;
-	private int mInterRepetitionRestDuration = 1000;
-	private int mAfterRepetitionDuration = 500;
+	/**
+	 * The expanded (full) height of the animation object in pixels. The
+	 * animation object will be scaled from 1 px to this height and vice versa,
+	 * using this value as a scaling factor.
+	 */
+	private float mExpandedHeight;
 
+	/**
+	 * Duration of repetition up movement.
+	 */
+	private int mUpDuration;
+
+	/**
+	 * Duration of repetition down movement.
+	 */
+	private int mDownDuration;
+
+	/**
+	 * Duration of rest between the repetition up and down movement in ms.
+	 */
+	private int mInterRepetitionRestDuration = 1000;
+
+	/**
+	 * Duration after each repetition in ms (the rest between two repetitions).
+	 */
+	private int mAfterRepetitionDuration;
+
+	/**
+	 * Total number of repetitions to be performed.
+	 */
 	private int mTotalRepetitions;
+
+	/**
+	 * Number of already performed repetitions.
+	 */
 	private int mCurrentRepetition = 0;
 
+	/**
+	 * Tells if the animation is currently in progress or not.
+	 */
 	private boolean mAnimationRunning;
 
+	/**
+	 * ScaleAnimation for the repetition up movement.
+	 */
 	private ScaleAnimation mAnimationUp;
+
+	/**
+	 * ScaleAnimation for the repetition down movement.
+	 */
 	private ScaleAnimation mAnimationDown;
 
+	/**
+	 * @param animationObject
+	 *            contains the reference to the vizual control that will be
+	 *            animated.
+	 * @param uiHandler
+	 *            handler to the calling activity ui thread used to schedule
+	 *            screen changes.
+	 */
 	public RepetitionAnimation(LinearLayout animationObject, Handler uiHandler) {
 		mAnimationObject = animationObject;
 		mUiHandler = uiHandler;
@@ -36,20 +94,70 @@ public class RepetitionAnimation {
 		mAnimationRunning = false;
 	}
 
+	/**
+	 * Tells if the animation is currently running (in progress) or not.
+	 * 
+	 * @return
+	 */
 	public boolean isAnimationRunning() {
 		return mAnimationRunning;
 	}
 
+	/**
+	 * Starts the animation with the default inter and after repetition rest (0
+	 * ms).
+	 * 
+	 * @param fullHeight
+	 *            is the expanded height of the animation object.
+	 * @param upDuration
+	 *            is the duration of the repetition up movement in ms.
+	 * @param downDuration
+	 *            is the duration of the repetition down movement in ms.
+	 * @param numRepetitions
+	 *            is the number of animation repetitions.
+	 */
 	public void startAnimation(int fullHeight, int upDuration,
 			int downDuration, int numRepetitions) {
+		startAnimation(fullHeight, upDuration, downDuration, 0, 0,
+				numRepetitions);
+	}
+
+	/**
+	 * Starts the animation with the default inter and after repetition rest (0
+	 * ms).
+	 * 
+	 * @param fullHeight
+	 *            is the expanded height of the animation object.
+	 * @param upDuration
+	 *            is the duration of the repetition up movement in ms.
+	 * @param downDuration
+	 *            is the duration of the repetition down movement in ms.
+	 * @param interRepRestDuration
+	 *            is the duration of the rest between repetition up and down
+	 *            movement in ms.
+	 * @param afterRepRestDuration
+	 *            is the duration of the rest between two repetitions (after
+	 *            each repetition).
+	 * @param numRepetitions
+	 *            is the number of animation repetitions.
+	 */
+	public void startAnimation(int fullHeight, int upDuration,
+			int downDuration, int interRepRestDuration,
+			int afterRepRestDuration, int numRepetitions) {
+
+		// set the animation values
 		mExpandedHeight = fullHeight;
 		mUpDuration = upDuration;
 		mDownDuration = downDuration;
 		mTotalRepetitions = numRepetitions;
+		mInterRepetitionRestDuration = interRepRestDuration;
+		mAfterRepetitionDuration = afterRepRestDuration;
 
+		// show the animation object and mark the animation as running
 		mAnimationObject.setVisibility(View.VISIBLE);
 		mAnimationRunning = true;
 
+		// animate repetition up
 		runAnimationUp();
 	}
 
@@ -69,33 +177,48 @@ public class RepetitionAnimation {
 		mAnimationObject.setVisibility(View.GONE);
 	}
 
+	/**
+	 * Cretes the repetition up animation if the current number of repetitions
+	 * did not reach the total number of repetitions yet.
+	 */
 	private void runAnimationUp() {
 		if (mCurrentRepetition < mTotalRepetitions) {
 
 			mAnimationUp = new ScaleAnimation(1f, 1f, 1f, 2 * mExpandedHeight,
 					Animation.RELATIVE_TO_SELF, (float) 0.5,
 					Animation.RELATIVE_TO_SELF, (float) 0.5);
+			// set this one to keep the object extended after the animation
 			mAnimationUp.setFillAfter(true);
 			mAnimationUp.setDuration(mUpDuration);
 			mAnimationUp.setAnimationListener(mAnimationUpListener);
 
+			// start the first repetition immediately and delay all the others
+			// be the after repetition rest
 			if (mCurrentRepetition == 0) {
 				mAnimationObject.startAnimation(mAnimationUp);
 			} else {
-				mUiHandler.postDelayed(mAfterRepetitionRestRunnable, mAfterRepetitionDuration);
+				mUiHandler.postDelayed(mAfterRepetitionRestRunnable,
+						mAfterRepetitionDuration);
 			}
 		} else {
+			// stop the animation when over
 			stopAnimation();
 		}
 	}
-	
+
+	/**
+	 * This runnable starts the repetition up animation.
+	 */
 	private Runnable mAfterRepetitionRestRunnable = new Runnable() {
 		@Override
 		public void run() {
 			mAnimationObject.startAnimation(mAnimationUp);
 		}
 	};
-	
+
+	/**
+	 * This runnable initializes the repetition down animation. 
+	 */
 	private Runnable mInterRepetitionRestRunnable = new Runnable() {
 		@Override
 		public void run() {
@@ -112,6 +235,9 @@ public class RepetitionAnimation {
 		mAnimationObject.startAnimation(mAnimationDown);
 	}
 
+	/**
+	 * Animation listener for the repetition up animation.  
+	 */
 	private AnimationListener mAnimationUpListener = new AnimationListener() {
 
 		@Override
@@ -129,10 +255,14 @@ public class RepetitionAnimation {
 		@Override
 		public void onAnimationEnd(Animation animation) {
 			// optional rest between up and down should be set here
-			mUiHandler.postDelayed(mInterRepetitionRestRunnable, mInterRepetitionRestDuration);
+			mUiHandler.postDelayed(mInterRepetitionRestRunnable,
+					mInterRepetitionRestDuration);
 		}
 	};
 
+	/**
+	 * Animation listener for the repetition down animation.
+	 */
 	private AnimationListener mAnimationDownListener = new AnimationListener() {
 
 		@Override
@@ -149,7 +279,6 @@ public class RepetitionAnimation {
 
 		@Override
 		public void onAnimationEnd(Animation animation) {
-			mAnimationObject.setVisibility(View.GONE);
 			mCurrentRepetition++;
 
 			runAnimationUp();
