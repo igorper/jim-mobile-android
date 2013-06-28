@@ -153,53 +153,75 @@ public class RepetitionAnimation {
 		mInterRepetitionRestDuration = interRepRestDuration;
 		mAfterRepetitionDuration = afterRepRestDuration;
 
+		// initialize the current number of repetitions and the initial height
+		// of the animation object.
+		mCurrentRepetition = 0;
+		initializeAnimationObject();
+
 		// show the animation object and mark the animation as running
 		mAnimationObject.setVisibility(View.VISIBLE);
 		mAnimationRunning = true;
 
+		initializeAnimations();
+
 		// animate repetition up
-		runAnimationUp();
+		runRepetitionAnimation();
 	}
 
+	/**
+	 * Stops the animation. Additionally, remove all the pending animations if
+	 * stop was called in the middle of the animation.
+	 */
 	public void stopAnimation() {
 		mAnimationRunning = false;
 		mAnimationObject.clearAnimation();
 		mUiHandler.removeCallbacks(mAfterRepetitionRestRunnable);
 		mUiHandler.removeCallbacks(mInterRepetitionRestRunnable);
+		
+		initializeAnimationObject();
 
-		mCurrentRepetition = 0;
-
+		mAnimationObject.setVisibility(View.GONE);
+	}
+	
+	/**
+	 * This method sets the height of the animation object to 1 px.
+	 */
+	private void initializeAnimationObject(){
 		RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(
 				LayoutParams.MATCH_PARENT, 1);
 		lp.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
 		mAnimationObject.setLayoutParams(lp);
-
-		mAnimationObject.setVisibility(View.GONE);
 	}
 
 	/**
-	 * Cretes the repetition up animation if the current number of repetitions
-	 * did not reach the total number of repetitions yet.
+	 * Initializes the repetition up and down movement animations.
 	 */
-	private void runAnimationUp() {
+	private void initializeAnimations() {
+		mAnimationUp = new ScaleAnimation(1f, 1f, 1f, 2 * mExpandedHeight,
+				Animation.RELATIVE_TO_SELF, (float) 0.5,
+				Animation.RELATIVE_TO_SELF, (float) 0.5);
+		// set this one to keep the object extended after the animation
+		mAnimationUp.setFillAfter(true);
+		mAnimationUp.setDuration(mUpDuration);
+		mAnimationUp.setAnimationListener(mAnimationUpListener);
+
+		mAnimationDown = new ScaleAnimation(1f, 1f, 2 * mExpandedHeight, 1f,
+				Animation.RELATIVE_TO_SELF, (float) 0.5,
+				Animation.RELATIVE_TO_SELF, (float) 0.5);
+		mAnimationDown.setDuration(mDownDuration);
+		mAnimationDown.setAnimationListener(mAnimationDownListener);
+	}
+
+	/**
+	 * Runs the repetition animation if the current number of repetitions did
+	 * not reach the total number of repetitions yet.
+	 */
+	private void runRepetitionAnimation() {
 		if (mCurrentRepetition < mTotalRepetitions) {
-
-			mAnimationUp = new ScaleAnimation(1f, 1f, 1f, 2 * mExpandedHeight,
-					Animation.RELATIVE_TO_SELF, (float) 0.5,
-					Animation.RELATIVE_TO_SELF, (float) 0.5);
-			// set this one to keep the object extended after the animation
-			mAnimationUp.setFillAfter(true);
-			mAnimationUp.setDuration(mUpDuration);
-			mAnimationUp.setAnimationListener(mAnimationUpListener);
-
 			// start the first repetition immediately and delay all the others
 			// be the after repetition rest
-			if (mCurrentRepetition == 0) {
-				mAnimationObject.startAnimation(mAnimationUp);
-			} else {
-				mUiHandler.postDelayed(mAfterRepetitionRestRunnable,
-						mAfterRepetitionDuration);
-			}
+			mUiHandler.postDelayed(mAfterRepetitionRestRunnable,
+					mCurrentRepetition == 0 ? 0 : mAfterRepetitionDuration);
 		} else {
 			// stop the animation when over
 			stopAnimation();
@@ -217,26 +239,17 @@ public class RepetitionAnimation {
 	};
 
 	/**
-	 * This runnable initializes the repetition down animation. 
+	 * This runnable starts the repetition down animation.
 	 */
 	private Runnable mInterRepetitionRestRunnable = new Runnable() {
 		@Override
 		public void run() {
-			runAnimationDown();
+			mAnimationObject.startAnimation(mAnimationDown);
 		}
 	};
 
-	private void runAnimationDown() {
-		mAnimationDown = new ScaleAnimation(1f, 1f, 2 * mExpandedHeight, 1f,
-				Animation.RELATIVE_TO_SELF, (float) 0.5,
-				Animation.RELATIVE_TO_SELF, (float) 0.5);
-		mAnimationDown.setDuration(mDownDuration);
-		mAnimationDown.setAnimationListener(mAnimationDownListener);
-		mAnimationObject.startAnimation(mAnimationDown);
-	}
-
 	/**
-	 * Animation listener for the repetition up animation.  
+	 * Animation listener for the repetition up animation.
 	 */
 	private AnimationListener mAnimationUpListener = new AnimationListener() {
 
@@ -279,9 +292,13 @@ public class RepetitionAnimation {
 
 		@Override
 		public void onAnimationEnd(Animation animation) {
+			// after each repetition hide the animation object (in this case, if
+			// the after repetition animation is long, there won't be any
+			// pixels, corresponding to the repetition animation, visible.
+			mAnimationObject.setVisibility(View.GONE);
 			mCurrentRepetition++;
 
-			runAnimationUp();
+			runRepetitionAnimation();
 		}
 	};
 

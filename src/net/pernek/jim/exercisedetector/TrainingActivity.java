@@ -388,7 +388,7 @@ public class TrainingActivity extends Activity implements SwipeListener {
 //			mSettings.savePassword("");
 //			finish();
 			
-			mRepetitionAnimation.startAnimation(mViewFlipper.getMeasuredHeight(), 1000, 400, 4);
+			mRepetitionAnimation.startAnimation(mViewFlipper.getMeasuredHeight(), 1000, 400, 500, 2000, 4);
 
 			break;
 		}
