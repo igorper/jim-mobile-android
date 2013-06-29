@@ -11,7 +11,6 @@ import net.pernek.jim.exercisedetector.ui.RepetitionAnimationListener;
 import net.pernek.jim.exercisedetector.ui.SwipeControl;
 import net.pernek.jim.exercisedetector.ui.SwipeListener;
 import net.pernek.jim.exercisedetector.util.Utils;
-import android.R.anim;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
@@ -26,9 +25,6 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.animation.Animation;
-import android.view.animation.Animation.AnimationListener;
-import android.view.animation.ScaleAnimation;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
@@ -38,7 +34,8 @@ import android.widget.ViewFlipper;
 
 import com.google.gson.Gson;
 
-public class TrainingActivity extends Activity implements SwipeListener, RepetitionAnimationListener {
+public class TrainingActivity extends Activity implements SwipeListener,
+		RepetitionAnimationListener {
 
 	private static final String TAG = Utils.getApplicationTag();
 
@@ -70,7 +67,7 @@ public class TrainingActivity extends Activity implements SwipeListener, Repetit
 	private TextView mSeriesInfoText;
 	private TextView mTrainingCommentText;
 	private LinearLayout mAnimationRectangle;
-	
+
 	/**
 	 * Reference to the repetition animation.
 	 */
@@ -404,7 +401,7 @@ public class TrainingActivity extends Activity implements SwipeListener, Repetit
 
 		return super.onOptionsItemSelected(item);
 	}
-	
+
 	private void changeTrainingPlanState() {
 		if (mCircularProgress.isInfoVisible()) {
 			// if info button is visible close it on tap
@@ -422,8 +419,8 @@ public class TrainingActivity extends Activity implements SwipeListener, Repetit
 						.getColumnIndex(TrainingPlan.DATA));
 
 				// load to memory
-				mCurrentTraining = mGsonInstance.fromJson(
-						jsonEncodedTraining, Training.class);
+				mCurrentTraining = mGsonInstance.fromJson(jsonEncodedTraining,
+						Training.class);
 				mCurrentTraining.startTraining();
 			}
 		} else if (mCurrentTraining.getCurrentExercise() == null) {
@@ -437,14 +434,19 @@ public class TrainingActivity extends Activity implements SwipeListener, Repetit
 		} else if (mCurrentTraining.isCurrentRest()) {
 			mCurrentTraining.startExercise();
 
+			// TODO: here we could decide to either show the count down,
+			// repetition animation or just an empty exercise screen
+
+			// TODO: change repetition duration with actual number once stored
+			// in the training plan
 			// start animation
 			mRepetitionAnimation.startAnimation(
 					mViewFlipper.getMeasuredHeight(), 1000, 400, 500, 2000,
-					4);
+					mCurrentTraining.getTotalRepetitions());
 		} else {
 			mCurrentTraining.endExercise();
-			
-			if(mRepetitionAnimation.isAnimationRunning()){
+
+			if (mRepetitionAnimation.isAnimationRunning()) {
 				mRepetitionAnimation.cancelAnimation();
 			}
 
@@ -500,11 +502,11 @@ public class TrainingActivity extends Activity implements SwipeListener, Repetit
 				mCircularProgress.setCurrentState(CircularProgressState.REST);
 				mSwipeControl.setCenterText("Next: ", curExercise
 						.getExerciseType().getName());
-				mSeriesInfoText
-						.setText(String.format("Series %d (%d reps, %d kg)",
-								curExercise.getCurrentSeriesNumber(),
-								curSeries.getNumberTotalRepetitions(),
-								curSeries.getWeight()));
+				mSeriesInfoText.setText(String.format(
+						"Series %d (%d reps, %d kg)",
+						curExercise.getCurrentSeriesNumber(),
+						curSeries.getNumberTotalRepetitions(),
+						curSeries.getWeight()));
 
 				mSeriesInformation.setVisibility(View.VISIBLE);
 
@@ -513,10 +515,14 @@ public class TrainingActivity extends Activity implements SwipeListener, Repetit
 				mUiHandler.postDelayed(mUpdateRestTimer, 0);
 			} else {
 				// otherwise show exercising UI
-				mCircularProgress.setCurrentRepetition(mCurrentTraining.getCurrentRepetition());
-				mCircularProgress.setTotalRepetitions(mCurrentTraining.getTotalRepetitions());
-				mCircularProgress.setCurrentSeries(mCurrentTraining.getCurrentSeriesNumber());
-				mCircularProgress.setTotalSeries(mCurrentTraining.getTotalSeriesForCurrentExercise());
+				mCircularProgress.setCurrentRepetition(mCurrentTraining
+						.getCurrentRepetition());
+				mCircularProgress.setTotalRepetitions(mCurrentTraining
+						.getTotalRepetitions());
+				mCircularProgress.setCurrentSeries(mCurrentTraining
+						.getCurrentSeriesNumber());
+				mCircularProgress.setTotalSeries(mCurrentTraining
+						.getTotalSeriesForCurrentExercise());
 				mCircularProgress
 						.setCurrentState(CircularProgressState.EXERCISE);
 				mSwipeControl.setCenterText(
@@ -593,18 +599,24 @@ public class TrainingActivity extends Activity implements SwipeListener, Repetit
 		toggleInfoButtonVisible(false);
 		updateScreen();
 	}
-	
 
-	/* Repetition animation has legally ended so we should advance the training plan.
-	 * @see net.pernek.jim.exercisedetector.ui.RepetitionAnimationListener#onAnimationEnded()
+	/*
+	 * Repetition animation has legally ended so we should advance the training
+	 * plan.
+	 * 
+	 * @see net.pernek.jim.exercisedetector.ui.RepetitionAnimationListener#
+	 * onAnimationEnded()
 	 */
 	@Override
 	public void onAnimationEnded() {
 		changeTrainingPlanState();
 	}
-	
-	/* Triggered after each individual repetition is executed.
-	 * @see net.pernek.jim.exercisedetector.ui.RepetitionAnimationListener#onRepetitionCompleted()
+
+	/*
+	 * Triggered after each individual repetition is executed.
+	 * 
+	 * @see net.pernek.jim.exercisedetector.ui.RepetitionAnimationListener#
+	 * onRepetitionCompleted()
 	 */
 	@Override
 	public void onRepetitionCompleted() {
