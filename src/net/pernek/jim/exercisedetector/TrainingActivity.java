@@ -660,9 +660,9 @@ public class TrainingActivity extends Activity implements SwipeListener,
 
 		@Override
 		public void run() {
-			long msLeft = System.currentTimeMillis() - mGetReadyStartTimestamp;
+			long msLeft = mGetReadyInterval - (System.currentTimeMillis() - mGetReadyStartTimestamp);
 
-			if (msLeft < mGetReadyInterval) {
+			if (msLeft > 0) {
 				mCircularProgress.setRestProgressValue(0);
 				mCircularProgress.setTimer(Math.round((float) msLeft / 1000));
 
