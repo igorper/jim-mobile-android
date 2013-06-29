@@ -1,5 +1,8 @@
 package net.pernek.jim.exercisedetector.ui;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import android.os.Handler;
 import android.view.View;
 import android.view.animation.Animation;
@@ -80,6 +83,11 @@ public class RepetitionAnimation {
 	private ScaleAnimation mAnimationDown;
 
 	/**
+	 * All registered repetition animation listeners.
+	 */
+	private List<RepetitionAnimationListener> mRepetitionAnimationListeners = new ArrayList<RepetitionAnimationListener>();
+
+	/**
 	 * @param animationObject
 	 *            contains the reference to the vizual control that will be
 	 *            animated.
@@ -92,6 +100,26 @@ public class RepetitionAnimation {
 		mUiHandler = uiHandler;
 
 		mAnimationRunning = false;
+	}
+
+	/**
+	 * Registers a {@link RepetitionAnimationListener}.
+	 * 
+	 * @param listener
+	 */
+	public void addRepetitionAnimationListener(
+			RepetitionAnimationListener listener) {
+		mRepetitionAnimationListeners.add(listener);
+	}
+
+	/**
+	 * Removes registered {@link RepetitionAnimationListener}.
+	 * 
+	 * @param listener
+	 */
+	public void removeRepetitionAnimationListener(
+			RepetitionAnimationListener listener) {
+		mRepetitionAnimationListeners.remove(listener);
 	}
 
 	/**
@@ -169,10 +197,17 @@ public class RepetitionAnimation {
 	}
 
 	/**
-	 * Stops the animation. Additionally, remove all the pending animations if
+	 * Cancels the animation. Additionally, remove all the pending animations if
 	 * stop was called in the middle of the animation.
 	 */
-	public void stopAnimation() {
+	public void cancelAnimation() {
+		clearAnimation();
+	}
+
+	/**
+	 * Clears the animation and makes it ready for the next one.
+	 */
+	private void clearAnimation() {
 		mAnimationRunning = false;
 		mAnimationObject.clearAnimation();
 		mUiHandler.removeCallbacks(mAfterRepetitionRestRunnable);
@@ -193,6 +228,16 @@ public class RepetitionAnimation {
 		mAnimationObject.startAnimation(mAnimationHide);
 
 		mAnimationObject.setVisibility(View.INVISIBLE);
+	}
+
+	/**
+	 * Notifies all the registered {@link RepetitionAnimationListener} that the
+	 * animation has ended.
+	 */
+	private void notifyRepetitionAnimationEnded() {
+		for (RepetitionAnimationListener listener : mRepetitionAnimationListeners) {
+			listener.onAnimationEnded();
+		}
 	}
 
 	/**
@@ -235,8 +280,10 @@ public class RepetitionAnimation {
 			mUiHandler.postDelayed(mAfterRepetitionRestRunnable,
 					mCurrentRepetition == 0 ? 0 : mAfterRepetitionDuration);
 		} else {
-			// stop the animation when over
-			stopAnimation();
+			notifyRepetitionAnimationEnded();
+
+			// clears the animation when over
+			clearAnimation();
 		}
 	}
 

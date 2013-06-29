@@ -93,6 +93,7 @@ public class SwipeControl extends HorizontalScrollView {
 		extractXmlAttrs(context.obtainStyledAttributes(attrs,
 				R.styleable.SwipeContol));
 
+		// TODO: I think this code  can be removed.
 		getViewTreeObserver().addOnGlobalLayoutListener(
 				new ViewTreeObserver.OnGlobalLayoutListener() {
 					@Override

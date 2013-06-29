@@ -7,6 +7,7 @@ import net.pernek.jim.exercisedetector.entities.Training;
 import net.pernek.jim.exercisedetector.ui.CircularProgressControl;
 import net.pernek.jim.exercisedetector.ui.CircularProgressControl.CircularProgressState;
 import net.pernek.jim.exercisedetector.ui.RepetitionAnimation;
+import net.pernek.jim.exercisedetector.ui.RepetitionAnimationListener;
 import net.pernek.jim.exercisedetector.ui.SwipeControl;
 import net.pernek.jim.exercisedetector.ui.SwipeListener;
 import net.pernek.jim.exercisedetector.util.Utils;
@@ -37,7 +38,7 @@ import android.widget.ViewFlipper;
 
 import com.google.gson.Gson;
 
-public class TrainingActivity extends Activity implements SwipeListener {
+public class TrainingActivity extends Activity implements SwipeListener, RepetitionAnimationListener {
 
 	private static final String TAG = Utils.getApplicationTag();
 
@@ -69,6 +70,11 @@ public class TrainingActivity extends Activity implements SwipeListener {
 	private TextView mSeriesInfoText;
 	private TextView mTrainingCommentText;
 	private LinearLayout mAnimationRectangle;
+	
+	/**
+	 * Reference to the repetition animation.
+	 */
+	private RepetitionAnimation mRepetitionAnimation;
 
 	/**
 	 * Reference to JSON2Object converter.
@@ -154,6 +160,7 @@ public class TrainingActivity extends Activity implements SwipeListener {
 
 		mRepetitionAnimation = new RepetitionAnimation(mAnimationRectangle,
 				mUiHandler);
+		mRepetitionAnimation.addRepetitionAnimationListener(this);
 
 		// TODO: We could create a class called JimActivity which could handle
 		// all the
@@ -180,6 +187,7 @@ public class TrainingActivity extends Activity implements SwipeListener {
 	protected void onDestroy() {
 		unregisterReceiver(mBroadcastReceiver);
 		mSwipeControl.removeSwipeListener(this);
+		mRepetitionAnimation.removeRepetitionAnimationListener(this);
 
 		// remove all periodical tasks
 		mUiHandler.removeCallbacks(mUpdateRestTimer);
@@ -384,11 +392,9 @@ public class TrainingActivity extends Activity implements SwipeListener {
 			break;
 		}
 		case MENU_LOGOUT: {
-//			mSettings.saveUsername("");
-//			mSettings.savePassword("");
-//			finish();
-			
-			mRepetitionAnimation.startAnimation(mViewFlipper.getMeasuredHeight(), 1000, 400, 500, 2000, 4);
+			mSettings.saveUsername("");
+			mSettings.savePassword("");
+			finish();
 
 			break;
 		}
@@ -398,8 +404,58 @@ public class TrainingActivity extends Activity implements SwipeListener {
 
 		return super.onOptionsItemSelected(item);
 	}
+	
+	private void changeTrainingPlanState() {
+		if (mCircularProgress.isInfoVisible()) {
+			// if info button is visible close it on tap
+			toggleInfoButtonVisible(false);
+		} else if (mCurrentTraining == null) {
+			// start button was clicked
+			String[] projection = { TrainingPlan._ID, TrainingPlan.DATA };
+			String selection = String.format("%s == %d", TrainingPlan._ID,
+					mSelectedTrainingId);
+			Cursor trainings = managedQuery(TrainingPlan.CONTENT_URI,
+					projection, selection, null, null);
 
-	private RepetitionAnimation mRepetitionAnimation;
+			if (trainings.moveToNext()) {
+				String jsonEncodedTraining = trainings.getString(trainings
+						.getColumnIndex(TrainingPlan.DATA));
+
+				// load to memory
+				mCurrentTraining = mGsonInstance.fromJson(
+						jsonEncodedTraining, Training.class);
+				mCurrentTraining.startTraining();
+			}
+		} else if (mCurrentTraining.getCurrentExercise() == null) {
+			if (!mCurrentTraining.isTrainingEnded()) {
+				mCurrentTraining.endTraining();
+			} else {
+				mCurrentTraining = null;
+				initializeTrainingRatings();
+			}
+
+		} else if (mCurrentTraining.isCurrentRest()) {
+			mCurrentTraining.startExercise();
+
+			// start animation
+			mRepetitionAnimation.startAnimation(
+					mViewFlipper.getMeasuredHeight(), 1000, 400, 500, 2000,
+					4);
+		} else {
+			mCurrentTraining.endExercise();
+			
+			if(mRepetitionAnimation.isAnimationRunning()){
+				mRepetitionAnimation.cancelAnimation();
+			}
+
+			// advance to the next activity
+			mCurrentTraining.nextActivity();
+		}
+
+		saveCurrentTraining();
+
+		updateScreen();
+	}
 
 	/**
 	 * This is the sole method responsible for setting the activity UI (apart
@@ -533,6 +589,12 @@ public class TrainingActivity extends Activity implements SwipeListener {
 		toggleInfoButtonVisible(false);
 		updateScreen();
 	}
+	
+
+	@Override
+	public void onAnimationEnded() {
+		changeTrainingPlanState();
+	}
 
 	/**
 	 * Defines what should happen on circular button click based on the state of
@@ -542,48 +604,7 @@ public class TrainingActivity extends Activity implements SwipeListener {
 
 		@Override
 		public void onClick(View v) {
-			if (mRepetitionAnimation.isAnimationRunning()) {
-				mRepetitionAnimation.stopAnimation();
-			} else if (mCircularProgress.isInfoVisible()) {
-				// if info button is visible close it on tap
-				toggleInfoButtonVisible(false);
-			} else if (mCurrentTraining == null) {
-				// start button was clicked
-				String[] projection = { TrainingPlan._ID, TrainingPlan.DATA };
-				String selection = String.format("%s == %d", TrainingPlan._ID,
-						mSelectedTrainingId);
-				Cursor trainings = managedQuery(TrainingPlan.CONTENT_URI,
-						projection, selection, null, null);
-
-				if (trainings.moveToNext()) {
-					String jsonEncodedTraining = trainings.getString(trainings
-							.getColumnIndex(TrainingPlan.DATA));
-
-					// load to memory
-					mCurrentTraining = mGsonInstance.fromJson(
-							jsonEncodedTraining, Training.class);
-					mCurrentTraining.startTraining();
-				}
-			} else if (mCurrentTraining.getCurrentExercise() == null) {
-				if (!mCurrentTraining.isTrainingEnded()) {
-					mCurrentTraining.endTraining();
-				} else {
-					mCurrentTraining = null;
-					initializeTrainingRatings();
-				}
-
-			} else if (mCurrentTraining.isCurrentRest()) {
-				mCurrentTraining.startExercise();
-			} else {
-				mCurrentTraining.endExercise();
-
-				// advance to the next activity
-				mCurrentTraining.nextActivity();
-			}
-
-			saveCurrentTraining();
-
-			updateScreen();
+			changeTrainingPlanState();
 		}
 	};
 
@@ -701,5 +722,4 @@ public class TrainingActivity extends Activity implements SwipeListener {
 			}
 		}
 	}
-
 }
