@@ -15,10 +15,15 @@ public class Series {
 	private int rest_time;
 	private int weight;
 	
+	/***********************
+	 * Fields deserialized from local data;
+	 ***********************/
+	private int mCurrentRepetition;
+	
 	/** Gets the planned number of repetitions for this series.
 	 * @return
 	 */
-	public int getNumberRepetitions(){
+	public int getNumberTotalRepetitions(){
 		return repeat_count;
 	}
 	
@@ -34,5 +39,26 @@ public class Series {
 	 */
 	public int getWeight(){
 		return weight;
+	}
+	
+	/** Gets the current repetition number.
+	 * @return
+	 */
+	public int getCurrentRepetition(){
+		return mCurrentRepetition;
+	}
+	
+	/**
+	 * Increases the current repetition number by one.
+	 */
+	public void increaseCurrentRepetition(){
+		mCurrentRepetition++;
+	}
+	
+	/**
+	 * Initializes each series at the beginning of the training.
+	 */
+	public void initialize(){
+		mCurrentRepetition = 1;
 	}
 }

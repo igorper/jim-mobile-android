@@ -62,6 +62,7 @@ public class Exercise {
 		mSeriesToDo = new ArrayList<Integer>();
 
 		for (int i = 0; i < series.size(); i++) {
+			series.get(i).initialize();
 			mSeriesToDo.add(i);
 		}
 	}

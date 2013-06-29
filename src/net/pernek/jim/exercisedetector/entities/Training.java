@@ -176,7 +176,7 @@ public class Training {
 		currentSeriesExecution.exercise_type_id = currentExercise
 				.getExerciseType().getId();
 		currentSeriesExecution.num_repetitions = currentSeries
-				.getNumberRepetitions();
+				.getNumberTotalRepetitions();
 		currentSeriesExecution.weight = currentSeries.getWeight();
 
 		mSeriesExecutions.add(currentSeriesExecution);
@@ -306,5 +306,31 @@ public class Training {
 	 */
 	public String getTrainingComment() {
 		return mTrainingComment;
+	}
+	
+	public int getTotalRepetitions(){
+		return getCurrentExercise().getCurrentSeries().getNumberTotalRepetitions();
+	}
+	
+	/** Gets the current repetition number.
+	 * @return
+	 */
+	public int getCurrentRepetition(){
+		return getCurrentExercise().getCurrentSeries().getCurrentRepetition();
+	}
+	
+	/**
+	 * Increases the current repetition number by 1.
+	 */
+	public void increaseCurrentRepetition(){
+		getCurrentExercise().getCurrentSeries().increaseCurrentRepetition();
+	}
+
+	public int getCurrentSeriesNumber() {
+		return getCurrentExercise().getCurrentSeriesNumber();
+	}
+	
+	public int getTotalSeriesForCurrentExercise(){
+		return getCurrentExercise().getAllSeriesCount();
 	}
 }

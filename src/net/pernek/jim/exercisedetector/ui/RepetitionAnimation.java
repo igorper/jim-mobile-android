@@ -241,6 +241,16 @@ public class RepetitionAnimation {
 	}
 
 	/**
+	 * Notifies all the registered {@link RepetitionAnimationListener} that the
+	 * current repetition was completed.
+	 */
+	private void notifyRepetitionCompleted() {
+		for (RepetitionAnimationListener listener : mRepetitionAnimationListeners) {
+			listener.onRepetitionCompleted();
+		}
+	}
+
+	/**
 	 * This method sets the height of the animation object to 1 px.
 	 */
 	private void initializeAnimationObject() {
@@ -356,6 +366,8 @@ public class RepetitionAnimation {
 			// pixels, corresponding to the repetition animation, visible.
 			mAnimationObject.setVisibility(View.GONE);
 			mCurrentRepetition++;
+
+			notifyRepetitionCompleted();
 
 			runRepetitionAnimation();
 		}
