@@ -287,8 +287,7 @@ public class RepetitionAnimation {
 		if (mCurrentRepetition < mTotalRepetitions) {
 			// start the first repetition immediately and delay all the others
 			// be the after repetition rest
-			mUiHandler.postDelayed(mAfterRepetitionRestRunnable,
-					mCurrentRepetition == 0 ? 0 : mAfterRepetitionDuration);
+			mAnimationObject.startAnimation(mAnimationUp);
 		} else {
 			notifyRepetitionAnimationEnded();
 
@@ -298,12 +297,13 @@ public class RepetitionAnimation {
 	}
 
 	/**
-	 * This runnable starts the repetition up animation.
+	 * This runnable restarts the repetition animation.
 	 */
 	private Runnable mAfterRepetitionRestRunnable = new Runnable() {
 		@Override
 		public void run() {
-			mAnimationObject.startAnimation(mAnimationUp);
+			notifyRepetitionCompleted();
+			runRepetitionAnimation();
 		}
 	};
 
@@ -366,10 +366,9 @@ public class RepetitionAnimation {
 			// pixels, corresponding to the repetition animation, visible.
 			mAnimationObject.setVisibility(View.GONE);
 			mCurrentRepetition++;
-
-			notifyRepetitionCompleted();
-
-			runRepetitionAnimation();
+			
+			mUiHandler.postDelayed(mAfterRepetitionRestRunnable,
+					mCurrentRepetition == mTotalRepetitions ? 0 : mAfterRepetitionDuration);
 		}
 	};
 
