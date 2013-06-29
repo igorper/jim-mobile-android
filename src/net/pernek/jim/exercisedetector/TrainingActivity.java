@@ -102,6 +102,21 @@ public class TrainingActivity extends Activity implements SwipeListener,
 	private int mSelectedTrainingId = -1;
 
 	/**
+	 * The get ready interval in ms. TODO: this value could be moved to the
+	 * training plan (and set on the web or somehow made configurable).
+	 */
+	private int mGetReadyInterval = 5000;
+
+	/**
+	 * Holds the start timestamp for the get ready interval. This one is not
+	 * stored inside the training plan, as if the activity restarts in the
+	 * middle of the training plan the get ready timer simply cancels and has to
+	 * be started again by the user. NOTE: Value -1 means the get reads timer
+	 * was not started yet.
+	 */
+	private long mGetReadyStartTimestamp = -1;
+
+	/**
 	 * Contains IDs of training rating images in non-selected (non-clicked)
 	 * state.
 	 */
@@ -432,17 +447,8 @@ public class TrainingActivity extends Activity implements SwipeListener,
 			}
 
 		} else if (mCurrentTraining.isCurrentRest()) {
-			mCurrentTraining.startExercise();
-
-			// TODO: here we could decide to either show the count down,
-			// repetition animation or just an empty exercise screen
-
-			// TODO: change repetition duration with actual number once stored
-			// in the training plan
-			// start animation
-			mRepetitionAnimation.startAnimation(
-					mViewFlipper.getMeasuredHeight(), 1000, 400, 500, 2000,
-					mCurrentTraining.getTotalRepetitions());
+			// we will initiate exercise start here
+			mGetReadyStartTimestamp = System.currentTimeMillis();
 		} else {
 			mCurrentTraining.endExercise();
 
@@ -493,12 +499,12 @@ public class TrainingActivity extends Activity implements SwipeListener,
 			Exercise curExercise = mCurrentTraining.getCurrentExercise();
 			// there are still some exercises to be performed
 			if (mCurrentTraining.isCurrentRest()) {
-				Series curSeries = curExercise.getCurrentSeries();
-				// if at rest show rest UI
-				int currentRest = curSeries.getRestTime();
-				mCircularProgress.setRestMaxProgress(currentRest);
-				mCircularProgress.setRestMinProgress(0);
+				// first remove all existing callbacks
+				mUiHandler.removeCallbacks(mUpdateRestTimer);
+				mUiHandler.removeCallbacks(mGetReadyTimer);
 
+				// now show all the common information
+				Series curSeries = curExercise.getCurrentSeries();
 				mCircularProgress.setCurrentState(CircularProgressState.REST);
 				mSwipeControl.setCenterText("Next: ", curExercise
 						.getExerciseType().getName());
@@ -507,12 +513,21 @@ public class TrainingActivity extends Activity implements SwipeListener,
 						curExercise.getCurrentSeriesNumber(),
 						curSeries.getNumberTotalRepetitions(),
 						curSeries.getWeight()));
-
 				mSeriesInformation.setVisibility(View.VISIBLE);
 
-				// also start the periodic timer to update the rest screen
-				mUiHandler.removeCallbacks(mUpdateRestTimer);
-				mUiHandler.postDelayed(mUpdateRestTimer, 0);
+				// get ready timer was not started yet so show the rest timer
+				if (mGetReadyStartTimestamp == -1) {
+					int currentRest = curSeries.getRestTime();
+					mCircularProgress.setRestMaxProgress(currentRest);
+					mCircularProgress.setRestMinProgress(0);
+
+					// also start the periodic timer to update the rest screen
+					mUiHandler.postDelayed(mUpdateRestTimer, 0);
+				} else {
+					mCircularProgress.setRestProgressValue(0);
+
+					mUiHandler.postDelayed(mGetReadyTimer, 0);
+				}
 			} else {
 				// otherwise show exercising UI
 				mCircularProgress.setCurrentRepetition(mCurrentTraining
@@ -633,6 +648,39 @@ public class TrainingActivity extends Activity implements SwipeListener,
 		@Override
 		public void onClick(View v) {
 			changeTrainingPlanState();
+		}
+	};
+
+	private Runnable mGetReadyTimer = new Runnable() {
+
+		@Override
+		public void run() {
+			long msLeft = System.currentTimeMillis() - mGetReadyStartTimestamp;
+
+			if (msLeft < mGetReadyInterval) {
+				mCircularProgress.setRestProgressValue(0);
+				mCircularProgress.setTimer(Math.round((float) msLeft / 1000));
+
+				mUiHandler.postDelayed(this, REST_PROGRESS_UPDATE_RATE);
+			} else {
+				// mark the the timer is over
+				mGetReadyStartTimestamp = -1;
+				
+				// time is up, start the exercise animation
+				mCurrentTraining.startExercise();
+				// TODO: here we could decide to either show the count down,
+				// repetition animation or just an empty exercise screen
+
+				// TODO: change repetition duration with actual number once
+				// stored
+				// in the training plan
+				// start animation
+				mRepetitionAnimation.startAnimation(
+						mViewFlipper.getMeasuredHeight(), 1000, 400, 500, 2000,
+						mCurrentTraining.getTotalRepetitions());
+				
+				updateScreen();
+			}
 		}
 	};
 
