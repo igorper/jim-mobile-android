@@ -447,8 +447,13 @@ public class TrainingActivity extends Activity implements SwipeListener,
 			}
 
 		} else if (mCurrentTraining.isCurrentRest()) {
-			// we will initiate exercise start here
-			mGetReadyStartTimestamp = System.currentTimeMillis();
+			if (mGetReadyStartTimestamp == -1) {
+				// initiate the get ready timer
+				mGetReadyStartTimestamp = System.currentTimeMillis();
+			} else {
+				// or cancel it
+				mGetReadyStartTimestamp = -1;
+			}
 		} else {
 			mCurrentTraining.endExercise();
 
@@ -665,7 +670,7 @@ public class TrainingActivity extends Activity implements SwipeListener,
 			} else {
 				// mark the the timer is over
 				mGetReadyStartTimestamp = -1;
-				
+
 				// time is up, start the exercise animation
 				mCurrentTraining.startExercise();
 				// TODO: here we could decide to either show the count down,
@@ -678,7 +683,7 @@ public class TrainingActivity extends Activity implements SwipeListener,
 				mRepetitionAnimation.startAnimation(
 						mViewFlipper.getMeasuredHeight(), 1000, 400, 500, 2000,
 						mCurrentTraining.getTotalRepetitions());
-				
+
 				updateScreen();
 			}
 		}
