@@ -593,8 +593,21 @@ public class TrainingActivity extends Activity implements SwipeListener,
 	 */
 	@Override
 	public void onSwipeRight() {
+		// don't do anything if exercise can not be scheduled for later
+		if(!mCurrentTraining.canScheduleLater()){
+			return;
+		}
+		
 		if (!mCurrentTraining.isCurrentRest()) {
 			mCurrentTraining.endExercise();
+		}
+
+		// disable the get ready timer
+		mGetReadyStartTimestamp = -1;
+		
+		// cancel the repetition animation if running
+		if(mRepetitionAnimation.isAnimationRunning()){
+			mRepetitionAnimation.cancelAnimation();
 		}
 
 		mCurrentTraining.scheduleExerciseLater();
@@ -614,6 +627,14 @@ public class TrainingActivity extends Activity implements SwipeListener,
 			mCurrentTraining.endExercise();
 		}
 
+		// disable the get ready timer
+		mGetReadyStartTimestamp = -1;
+
+		// cancel the repetition animation if running
+		if(mRepetitionAnimation.isAnimationRunning()){
+			mRepetitionAnimation.cancelAnimation();
+		}
+		
 		mCurrentTraining.nextExercise();
 		saveCurrentTraining();
 		toggleInfoButtonVisible(false);
@@ -660,7 +681,8 @@ public class TrainingActivity extends Activity implements SwipeListener,
 
 		@Override
 		public void run() {
-			long msLeft = mGetReadyInterval - (System.currentTimeMillis() - mGetReadyStartTimestamp);
+			long msLeft = mGetReadyInterval
+					- (System.currentTimeMillis() - mGetReadyStartTimestamp);
 
 			if (msLeft > 0) {
 				mCircularProgress.setRestProgressValue(0);

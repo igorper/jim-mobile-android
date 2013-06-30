@@ -211,6 +211,13 @@ public class Training {
 			mExercisesToDo.add(newLastExercise);
 		}
 	}
+	
+	/**
+	 * @return <code>true</code> if the exercise can be scheduled for later, otherwise <code>false</code>.
+	 */
+	public boolean canScheduleLater(){
+		return mExercisesToDo.size() > 1;
+	}
 
 	/**
 	 * Moves to the next exercise. Nothing happens if there are no more
