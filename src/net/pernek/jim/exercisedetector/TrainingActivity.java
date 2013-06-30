@@ -501,6 +501,9 @@ public class TrainingActivity extends Activity implements SwipeListener,
 			mInfoButton.setVisibility(View.INVISIBLE);
 			mSeriesInformation.setVisibility(View.INVISIBLE);
 		} else {
+			// in general, show no timer message
+			mCircularProgress.setTimerMessage("");
+			
 			Exercise curExercise = mCurrentTraining.getCurrentExercise();
 			// there are still some exercises to be performed
 			if (mCurrentTraining.isCurrentRest()) {
@@ -531,6 +534,7 @@ public class TrainingActivity extends Activity implements SwipeListener,
 				} else {
 					mCircularProgress.setRestMaxProgress(mGetReadyInterval);
 					mCircularProgress.setRestMinProgress(0);
+					mCircularProgress.setTimerMessage("Get ready!");
 
 					mUiHandler.postDelayed(mGetReadyTimer, 0);
 				}

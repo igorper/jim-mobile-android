@@ -33,7 +33,7 @@ public class CircularProgressControl extends View {
 	 * 
 	 */
 	public enum CircularProgressState {
-		START, REST, EXERCISE, STOP, OVERVIEW, COUNTDOWN
+		START, REST, EXERCISE, STOP, OVERVIEW
 	}
 
 	private static final String TAG = Utils.getApplicationTag();
@@ -106,7 +106,7 @@ public class CircularProgressControl extends View {
 	/**
 	 * Timer message text color.
 	 */
-	private static final int TIMER_MESSAGE_TEXT_COLOR = 0xFFE1563E;
+	private static final int TIMER_MESSAGE_TEXT_COLOR = 0xFFFFFFFF;
 
 	/**
 	 * Info button text color.
@@ -1339,7 +1339,6 @@ public class CircularProgressControl extends View {
 			}
 			break;
 		}
-		case COUNTDOWN:
 		case REST:
 		case EXERCISE: {
 			// draw training, exercise and rest progress bars
@@ -1355,22 +1354,15 @@ public class CircularProgressControl extends View {
 					mIsPressedState ? mRestProgressClickBackgroundPaint
 							: mRestProgressBackgroundPaint);
 
-			if (mCurrentState == CircularProgressState.REST
-					|| mCurrentState == CircularProgressState.COUNTDOWN) {
-				// show the collapsing pie progress bar only during rest
-				if (mCurrentState == CircularProgressState.REST) {
-					canvas.drawArc(mRestCircleOval, 270, mCalculatedRestArc,
-							true,
-							mIsPressedState ? mRestProgressClickForegroundPaint
-									: mRestProgressForegroundPaint);
-				} else {
-					float timerMessageLength = mTextTimerMessagePaint
-							.measureText(mTimerMessage);
+			if (mCurrentState == CircularProgressState.REST) {
+				canvas.drawArc(mRestCircleOval, 270, mCalculatedRestArc, true,
+						mIsPressedState ? mRestProgressClickForegroundPaint
+								: mRestProgressForegroundPaint);
+				float timerMessageLength = mTextTimerMessagePaint
+						.measureText(mTimerMessage);
 
-					canvas.drawText(mTimerMessage, mCenterX
-							- timerMessageLength / 2, mTimerMessageTextY,
-							mTextTimerMessagePaint);
-				}
+				canvas.drawText(mTimerMessage, mCenterX - timerMessageLength
+						/ 2, mTimerMessageTextY, mTextTimerMessagePaint);
 
 				float timerLength = mTextTimerPaint.measureText(Integer
 						.toString(mTimer));
@@ -1453,7 +1445,8 @@ public class CircularProgressControl extends View {
 					chairLevelY, mInfoButtonLargeTextPaint);
 
 			float tapLength = mInfoButtonSmallTextPaint.measureText(staticTap);
-			canvas.drawText(staticTap, mCenterX - tapLength / 2, mChairTapY, mInfoButtonSmallTextPaint);
+			canvas.drawText(staticTap, mCenterX - tapLength / 2, mChairTapY,
+					mInfoButtonSmallTextPaint);
 		}
 	}
 
