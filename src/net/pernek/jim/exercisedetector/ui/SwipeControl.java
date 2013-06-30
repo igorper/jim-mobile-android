@@ -94,23 +94,13 @@ public class SwipeControl extends HorizontalScrollView {
 		extractXmlAttrs(context.obtainStyledAttributes(attrs,
 				R.styleable.SwipeContol));
 
-		// TODO: I think this code can be removed.
-		getViewTreeObserver().addOnGlobalLayoutListener(
-				new ViewTreeObserver.OnGlobalLayoutListener() {
-					@Override
-					public void onGlobalLayout() {
-						getViewTreeObserver()
-								.removeGlobalOnLayoutListener(this);
-
-						// scroll to initial position at the beginning
-						// scrollTo(mScrollerStart, 0);
-					}
-				});
 		setOnTouchListener(new OnTouchListener() {
 
 			@Override
 			public boolean onTouch(View v, MotionEvent event) {
-				if (!mIsSwipeEnabled) {
+				// if swipe was disabled and there is no detected swipe pending
+				// stop any further processing
+				if (!mIsSwipeEnabled && !mSwipeDetected) {
 					return true;
 				}
 
@@ -136,7 +126,6 @@ public class SwipeControl extends HorizontalScrollView {
 
 					mSwipeDetected = false;
 					mSwipeEnded = true;
-					return true;
 				}
 
 				return mSwipeEnded;

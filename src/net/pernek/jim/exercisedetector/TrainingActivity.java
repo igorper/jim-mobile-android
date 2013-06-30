@@ -67,6 +67,7 @@ public class TrainingActivity extends Activity implements SwipeListener,
 	private TextView mSeriesInfoText;
 	private TextView mTrainingCommentText;
 	private LinearLayout mAnimationRectangle;
+	private ImageView mImageArrowSeriesInfo;
 
 	/**
 	 * Reference to the repetition animation.
@@ -160,6 +161,7 @@ public class TrainingActivity extends Activity implements SwipeListener,
 		mSeriesInfoText = (TextView) findViewById(R.id.nextSeriesText);
 		mTrainingCommentText = (TextView) findViewById(R.id.textTrainingComment);
 		mAnimationRectangle = (LinearLayout) findViewById(R.id.animationRectangle);
+		mImageArrowSeriesInfo = (ImageView)findViewById(R.id.imageArrowSeriesInfo);
 
 		updateTrainingSelector(-1);
 		initializeTrainingRatings();
@@ -476,16 +478,24 @@ public class TrainingActivity extends Activity implements SwipeListener,
 	 * responsible for periodic screen changes)
 	 */
 	private void updateScreen() {
-		setTrainingSelectorVisible(mCurrentTraining == null);
+		//setTrainingSelectorVisible(mCurrentTraining == null);
 		if (mCurrentTraining == null) {
 			// no training started yet, show the start button
 			mCircularProgress.setCurrentState(CircularProgressState.START);
+			
 			mInfoButton.setVisibility(View.INVISIBLE);
+			
+			mBottomContainer.setVisibility(View.VISIBLE);
 			mSeriesInformation.setVisibility(View.INVISIBLE);
+			mTrainingSelector
+					.setVisibility(View.VISIBLE);
+			mSwipeControl.setVisibility(View.INVISIBLE);
 		} else if (mCurrentTraining.getCurrentExercise() == null) {
 			if (!mCurrentTraining.isTrainingEnded()) {
 				// no more exercises, show the done button
 				mCircularProgress.setCurrentState(CircularProgressState.STOP);
+				mSeriesInfoText.setText("tap to finish");
+				mBottomContainer.setVisibility(View.INVISIBLE);
 
 			} else if (mCurrentTraining.getTrainingRating() == -1) {
 				// show training rating screen
@@ -494,12 +504,17 @@ public class TrainingActivity extends Activity implements SwipeListener,
 				// show overview
 				mCircularProgress
 						.setCurrentState(CircularProgressState.OVERVIEW);
+				mSeriesInfoText.setText("tap to close");
+				mBottomContainer.setVisibility(View.VISIBLE);
+				mSwipeControl.setVisibility(View.VISIBLE);
+				mTrainingSelector.setVisibility(View.INVISIBLE);
+				mSwipeControl.setCenterText("", "GREAT JOB, CHAMP!");
 			}
 
-			// also hide the bottom container
-			mBottomContainer.setVisibility(View.INVISIBLE);
 			mInfoButton.setVisibility(View.INVISIBLE);
-			mSeriesInformation.setVisibility(View.INVISIBLE);
+			mSeriesInformation.setVisibility(View.VISIBLE);
+			mSwipeControl.setSwipeEnabled(false);
+			mImageArrowSeriesInfo.setVisibility(View.INVISIBLE);
 		} else {
 			// in general, show no timer message
 			mCircularProgress.setTimerMessage("");
@@ -576,6 +591,15 @@ public class TrainingActivity extends Activity implements SwipeListener,
 			mCircularProgress.setExerciseMinProgress(0);
 			mCircularProgress.setExerciseProgressValue(curExercise
 					.getAllSeriesCount() - curExercise.getSeriesLeftCount());
+			
+			mInfoButton.setVisibility(View.VISIBLE);
+			mBottomContainer.setVisibility(View.VISIBLE);
+			mSeriesInformation.setVisibility(View.VISIBLE);
+			mTrainingSelector
+					.setVisibility(View.INVISIBLE);
+			mSwipeControl.setVisibility(View.VISIBLE);
+			mSwipeControl.setSwipeEnabled(true);
+			mImageArrowSeriesInfo.setVisibility(View.VISIBLE);
 		}
 	}
 

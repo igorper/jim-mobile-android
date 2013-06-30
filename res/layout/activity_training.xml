@@ -91,12 +91,12 @@
                                         android:layout_centerHorizontal="true" >
 
                                         <TextView
-                                            android:includeFontPadding="false"
                                             android:id="@+id/trainingSelectorText"
                                             android:layout_width="wrap_content"
                                             android:layout_height="wrap_content"
                                             android:layout_gravity="center_vertical"
                                             android:gravity="top"
+                                            android:includeFontPadding="false"
                                             android:textColor="@color/jim_red"
                                             android:textSize="@dimen/status_rect_training_selection_font_size" />
 
@@ -133,6 +133,7 @@
                             android:layout_marginTop="5dp" >
 
                             <ImageView
+                                android:id="@+id/imageArrowSeriesInfo"
                                 android:layout_width="wrap_content"
                                 android:layout_height="15dp"
                                 android:layout_gravity="center_vertical|left"
@@ -159,9 +160,9 @@
                 android:id="@+id/animationRectangle"
                 android:layout_width="match_parent"
                 android:layout_height="1px"
+                android:layout_alignParentBottom="true"
                 android:background="#ff0000"
                 android:orientation="horizontal"
-                android:layout_alignParentBottom="true"
                 android:visibility="gone" >
             </LinearLayout>
         </RelativeLayout>
