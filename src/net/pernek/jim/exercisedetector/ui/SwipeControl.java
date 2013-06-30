@@ -17,6 +17,7 @@ import android.text.Html;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
@@ -93,7 +94,7 @@ public class SwipeControl extends HorizontalScrollView {
 		extractXmlAttrs(context.obtainStyledAttributes(attrs,
 				R.styleable.SwipeContol));
 
-		// TODO: I think this code  can be removed.
+		// TODO: I think this code can be removed.
 		getViewTreeObserver().addOnGlobalLayoutListener(
 				new ViewTreeObserver.OnGlobalLayoutListener() {
 					@Override
@@ -102,7 +103,7 @@ public class SwipeControl extends HorizontalScrollView {
 								.removeGlobalOnLayoutListener(this);
 
 						// scroll to initial position at the beginning
-						//scrollTo(mScrollerStart, 0);
+						// scrollTo(mScrollerStart, 0);
 					}
 				});
 		setOnTouchListener(new OnTouchListener() {
@@ -142,12 +143,12 @@ public class SwipeControl extends HorizontalScrollView {
 			}
 		});
 	}
-	
+
 	@Override
 	protected void onLayout(boolean changed, int l, int t, int r, int b) {
 		// TODO Auto-generated method stub
 		super.onLayout(changed, l, t, r, b);
-		
+
 		// scroll to initial position on view init, after the swipe or on
 		// swipe release/cancel
 		smoothScrollTo(mScrollerStart, 0);
@@ -257,7 +258,8 @@ public class SwipeControl extends HorizontalScrollView {
 				.getColor(R.color.status_rect_right_swipe_background));
 
 		tvLeftOff = new TextView(context);
-		tvLeftOff.setTextSize(20);
+		tvLeftOff.setTextSize(getResources().getDimension(
+				R.dimen.swipe_control_text_size));
 		tvLeftOff.setGravity(Gravity.CENTER);
 		tvLeftOff.setTypeface(mTypeface);
 		tvLeftOff.setTextColor(getResources().getColor(
@@ -267,14 +269,16 @@ public class SwipeControl extends HorizontalScrollView {
 
 		tvCenter = new TextView(context);
 		setCenterText("Next: ", "Biceps");
-		tvCenter.setTextSize(20);
+		tvCenter.setTextSize(getResources().getDimension(
+				R.dimen.swipe_control_text_size));
 		tvCenter.setGravity(Gravity.CENTER);
 		tvCenter.setTypeface(mTypeface);
 		tvCenter.setLayoutParams(new LinearLayout.LayoutParams(screenWidth,
 				LayoutParams.MATCH_PARENT));
 
 		tvRightOff = new TextView(context);
-		tvRightOff.setTextSize(20);
+		tvRightOff.setTextSize(getResources().getDimension(
+				R.dimen.swipe_control_text_size));
 		tvRightOff.setGravity(Gravity.CENTER);
 		tvRightOff.setTypeface(mTypeface);
 		tvRightOff.setTextColor(getResources().getColor(

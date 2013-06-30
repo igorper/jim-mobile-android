@@ -71,38 +71,39 @@
 
                                 <TextView
                                     android:layout_width="match_parent"
-                                    android:layout_height="0dp"
-                                    android:layout_weight="1"
+                                    android:layout_height="wrap_content"
                                     android:gravity="center"
                                     android:text="Workout selected:"
                                     android:textColor="@color/jim_black"
-                                    android:textSize="@dimen/status_rect_training_selection_font_size" />
+                                    android:textSize="@dimen/status_rect_training_selection_small_font_size" />
 
                                 <RelativeLayout
                                     android:layout_width="match_parent"
-                                    android:layout_height="0dp"
-                                    android:layout_weight="1" >
+                                    android:layout_height="wrap_content"
+                                    android:layout_gravity="top" >
 
                                     <!-- It's really hard to pick the optimal triangle size and align it with the text (this should be done from scratch with low level drawing in the future -->
 
                                     <LinearLayout
                                         android:layout_width="wrap_content"
-                                        android:layout_height="match_parent"
-                                        android:layout_centerInParent="true" >
+                                        android:layout_height="wrap_content"
+                                        android:layout_alignParentTop="true"
+                                        android:layout_centerHorizontal="true" >
 
                                         <TextView
+                                            android:includeFontPadding="false"
                                             android:id="@+id/trainingSelectorText"
                                             android:layout_width="wrap_content"
-                                            android:layout_height="match_parent"
+                                            android:layout_height="wrap_content"
                                             android:layout_gravity="center_vertical"
-                                            android:gravity="center_vertical"
+                                            android:gravity="top"
                                             android:textColor="@color/jim_red"
                                             android:textSize="@dimen/status_rect_training_selection_font_size" />
 
                                         <ImageView
                                             android:layout_width="wrap_content"
                                             android:layout_height="wrap_content"
-                                            android:layout_gravity="center_vertical|left"
+                                            android:layout_gravity="top|left"
                                             android:layout_marginLeft="10dp"
                                             android:adjustViewBounds="true"
                                             android:scaleType="fitCenter"
