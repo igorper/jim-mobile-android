@@ -529,7 +529,9 @@ public class TrainingActivity extends Activity implements SwipeListener,
 					// also start the periodic timer to update the rest screen
 					mUiHandler.postDelayed(mUpdateRestTimer, 0);
 				} else {
-					mCircularProgress.setRestProgressValue(0);
+					// convert ms to seconds TODO: thing about specifying the get ready interval in seconds
+					mCircularProgress.setRestMaxProgress(mGetReadyInterval / 1000);
+					mCircularProgress.setRestMinProgress(0);
 
 					mUiHandler.postDelayed(mGetReadyTimer, 0);
 				}
@@ -685,8 +687,9 @@ public class TrainingActivity extends Activity implements SwipeListener,
 					- (System.currentTimeMillis() - mGetReadyStartTimestamp);
 
 			if (msLeft > 0) {
-				mCircularProgress.setRestProgressValue(0);
-				mCircularProgress.setTimer(Math.round((float) msLeft / 1000));
+				int secLeft = Math.round((float) msLeft / 1000);
+				mCircularProgress.setRestProgressValue(secLeft);
+				mCircularProgress.setTimer(secLeft);
 
 				mUiHandler.postDelayed(this, REST_PROGRESS_UPDATE_RATE);
 			} else {
