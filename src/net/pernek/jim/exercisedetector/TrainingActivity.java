@@ -102,10 +102,10 @@ public class TrainingActivity extends Activity implements SwipeListener,
 	private int mSelectedTrainingId = -1;
 
 	/**
-	 * The get ready interval in ms. TODO: this value could be moved to the
+	 * The get ready interval in seconds. TODO: this value could be moved to the
 	 * training plan (and set on the web or somehow made configurable).
 	 */
-	private int mGetReadyInterval = 5000;
+	private int mGetReadyInterval = 5;
 
 	/**
 	 * Holds the start timestamp for the get ready interval. This one is not
@@ -529,8 +529,7 @@ public class TrainingActivity extends Activity implements SwipeListener,
 					// also start the periodic timer to update the rest screen
 					mUiHandler.postDelayed(mUpdateRestTimer, 0);
 				} else {
-					// convert ms to seconds TODO: thing about specifying the get ready interval in seconds
-					mCircularProgress.setRestMaxProgress(mGetReadyInterval / 1000);
+					mCircularProgress.setRestMaxProgress(mGetReadyInterval);
 					mCircularProgress.setRestMinProgress(0);
 
 					mUiHandler.postDelayed(mGetReadyTimer, 0);
@@ -683,11 +682,10 @@ public class TrainingActivity extends Activity implements SwipeListener,
 
 		@Override
 		public void run() {
-			long msLeft = mGetReadyInterval
-					- (System.currentTimeMillis() - mGetReadyStartTimestamp);
+			int secLeft = Math.round(mGetReadyInterval
+					- (float)(System.currentTimeMillis() - mGetReadyStartTimestamp)/1000);
 
-			if (msLeft > 0) {
-				int secLeft = Math.round((float) msLeft / 1000);
+			if (secLeft > 0) {
 				mCircularProgress.setRestProgressValue(secLeft);
 				mCircularProgress.setTimer(secLeft);
 
