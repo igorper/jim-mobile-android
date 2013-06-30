@@ -189,6 +189,11 @@ public class TrainingActivity extends Activity implements SwipeListener,
 		filter.addCategory(Intent.CATEGORY_DEFAULT);
 		mBroadcastReceiver = new ResponseReceiver();
 		registerReceiver(mBroadcastReceiver, filter);
+		
+		// try to fetch trainings if not available
+		if(!areTrainingsAvailable()){
+			runTrainingsSync();
+		}
 	}
 
 	/*
@@ -269,6 +274,18 @@ public class TrainingActivity extends Activity implements SwipeListener,
 	private void saveCurrentTraining() {
 		mSettings.saveCurrentTrainingPlan(mCurrentTraining == null ? ""
 				: mGsonInstance.toJson(mCurrentTraining));
+	}
+	
+	private boolean areTrainingsAvailable(){
+		String[] projection = { TrainingPlan._ID };
+		String selection = null;
+		Cursor trainings = managedQuery(TrainingPlan.CONTENT_URI, projection,
+				selection, null, null);
+		
+		boolean av = trainings.moveToNext();
+
+		return trainings.moveToNext();
+			
 	}
 
 	/**
@@ -388,21 +405,8 @@ public class TrainingActivity extends Activity implements SwipeListener,
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
 		case MENU_SYNC: {
-			Intent intent = new Intent(this, DataUploaderService.class);
-			intent.putExtra(DataUploaderService.INTENT_KEY_ACTION,
-					DataUploaderService.ACTION_FETCH_TRAININGS);
-			intent.putExtra(DataUploaderService.INTENT_KEY_USERNAME,
-					mSettings.getUsername());
-			intent.putExtra(DataUploaderService.INTENT_KEY_PASSWORD,
-					mSettings.getPassword());
-			startService(intent);
-
-			mProgressDialog = new ProgressDialog(this);
-			mProgressDialog.setIndeterminate(false);
-			mProgressDialog.setMessage("Fetching training list ...");
-			mProgressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-			mProgressDialog.show();
-
+			runTrainingsSync();
+			
 			break;
 		}
 		case MENU_LOGOUT: {
@@ -417,6 +421,23 @@ public class TrainingActivity extends Activity implements SwipeListener,
 		}
 
 		return super.onOptionsItemSelected(item);
+	}
+	
+	private void runTrainingsSync(){
+		Intent intent = new Intent(this, DataUploaderService.class);
+		intent.putExtra(DataUploaderService.INTENT_KEY_ACTION,
+				DataUploaderService.ACTION_FETCH_TRAININGS);
+		intent.putExtra(DataUploaderService.INTENT_KEY_USERNAME,
+				mSettings.getUsername());
+		intent.putExtra(DataUploaderService.INTENT_KEY_PASSWORD,
+				mSettings.getPassword());
+		startService(intent);
+
+		mProgressDialog = new ProgressDialog(this);
+		mProgressDialog.setIndeterminate(false);
+		mProgressDialog.setMessage("Fetching training list ...");
+		mProgressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+		mProgressDialog.show();
 	}
 
 	private void changeTrainingPlanState() {
