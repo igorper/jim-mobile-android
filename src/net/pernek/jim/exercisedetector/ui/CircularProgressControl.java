@@ -1238,16 +1238,16 @@ public class CircularProgressControl extends View {
 	 */
 
 	private static String getFormatedTime(int timeInSec, StringBuilder unit, boolean shortForm) {
-		// 0 - 999 seconds
 		if (timeInSec < 120) {
+			// seconds
 			unit.append(shortForm ? "s" : "sec");
 			return String.format("%d", timeInSec);
 		} else {
 			float timeInMin = timeInSec / 60;
 			String textTimeInMin = String.format("%.1f", timeInMin);
 
-			// 0 - 999 minutes
 			if (timeInMin < 60) {
+				// minutes
 				unit.append(shortForm ? "m": "min");
 				return textTimeInMin;
 			} else {

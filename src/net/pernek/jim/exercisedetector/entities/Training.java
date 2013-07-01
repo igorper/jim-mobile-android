@@ -363,4 +363,8 @@ public class Training {
 		
 		return activeDuration;
 	}
+	
+	public String getName(){
+		return name;
+	}
 }

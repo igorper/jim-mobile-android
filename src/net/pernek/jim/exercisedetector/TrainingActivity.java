@@ -1,5 +1,6 @@
 package net.pernek.jim.exercisedetector;
 
+import net.pernek.jim.exercisedetector.database.TrainingContentProvider.CompletedTraining;
 import net.pernek.jim.exercisedetector.database.TrainingContentProvider.TrainingPlan;
 import net.pernek.jim.exercisedetector.entities.Exercise;
 import net.pernek.jim.exercisedetector.entities.Series;
@@ -14,6 +15,7 @@ import net.pernek.jim.exercisedetector.util.Utils;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -463,8 +465,21 @@ public class TrainingActivity extends Activity implements SwipeListener,
 			}
 		} else if (mCurrentTraining.getCurrentExercise() == null) {
 			if (!mCurrentTraining.isTrainingEnded()) {
+				// I'm done was clicked
 				mCurrentTraining.endTraining();
 			} else {
+				// overview button was clicked
+				
+				// store training to the database
+				ContentValues completedTraining = new ContentValues();
+				completedTraining.put(CompletedTraining.NAME,
+						mCurrentTraining.getName());
+				completedTraining.put(CompletedTraining.DATA,
+						mGsonInstance.toJson(mCurrentTraining));
+
+				getContentResolver().insert(CompletedTraining.CONTENT_URI,
+						completedTraining);
+				
 				mCurrentTraining = null;
 				initializeTrainingRatings();
 			}
