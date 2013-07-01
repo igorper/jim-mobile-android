@@ -199,6 +199,11 @@ public class CircularProgressControl extends View {
 	private static final int REST_COUNTER_TEXT_SIZE_IN_DIP = 100;
 
 	/**
+	 * Text size for the timer counter unit.
+	 */
+	private static final int TIMER_COUNTER_UNIT_TEXT_SIZE_IN_DIP = 50;
+
+	/**
 	 * Timer message text size in dp.
 	 */
 	private static final int TIMER_MESSAGE_TEXT_SIZE_IN_DIP = 40;
@@ -337,6 +342,11 @@ public class CircularProgressControl extends View {
 	 * Paint for the timer text in rest and countdown state.
 	 */
 	private Paint mTextTimerPaint;
+	
+	/**
+	 * Paint for the timer unit text in rest and countdown state.
+	 */
+	private Paint mTextTimerUnitPaint;
 
 	/**
 	 * Paint for the timer message text in rest and countdown state.
@@ -785,9 +795,11 @@ public class CircularProgressControl extends View {
 	 * @param value
 	 */
 	public void setNumberActive(int value) {
-		mNumberActive = value;
+		if (mNumberActive != value) {
+			mNumberActive = value;
 
-		invalidate();
+			invalidate();
+		}
 	}
 
 	/**
@@ -805,9 +817,11 @@ public class CircularProgressControl extends View {
 	 * @param value
 	 */
 	public void setNumberTotal(int value) {
-		mNumberTotal = value;
+		if (mNumberTotal != value) {
+			mNumberTotal = value;
 
-		invalidate();
+			invalidate();
+		}
 	}
 
 	/**
@@ -1121,6 +1135,12 @@ public class CircularProgressControl extends View {
 		mTextTimerPaint.setTextSize(TypedValue.applyDimension(
 				TypedValue.COMPLEX_UNIT_DIP, REST_COUNTER_TEXT_SIZE_IN_DIP,
 				getResources().getDisplayMetrics()));
+		
+		mTextTimerUnitPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+		mTextTimerUnitPaint.setColor(REST_COUNTER_TEXT_COLOR);
+		mTextTimerUnitPaint.setTextSize(TypedValue.applyDimension(
+				TypedValue.COMPLEX_UNIT_DIP, TIMER_COUNTER_UNIT_TEXT_SIZE_IN_DIP,
+				getResources().getDisplayMetrics()));
 
 		mTextTimerMessagePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 		mTextTimerMessagePaint.setColor(TIMER_MESSAGE_TEXT_COLOR);
@@ -1206,6 +1226,38 @@ public class CircularProgressControl extends View {
 				getPaddingTop() + 2 * mProgThicknessInPx, getPaddingLeft()
 						+ radius - 2 * mProgThicknessInPx, getPaddingTop()
 						+ radius - 2 * mProgThicknessInPx);
+	}
+
+	/**
+	 * Gets the formated time string for more convenient drawing. If the time
+	 * number is low enough it's simply output, otherwise, we convert it to the
+	 * appropriate unit. The unit is returned through the input parameter unit.
+	 * 
+	 * @param timeInSec
+	 * @return
+	 */
+	private static String getFormatedTime(int timeInSec, StringBuilder unit) {
+		int length = String.valueOf(timeInSec).length();
+
+		// 0 - 999 seconds
+		if (length < 4) {
+			unit.append("s");
+			return String.format("%d", timeInSec);
+		} else {
+			float timeInMin = timeInSec / 60;
+			String textTimeInMin = String.format("%.1f", timeInMin);
+
+			// 0 - 999 minutes
+			if (textTimeInMin.length() < 4) {
+				unit.append("m");
+				return textTimeInMin;
+			} else {
+				// hours
+				unit.append("h");
+				float timeInHour = timeInMin / 60;
+				return String.format("%.1f", timeInHour);
+			}
+		}
 	}
 
 	/**
@@ -1364,13 +1416,18 @@ public class CircularProgressControl extends View {
 				canvas.drawText(mTimerMessage, mCenterX - timerMessageLength
 						/ 2, mTimerMessageTextY, mTextTimerMessagePaint);
 
-				float timerLength = mTextTimerPaint.measureText(Integer
-						.toString(mTimer));
-
+				StringBuilder unit = new StringBuilder();
+				String timerText = getFormatedTime(mTimer, unit);
+				float timerLength = mTextTimerPaint.measureText(timerText);
+				float unitLength = mTextTimerUnitPaint.measureText(unit.toString()); 
+				
+				float textStart = mCenterX - (timerLength + unitLength) / 2;
+				
 				float timerTextDescent = mTextTimerPaint.descent();
-				canvas.drawText(Integer.toString(mTimer), mCenterX
-						- timerLength / 2, mCenterY + timerTextDescent,
-						mTextTimerPaint);
+				canvas.drawText(timerText, textStart,
+						mCenterY + timerTextDescent, mTextTimerPaint);
+				canvas.drawText(unit.toString(), textStart + timerLength,
+						mCenterY + timerTextDescent, mTextTimerUnitPaint);
 
 			} else if (mCurrentState == CircularProgressState.EXERCISE) {
 

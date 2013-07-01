@@ -333,11 +333,25 @@ public class Training {
 		getCurrentExercise().getCurrentSeries().increaseCurrentRepetition();
 	}
 
+	/** Gets the current series number for the current exercise.
+	 * @return
+	 */
 	public int getCurrentSeriesNumber() {
 		return getCurrentExercise().getCurrentSeriesNumber();
 	}
 	
+	/** Gets the total series number for the current exercise.
+	 * @return
+	 */
 	public int getTotalSeriesForCurrentExercise(){
 		return getCurrentExercise().getAllSeriesCount();
+	}
+	
+	/** Gets the total training duration in seconds.
+	 * @return
+	 */
+	public int getTotalTrainingDuration(){
+		int durationInSec = Math.round(((float)mTrainingEnded.getTime() - mTrainingStarted.getTime()) / 1000); 
+		return durationInSec;
 	}
 }

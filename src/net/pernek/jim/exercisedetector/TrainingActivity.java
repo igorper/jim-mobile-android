@@ -523,8 +523,12 @@ public class TrainingActivity extends Activity implements SwipeListener,
 				mViewFlipper.showNext();
 			} else {
 				// show overview
+				
+				//mCircularProgress.setTot
+				
 				mCircularProgress
 						.setCurrentState(CircularProgressState.OVERVIEW);
+				
 				mSeriesInfoText.setText("tap to close");
 				mBottomContainer.setVisibility(View.VISIBLE);
 				mSwipeControl.setVisibility(View.VISIBLE);
