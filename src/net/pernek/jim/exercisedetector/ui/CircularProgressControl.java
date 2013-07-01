@@ -1231,14 +1231,15 @@ public class CircularProgressControl extends View {
 	 * number is low enough it's simply output, otherwise, we convert it to the
 	 * appropriate unit. The unit is returned through the input parameter unit.
 	 * 
-	 * @param timeInSec
-	 * @return
+	 * @param timeInSec input time in seconds
+	 * @param unit output unit for the calculated time
+	 * @param shortForm <code>true</code> if unit should be ouput in short form, otherwise <code>false</code>.
+	 * @return time in unit specified in @param unit
 	 */
-	private static String getFormatedTime(int timeInSec, StringBuilder unit, boolean shortForm) {
-		int length = String.valueOf(timeInSec).length();
 
+	private static String getFormatedTime(int timeInSec, StringBuilder unit, boolean shortForm) {
 		// 0 - 999 seconds
-		if (length < 4) {
+		if (timeInSec < 120) {
 			unit.append(shortForm ? "s" : "sec");
 			return String.format("%d", timeInSec);
 		} else {
@@ -1246,7 +1247,7 @@ public class CircularProgressControl extends View {
 			String textTimeInMin = String.format("%.1f", timeInMin);
 
 			// 0 - 999 minutes
-			if (textTimeInMin.length() < 4) {
+			if (timeInMin < 60) {
 				unit.append(shortForm ? "m": "min");
 				return textTimeInMin;
 			} else {
