@@ -171,8 +171,8 @@ public class Training {
 		SeriesExecution currentSeriesExecution = new SeriesExecution();
 		currentSeriesExecution.rest_time = calculateDurationInSeconds(
 				mLastPauseStart, mExerciseStart);
-		currentSeriesExecution.duration = calculateDurationInSeconds(
-				mExerciseStart, exerciseEnd);
+		currentSeriesExecution.setDuration(calculateDurationInSeconds(
+				mExerciseStart, exerciseEnd));
 		currentSeriesExecution.exercise_type_id = currentExercise
 				.getExerciseType().getId();
 		currentSeriesExecution.num_repetitions = currentSeries
@@ -353,5 +353,14 @@ public class Training {
 	public int getTotalTrainingDuration(){
 		int durationInSec = Math.round(((float)mTrainingEnded.getTime() - mTrainingStarted.getTime()) / 1000); 
 		return durationInSec;
+	}
+	
+	public int getActiveTrainingDuration(){
+		int activeDuration = 0;
+		for (SeriesExecution se : mSeriesExecutions) {
+			activeDuration += se.getDuration();
+		}
+		
+		return activeDuration;
 	}
 }

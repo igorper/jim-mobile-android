@@ -573,8 +573,6 @@ public class CircularProgressControl extends View {
 
 	private String mStopButtonThinText = "I'M";
 
-	private String mOverviewMinText = "min ";
-
 	private String mOverviewActiveText = "active";
 
 	private String mOverviewTotalText = "total";
@@ -1236,12 +1234,12 @@ public class CircularProgressControl extends View {
 	 * @param timeInSec
 	 * @return
 	 */
-	private static String getFormatedTime(int timeInSec, StringBuilder unit) {
+	private static String getFormatedTime(int timeInSec, StringBuilder unit, boolean shortForm) {
 		int length = String.valueOf(timeInSec).length();
 
 		// 0 - 999 seconds
 		if (length < 4) {
-			unit.append("s");
+			unit.append(shortForm ? "s" : "sec");
 			return String.format("%d", timeInSec);
 		} else {
 			float timeInMin = timeInSec / 60;
@@ -1249,11 +1247,11 @@ public class CircularProgressControl extends View {
 
 			// 0 - 999 minutes
 			if (textTimeInMin.length() < 4) {
-				unit.append("m");
+				unit.append(shortForm ? "m": "min");
 				return textTimeInMin;
 			} else {
 				// hours
-				unit.append("h");
+				unit.append(shortForm ? "h" : "hr");
 				float timeInHour = timeInMin / 60;
 				return String.format("%.1f", timeInHour);
 			}
@@ -1338,13 +1336,17 @@ public class CircularProgressControl extends View {
 				float dashedLineLength = mCenterX / 2f;
 				canvas.drawLine(dashedLineLength, mCenterX,
 						3 * dashedLineLength, mCenterX, mOverviewDashPaint);
+				
+				StringBuilder unit = new StringBuilder();
+				String timerText = getFormatedTime(mNumberActive, unit, false);
+				String activeUnit = String.format("%s ", unit.toString()); 
 
 				// position the ("min active") text in the center of the button
-				float minLength = mTextOverviewMinPaint
-						.measureText(mOverviewMinText);
+				float unitActiveLength = mTextOverviewMinPaint
+						.measureText(activeUnit);
 				float activeLength = mTextOverviewTotalPaint
 						.measureText(mOverviewActiveText);
-				float minActiveStartX = mCenterX - (minLength + activeLength)
+				float minActiveStartX = mCenterX - (unitActiveLength + activeLength)
 						/ 2;
 
 				// measure the height of the text for vertical placement
@@ -1352,11 +1354,11 @@ public class CircularProgressControl extends View {
 				float textAscent = mTextOverviewTotalPaint.ascent();
 
 				// draw the "min active"
-				canvas.drawText(mOverviewMinText, minActiveStartX, mCenterY - 2
+				canvas.drawText(activeUnit, minActiveStartX, mCenterY - 2
 						* textDescent, mTextOverviewMinPaint);
 
 				canvas.drawText(mOverviewActiveText, minActiveStartX
-						+ minLength, mCenterY - 2 * textDescent,
+						+ unitActiveLength, mCenterY - 2 * textDescent,
 						mTextOverviewTotalPaint);
 
 				// center and draw the big active number
@@ -1366,26 +1368,32 @@ public class CircularProgressControl extends View {
 				canvas.drawText(Integer.toString(mNumberActive), mCenterX
 						- activeNumberLength / 2, mCenterY - 3 * textDescent
 						+ textAscent, mTextOverviewNumberPaint);
+				
+				unit = new StringBuilder();
+				timerText = getFormatedTime(mNumberTotal, unit, false);
+				String totalUnit = String.format("%s ", unit.toString());
 
 				// center and draw the big total number
+				float unitTotalLength = mTextOverviewMinPaint
+						.measureText(totalUnit);
 				float totalNumberLength = mTextOverviewNumberPaint
-						.measureText(Integer.toString(mNumberTotal));
+						.measureText(timerText);
 
 				float numberTextAscent = mTextOverviewNumberPaint.ascent();
-				canvas.drawText(Integer.toString(mNumberTotal), mCenterX
+				canvas.drawText(timerText, mCenterX
 						- totalNumberLength / 2, mCenterY + textDescent
 						- numberTextAscent, mTextOverviewNumberPaint);
 
 				// center and draw the "min total" text
 				float totalLength = mTextOverviewTotalPaint
 						.measureText(mOverviewTotalText);
-				float minTotalStartX = mCenterX - (minLength + totalLength) / 2;
+				float minTotalStartX = mCenterX - (unitTotalLength + totalLength) / 2;
 
-				canvas.drawText(mOverviewMinText, minTotalStartX, mCenterY + 2
+				canvas.drawText(totalUnit, minTotalStartX, mCenterY + 2
 						* textDescent - numberTextAscent - textAscent,
 						mTextOverviewMinPaint);
 
-				canvas.drawText(mOverviewTotalText, minTotalStartX + minLength,
+				canvas.drawText(mOverviewTotalText, minTotalStartX + unitTotalLength,
 						mCenterY + 2 * textDescent - numberTextAscent
 								- textAscent, mTextOverviewTotalPaint);
 			}
@@ -1417,7 +1425,7 @@ public class CircularProgressControl extends View {
 						/ 2, mTimerMessageTextY, mTextTimerMessagePaint);
 
 				StringBuilder unit = new StringBuilder();
-				String timerText = getFormatedTime(mTimer, unit);
+				String timerText = getFormatedTime(mTimer, unit, true);
 				float timerLength = mTextTimerPaint.measureText(timerText);
 				float unitLength = mTextTimerUnitPaint.measureText(unit.toString()); 
 				

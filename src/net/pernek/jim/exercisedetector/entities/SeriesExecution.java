@@ -12,5 +12,13 @@ public class SeriesExecution {
 	public int num_repetitions;
 	public int weight;
 	public int rest_time;
-	public int duration;
+	private int duration;
+	
+	public int getDuration(){
+		return duration;
+	}
+	
+	public void setDuration(int value){
+		duration = value;
+	}
 }

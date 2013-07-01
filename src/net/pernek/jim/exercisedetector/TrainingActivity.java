@@ -524,7 +524,8 @@ public class TrainingActivity extends Activity implements SwipeListener,
 			} else {
 				// show overview
 				
-				//mCircularProgress.setTot
+				mCircularProgress.setNumberTotal(mCurrentTraining.getTotalTrainingDuration());
+				mCircularProgress.setNumberActive(mCurrentTraining.getActiveTrainingDuration());
 				
 				mCircularProgress
 						.setCurrentState(CircularProgressState.OVERVIEW);
