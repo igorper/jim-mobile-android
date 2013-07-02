@@ -954,7 +954,6 @@ public class TrainingActivity extends Activity implements SwipeListener,
 						String.format("Uploaded %d of %d items.",
 								successfulItems, totalNumberOfTrainings),
 						Toast.LENGTH_SHORT).show();
-				
 			}
 		}
 	}

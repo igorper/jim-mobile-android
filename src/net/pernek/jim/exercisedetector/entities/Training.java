@@ -341,7 +341,7 @@ public class Training {
 	 * @return
 	 */
 	public int getTotalTrainingDuration(){
-		int durationInSec = Math.round(((float)mTrainingEnded.getTime() - mTrainingStarted.getTime()) / 1000); 
+		int durationInSec = Math.round((float)(mTrainingEnded.getTime() - mTrainingStarted.getTime()) / 1000); 
 		return durationInSec;
 	}
 	
