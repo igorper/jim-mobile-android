@@ -1243,7 +1243,7 @@ public class CircularProgressControl extends View {
 			unit.append(shortForm ? "s" : "sec");
 			return String.format("%d", timeInSec);
 		} else {
-			float timeInMin = timeInSec / 60;
+			float timeInMin = timeInSec / 60f;
 			String textTimeInMin = String.format("%.1f", timeInMin);
 
 			if (timeInMin < 60) {
@@ -1253,7 +1253,7 @@ public class CircularProgressControl extends View {
 			} else {
 				// hours
 				unit.append(shortForm ? "h" : "hr");
-				float timeInHour = timeInMin / 60;
+				float timeInHour = timeInMin / 60f;
 				return String.format("%.1f", timeInHour);
 			}
 		}
