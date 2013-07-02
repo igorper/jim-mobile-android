@@ -90,7 +90,7 @@ public class Training {
 		mExercisesToDo = new ArrayList<Integer>();
 		mSeriesExecutions = new ArrayList<SeriesExecution>();
 		mTrainingStarted = Calendar.getInstance().getTime();
-		mLastPauseStart = System.currentTimeMillis();
+		mLastPauseStart = System.nanoTime();
 		mExerciseStart = -1;
 		mTrainingRating = -1;
 
@@ -136,9 +136,9 @@ public class Training {
 	 * @return
 	 */
 	public int calculateCurrentRestLeft() {
-		long now = System.currentTimeMillis();
+		long now = System.nanoTime();
 		long diff = getCurrentExercise().getCurrentSeries().getRestTime()
-				* 1000 - (now - mLastPauseStart);
+				* 1000 - (now - mLastPauseStart)/1000000;
 		return Math.round((float) diff / 1000);
 	}
 
@@ -146,7 +146,7 @@ public class Training {
 	 * Called to start each exercise. Only marks the exercise start timestamp.
 	 */
 	public void startExercise() {
-		mExerciseStart = System.currentTimeMillis();
+		mExerciseStart = System.nanoTime();
 	}
 	
 	/** Gets the exercise start timestamp in ms or -1 if exercise is currently not started.
@@ -163,7 +163,7 @@ public class Training {
 	 * @return
 	 */
 	public void endExercise() {
-		long exerciseEnd = System.currentTimeMillis();
+		long exerciseEnd = System.nanoTime();
 		Exercise currentExercise = exercises.get(mExercisesToDo.get(0));
 		Series currentSeries = currentExercise.getCurrentSeries();
 
@@ -182,7 +182,7 @@ public class Training {
 		mSeriesExecutions.add(currentSeriesExecution);
 
 		// start new rest
-		mLastPauseStart = System.currentTimeMillis();
+		mLastPauseStart = System.nanoTime();
 		mExerciseStart = -1;
 	}
 
@@ -196,7 +196,7 @@ public class Training {
 	 */
 	private static int calculateDurationInSeconds(long startTimeInMs,
 			long endTimeInMs) {
-		return Math.round((float) (endTimeInMs - startTimeInMs) / 1000);
+		return Math.round((float) (endTimeInMs - startTimeInMs) / 1000000000);
 	}
 
 	/**

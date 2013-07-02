@@ -185,15 +185,7 @@ public class TrainingActivity extends Activity implements SwipeListener,
 
 		mAccelerationRecorder = AccelerationRecorder.create(getApplicationContext());
 
-		// open training files
-		if (mCurrentTraining != null) {
-			try {
-				mAccelerationRecorder.openOutput(mCurrentTraining.getRawFilename());
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				Toast.makeText(getApplicationContext(), "Unable to open file for raw data", Toast.LENGTH_SHORT).show();
-			}
-		}
+		initializeAccelerationWriter();
 
 		// TODO: We could create a class called JimActivity which could handle
 		// all the
@@ -215,6 +207,17 @@ public class TrainingActivity extends Activity implements SwipeListener,
 		// try to fetch trainings if not available
 		if (!areTrainingsAvailable()) {
 			runTrainingsSync();
+		}
+	}
+	
+	private void initializeAccelerationWriter(){
+		if (mCurrentTraining != null) {
+			try {
+				mAccelerationRecorder.openOutput(mCurrentTraining.getRawFilename());
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				Toast.makeText(getApplicationContext(), "Unable to open file for raw data", Toast.LENGTH_SHORT).show();
+			}
 		}
 	}
 
@@ -497,6 +500,8 @@ public class TrainingActivity extends Activity implements SwipeListener,
 				mCurrentTraining = mGsonInstance.fromJson(jsonEncodedTraining,
 						Training.class);
 				mCurrentTraining.startTraining();
+				
+				initializeAccelerationWriter();
 			}
 		} else if (mCurrentTraining.getCurrentExercise() == null) {
 			if (!mCurrentTraining.isTrainingEnded()) {
@@ -523,7 +528,7 @@ public class TrainingActivity extends Activity implements SwipeListener,
 			// rest -> exrcise
 			if (mGetReadyStartTimestamp == -1) {
 				// initiate the get ready timer
-				mGetReadyStartTimestamp = System.currentTimeMillis();
+				mGetReadyStartTimestamp = System.nanoTime();
 			} else {
 				// or cancel it
 				mGetReadyStartTimestamp = -1;
@@ -795,8 +800,8 @@ public class TrainingActivity extends Activity implements SwipeListener,
 		public void run() {
 			int secLeft = Math
 					.round(mGetReadyInterval
-							- (float) (System.currentTimeMillis() - mGetReadyStartTimestamp)
-							/ 1000);
+							- (float) (System.nanoTime() - mGetReadyStartTimestamp)
+							/ 1000000000);
 
 			if (secLeft > 0) {
 				mCircularProgress.setRestProgressValue(secLeft);

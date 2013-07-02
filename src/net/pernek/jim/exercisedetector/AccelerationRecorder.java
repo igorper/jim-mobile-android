@@ -44,25 +44,27 @@ public class AccelerationRecorder implements SensorEventListener {
 		// be delivered
 		retVal.mProcessThread = new HandlerThread("ProcessThread",
 				Thread.MAX_PRIORITY);
-		
+
 		return retVal;
 	}
 
 	public void openOutput(String outputFile) throws IOException {
-		mAccelerationWritter = new PrintWriter(new BufferedWriter(new FileWriter(new File(Utils.getDataFolderFile(), outputFile), true)));
+		mAccelerationWritter = new PrintWriter(new BufferedWriter(
+				new FileWriter(new File(Utils.getDataFolderFile(), outputFile),
+						true)));
 	}
 
 	public void closeOutput() {
-		if(mAccelerationWritter != null){
+		if (mAccelerationWritter != null) {
 			mAccelerationWritter.close();
 		}
 	}
 
 	public void startAccelerationSampling(long sessionStart) {
 		mSessionStart = sessionStart;
-		
-		mSensorManager.registerListener(this, mSensor, SensorManager.SENSOR_DELAY_FASTEST, mThreadHandler);
 
+		mSensorManager.registerListener(this, mSensor,
+				SensorManager.SENSOR_DELAY_FASTEST, mThreadHandler);
 	}
 
 	public void stopAccelerationSampling() {
@@ -78,9 +80,13 @@ public class AccelerationRecorder implements SensorEventListener {
 
 	@Override
 	public void onSensorChanged(SensorEvent event) {
-		// TODO Auto-generated method stub
-		mAccelerationWritter.println(String.format("%f,%f,%f,%d", event.values[0],
-				event.values[1], event.values[2], event.timestamp - mSessionStart));
+		if (mAccelerationWritter != null) {
+			long timestamp = event.timestamp - mSessionStart;
+			
+			mAccelerationWritter.println(String.format("%f,%f,%f,%d",
+					event.values[0], event.values[1], event.values[2],
+					timestamp));
+		}
 	}
 
 }
