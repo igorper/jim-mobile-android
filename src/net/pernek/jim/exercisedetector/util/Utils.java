@@ -18,13 +18,18 @@ public class Utils {
 	}
 
 	public static File getDataFolderFile() {
-		return new File(Environment.getExternalStorageDirectory(),
+		File dataFolder = new File(Environment.getExternalStorageDirectory(),
 				Utils.getDataFolder());
+		dataFolder.mkdirs();
+		return dataFolder;
 	}
 	
 	public static File getUploadDataFolderFile() {
-		return new File(Environment.getExternalStorageDirectory(),
+		File uploadFolder = new File(Environment.getExternalStorageDirectory(),
 				Utils.getUploadDataFolder());
+		uploadFolder.mkdirs();
+		
+		return uploadFolder;
 	}
 
 	public static File getAccelerationFile(String outputFile) {
@@ -66,9 +71,4 @@ public class Utils {
 		return new SimpleDateFormat("yyyyMMddHHmmss").format(Calendar
 				.getInstance().getTime());
 	}
-	
-	public static String generateFileName(Date date) {
-		return new SimpleDateFormat("yyyyMMddHHmmss").format(date);
-	}
-
 }

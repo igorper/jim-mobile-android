@@ -1,9 +1,12 @@
 package net.pernek.jim.exercisedetector.entities;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+
+import net.pernek.jim.exercisedetector.util.Utils;
 
 /**
  * This class holds the Training information and is used for management of all
@@ -144,6 +147,13 @@ public class Training {
 	 */
 	public void startExercise() {
 		mExerciseStart = System.currentTimeMillis();
+	}
+	
+	/** Gets the exercise start timestamp in ms or -1 if exercise is currently not started.
+	 * @return
+	 */
+	public long getExerciseStartTimestamp(){
+		return mExerciseStart;
 	}
 
 	/**
@@ -370,7 +380,11 @@ public class Training {
 		return retVal;
 	}
 	
-	public Date getStartDate(){
-		return mTrainingStarted;
+	public String getZipFilename(){
+		return new SimpleDateFormat("yyyyMMddHHmmss").format(mTrainingStarted) + ".zip";
+	}
+	
+	public String getRawFilename(){
+		return new SimpleDateFormat("yyyyMMddHHmmss").format(mTrainingStarted) + ".csv";
 	}
 }

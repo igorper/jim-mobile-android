@@ -1,5 +1,7 @@
 package net.pernek.jim.exercisedetector;
 
+import java.io.IOException;
+
 import net.pernek.jim.exercisedetector.database.TrainingContentProvider.CompletedTraining;
 import net.pernek.jim.exercisedetector.database.TrainingContentProvider.TrainingPlan;
 import net.pernek.jim.exercisedetector.entities.Exercise;
@@ -71,6 +73,8 @@ public class TrainingActivity extends Activity implements SwipeListener,
 	private TextView mTrainingCommentText;
 	private LinearLayout mAnimationRectangle;
 	private ImageView mImageArrowSeriesInfo;
+
+	private AccelerationRecorder mAccelerationRecorder;
 
 	/**
 	 * Reference to the repetition animation.
@@ -179,6 +183,18 @@ public class TrainingActivity extends Activity implements SwipeListener,
 				mUiHandler);
 		mRepetitionAnimation.addRepetitionAnimationListener(this);
 
+		mAccelerationRecorder = AccelerationRecorder.create(getApplicationContext());
+
+		// open training files
+		if (mCurrentTraining != null) {
+			try {
+				mAccelerationRecorder.openOutput(mCurrentTraining.getRawFilename());
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				Toast.makeText(getApplicationContext(), "Unable to open file for raw data", Toast.LENGTH_SHORT).show();
+			}
+		}
+
 		// TODO: We could create a class called JimActivity which could handle
 		// all the
 		// communication logic (ResponseReciver for different intents) and
@@ -213,6 +229,7 @@ public class TrainingActivity extends Activity implements SwipeListener,
 		unregisterReceiver(mBroadcastReceiver);
 		mSwipeControl.removeSwipeListener(this);
 		mRepetitionAnimation.removeRepetitionAnimationListener(this);
+		mAccelerationRecorder.closeOutput();
 
 		// remove all periodical tasks
 		mUiHandler.removeCallbacks(mUpdateRestTimer);
@@ -503,15 +520,22 @@ public class TrainingActivity extends Activity implements SwipeListener,
 			}
 
 		} else if (mCurrentTraining.isCurrentRest()) {
+			// rest -> exrcise
 			if (mGetReadyStartTimestamp == -1) {
 				// initiate the get ready timer
 				mGetReadyStartTimestamp = System.currentTimeMillis();
 			} else {
 				// or cancel it
 				mGetReadyStartTimestamp = -1;
+
+				// stop acceleration sampling
+				mAccelerationRecorder.stopAccelerationSampling();
 			}
 		} else {
+			// exercise -> rest
 			mCurrentTraining.endExercise();
+			
+			mAccelerationRecorder.stopAccelerationSampling();
 
 			if (mRepetitionAnimation.isAnimationRunning()) {
 				mRepetitionAnimation.cancelAnimation();
@@ -788,6 +812,11 @@ public class TrainingActivity extends Activity implements SwipeListener,
 				// TODO: here we could decide to either show the count down,
 				// repetition animation or just an empty exercise screen
 
+				// do acceleration sampling
+				mAccelerationRecorder
+						.startAccelerationSampling(mCurrentTraining
+								.getExerciseStartTimestamp());
+
 				// TODO: change repetition duration with actual number once
 				// stored
 				// in the training plan
@@ -946,7 +975,7 @@ public class TrainingActivity extends Activity implements SwipeListener,
 						DataUploaderService.PARAM_UPLOAD_TRAINING_SUCESS_CNT);
 				int totalNumberOfTrainings = intent.getExtras().getInt(
 						DataUploaderService.PARAM_UPLOAD_TRAINING_NUM_ITEMS);
-				
+
 				mProgressDialog.dismiss();
 
 				Toast.makeText(

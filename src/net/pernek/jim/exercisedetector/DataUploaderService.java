@@ -389,7 +389,7 @@ public class DataUploaderService extends IntentService {
 			String username, String password) {
 
 		File trainingZip = new File(Utils.getUploadDataFolderFile(),
-				Utils.generateFileName(training.getStartDate()) + ".zip");
+				training.getZipFilename());
 
 		// first write training to disc
 		Measurement measurement = training.extractMeasurement();
