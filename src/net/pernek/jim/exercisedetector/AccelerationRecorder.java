@@ -81,7 +81,7 @@ public class AccelerationRecorder implements SensorEventListener {
 	@Override
 	public void onSensorChanged(SensorEvent event) {
 		if (mAccelerationWritter != null) {
-			long timestamp = event.timestamp - mSessionStart;
+			long timestamp = (event.timestamp - mSessionStart) / 1000000;
 			
 			mAccelerationWritter.println(String.format("%f,%f,%f,%d",
 					event.values[0], event.values[1], event.values[2],

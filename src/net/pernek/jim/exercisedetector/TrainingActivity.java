@@ -820,7 +820,7 @@ public class TrainingActivity extends Activity implements SwipeListener,
 				// do acceleration sampling
 				mAccelerationRecorder
 						.startAccelerationSampling(mCurrentTraining
-								.getExerciseStartTimestamp());
+								.getTrainingStartTimestamp());
 
 				// TODO: change repetition duration with actual number once
 				// stored

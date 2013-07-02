@@ -29,6 +29,12 @@ public class Training {
 	 ************************/
 
 	/**
+	 * Holds the nanosec timestamp of the training start. Used for normalizing
+	 * acceleration sensor data.
+	 */
+	private long mTrainingStartTimestamp;
+
+	/**
 	 * Holds {@code exercise} indices for exercise that still have to be
 	 * performed. The first element is the index of the current exercise. If
 	 * this list is empty this means there are no more exercises planned for
@@ -43,9 +49,9 @@ public class Training {
 	private long mLastPauseStart;
 
 	/**
-	 * Holds the ms timestamp (obtained by System.currentTimeMillis()) of the
-	 * start of the current exercise. It is set to -1 if exercise is currently
-	 * not started (if we are resting).
+	 * Holds the nanosec timestamp (obtained by System.nanoTime()) of the start
+	 * of the current exercise. It is set to -1 if exercise is currently not
+	 * started (if we are resting).
 	 */
 	private long mExerciseStart;
 
@@ -93,6 +99,7 @@ public class Training {
 		mLastPauseStart = System.nanoTime();
 		mExerciseStart = -1;
 		mTrainingRating = -1;
+		mTrainingStartTimestamp = System.nanoTime();
 
 		// add all exercises to the ToDo list and initialize them
 		for (int exerciseIndex = 0; exerciseIndex < exercises.size(); exerciseIndex++) {
@@ -138,7 +145,7 @@ public class Training {
 	public int calculateCurrentRestLeft() {
 		long now = System.nanoTime();
 		long diff = getCurrentExercise().getCurrentSeries().getRestTime()
-				* 1000 - (now - mLastPauseStart)/1000000;
+				* 1000 - (now - mLastPauseStart) / 1000000;
 		return Math.round((float) diff / 1000);
 	}
 
@@ -148,11 +155,14 @@ public class Training {
 	public void startExercise() {
 		mExerciseStart = System.nanoTime();
 	}
-	
-	/** Gets the exercise start timestamp in ms or -1 if exercise is currently not started.
+
+	/**
+	 * Gets the exercise start timestamp in ms or -1 if exercise is currently
+	 * not started.
+	 * 
 	 * @return
 	 */
-	public long getExerciseStartTimestamp(){
+	public long getExerciseStartTimestamp() {
 		return mExerciseStart;
 	}
 
@@ -211,11 +221,12 @@ public class Training {
 			mExercisesToDo.add(newLastExercise);
 		}
 	}
-	
+
 	/**
-	 * @return <code>true</code> if the exercise can be scheduled for later, otherwise <code>false</code>.
+	 * @return <code>true</code> if the exercise can be scheduled for later,
+	 *         otherwise <code>false</code>.
 	 */
-	public boolean canScheduleLater(){
+	public boolean canScheduleLater() {
 		return mExercisesToDo.size() > 1;
 	}
 
@@ -314,57 +325,68 @@ public class Training {
 	public String getTrainingComment() {
 		return mTrainingComment;
 	}
-	
-	public int getTotalRepetitions(){
-		return getCurrentExercise().getCurrentSeries().getNumberTotalRepetitions();
+
+	public int getTotalRepetitions() {
+		return getCurrentExercise().getCurrentSeries()
+				.getNumberTotalRepetitions();
 	}
-	
-	/** Gets the current repetition number.
+
+	/**
+	 * Gets the current repetition number.
+	 * 
 	 * @return
 	 */
-	public int getCurrentRepetition(){
+	public int getCurrentRepetition() {
 		return getCurrentExercise().getCurrentSeries().getCurrentRepetition();
 	}
-	
+
 	/**
 	 * Increases the current repetition number by 1.
 	 */
-	public void increaseCurrentRepetition(){
+	public void increaseCurrentRepetition() {
 		getCurrentExercise().getCurrentSeries().increaseCurrentRepetition();
 	}
 
-	/** Gets the current series number for the current exercise.
+	/**
+	 * Gets the current series number for the current exercise.
+	 * 
 	 * @return
 	 */
 	public int getCurrentSeriesNumber() {
 		return getCurrentExercise().getCurrentSeriesNumber();
 	}
-	
-	/** Gets the total series number for the current exercise.
+
+	/**
+	 * Gets the total series number for the current exercise.
+	 * 
 	 * @return
 	 */
-	public int getTotalSeriesForCurrentExercise(){
+	public int getTotalSeriesForCurrentExercise() {
 		return getCurrentExercise().getAllSeriesCount();
 	}
-	
-	/** Gets the total training duration in seconds.
+
+	/**
+	 * Gets the total training duration in seconds.
+	 * 
 	 * @return
 	 */
-	public int getTotalTrainingDuration(){
-		int durationInSec = Math.round((float)(mTrainingEnded.getTime() - mTrainingStarted.getTime()) / 1000); 
+	public int getTotalTrainingDuration() {
+		int durationInSec = Math
+				.round((float) (mTrainingEnded.getTime() - mTrainingStarted
+						.getTime()) / 1000);
 		return durationInSec;
 	}
-	
-	public int getActiveTrainingDuration(){
+
+	public int getActiveTrainingDuration() {
 		int activeDuration = 0;
 		for (SeriesExecution se : mSeriesExecutions) {
 			activeDuration += se.getDuration();
 		}
-		
+
 		return activeDuration;
 	}
-	
-	public String getName(){
+
+	public String getName() {
 		return name;
 	}
 
@@ -376,15 +398,21 @@ public class Training {
 		retVal.series_executions = mSeriesExecutions;
 		retVal.start_time = mTrainingStarted;
 		retVal.training_id = id;
-		
+
 		return retVal;
 	}
-	
-	public String getZipFilename(){
-		return new SimpleDateFormat("yyyyMMddHHmmss").format(mTrainingStarted) + ".zip";
+
+	public String getZipFilename() {
+		return new SimpleDateFormat("yyyyMMddHHmmss").format(mTrainingStarted)
+				+ ".zip";
+	}
+
+	public String getRawFilename() {
+		return new SimpleDateFormat("yyyyMMddHHmmss").format(mTrainingStarted)
+				+ ".csv";
 	}
 	
-	public String getRawFilename(){
-		return new SimpleDateFormat("yyyyMMddHHmmss").format(mTrainingStarted) + ".csv";
+	public long getTrainingStartTimestamp(){
+		return mTrainingStartTimestamp;
 	}
 }
