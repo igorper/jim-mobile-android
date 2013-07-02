@@ -46,6 +46,7 @@ public class TrainingActivity extends Activity implements SwipeListener,
 	private final static int MENU_SYNC = Menu.FIRST;
 	private final static int MENU_UPLOAD = Menu.FIRST + 1;
 	private final static int MENU_LOGOUT = Menu.FIRST + 2;
+	private final static int MENU_FULL_RATE_TOGGLE = Menu.FIRST + 3;
 
 	private static final int ACTIVITY_REQUEST_TRAININGS_LIST = 0;
 
@@ -73,6 +74,8 @@ public class TrainingActivity extends Activity implements SwipeListener,
 	private TextView mTrainingCommentText;
 	private LinearLayout mAnimationRectangle;
 	private ImageView mImageArrowSeriesInfo;
+	private LinearLayout mViewRateExercise;
+	private ImageView mIconWeight;
 
 	private AccelerationRecorder mAccelerationRecorder;
 
@@ -169,6 +172,8 @@ public class TrainingActivity extends Activity implements SwipeListener,
 		mTrainingCommentText = (TextView) findViewById(R.id.textTrainingComment);
 		mAnimationRectangle = (LinearLayout) findViewById(R.id.animationRectangle);
 		mImageArrowSeriesInfo = (ImageView) findViewById(R.id.imageArrowSeriesInfo);
+		mViewRateExercise = (LinearLayout) findViewById(R.id.viewRateExercise);
+		mIconWeight = (ImageView)findViewById(R.id.iconWeight);
 
 		updateTrainingSelector(-1);
 		initializeTrainingRatings();
@@ -183,7 +188,8 @@ public class TrainingActivity extends Activity implements SwipeListener,
 				mUiHandler);
 		mRepetitionAnimation.addRepetitionAnimationListener(this);
 
-		mAccelerationRecorder = AccelerationRecorder.create(getApplicationContext());
+		mAccelerationRecorder = AccelerationRecorder
+				.create(getApplicationContext());
 
 		initializeAccelerationWriter();
 
@@ -209,14 +215,17 @@ public class TrainingActivity extends Activity implements SwipeListener,
 			runTrainingsSync();
 		}
 	}
-	
-	private void initializeAccelerationWriter(){
+
+	private void initializeAccelerationWriter() {
 		if (mCurrentTraining != null) {
 			try {
-				mAccelerationRecorder.openOutput(mCurrentTraining.getRawFilename());
+				mAccelerationRecorder.openOutput(mCurrentTraining
+						.getRawFilename());
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
-				Toast.makeText(getApplicationContext(), "Unable to open file for raw data", Toast.LENGTH_SHORT).show();
+				Toast.makeText(getApplicationContext(),
+						"Unable to open file for raw data", Toast.LENGTH_SHORT)
+						.show();
 			}
 		}
 	}
@@ -272,7 +281,6 @@ public class TrainingActivity extends Activity implements SwipeListener,
 		} else {
 			mCurrentTraining = null;
 		}
-
 	}
 
 	/**
@@ -407,10 +415,13 @@ public class TrainingActivity extends Activity implements SwipeListener,
 			menu.add(1, MENU_SYNC, 1, "Sync");
 			menu.add(1, MENU_UPLOAD, 1, "Upload");
 		}
+		menu.add(1, MENU_FULL_RATE_TOGGLE, 1, "Rate full");
 		menu.add(1, MENU_LOGOUT, 3, "Logout");
 		return true;
 	};
 
+	// TODO: delete this
+	int menuToggle = 1;
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
@@ -429,6 +440,25 @@ public class TrainingActivity extends Activity implements SwipeListener,
 			mSettings.savePassword("");
 			finish();
 
+			break;
+		}
+		case MENU_FULL_RATE_TOGGLE:{
+			if(menuToggle % 3 == 1){
+				// show full screen
+				mViewRateExercise.setVisibility(View.VISIBLE);
+				mIconWeight.setVisibility(View.VISIBLE);
+				mViewRateExercise.setBackgroundColor(getResources().getColor(R.color.jim_orange));
+			}
+			else if(menuToggle % 3 == 2){
+				mViewRateExercise.setVisibility(View.VISIBLE);
+				mIconWeight.setVisibility(View.INVISIBLE);
+				mViewRateExercise.setBackgroundColor(0x00000000);
+			}else if(menuToggle % 3 == 0){
+				mViewRateExercise.setVisibility(View.GONE);
+			}
+			
+			menuToggle++;
+			
 			break;
 		}
 		default:
@@ -499,7 +529,7 @@ public class TrainingActivity extends Activity implements SwipeListener,
 				mCurrentTraining = mGsonInstance.fromJson(jsonEncodedTraining,
 						Training.class);
 				mCurrentTraining.startTraining();
-				
+
 				initializeAccelerationWriter();
 			}
 		} else if (mCurrentTraining.getCurrentExercise() == null) {
@@ -538,7 +568,7 @@ public class TrainingActivity extends Activity implements SwipeListener,
 		} else {
 			// exercise -> rest
 			mCurrentTraining.endExercise();
-			
+
 			mAccelerationRecorder.stopAccelerationSampling();
 
 			if (mRepetitionAnimation.isAnimationRunning()) {
@@ -797,10 +827,9 @@ public class TrainingActivity extends Activity implements SwipeListener,
 
 		@Override
 		public void run() {
-			int secLeft = Math
-					.round(mGetReadyInterval
-							- (float) (System.nanoTime() - mGetReadyStartTimestamp)
-							/ 1000000000);
+			int secLeft = Math.round(mGetReadyInterval
+					- (float) (System.nanoTime() - mGetReadyStartTimestamp)
+					/ 1000000000);
 
 			if (secLeft > 0) {
 				mCircularProgress.setRestProgressValue(secLeft);
