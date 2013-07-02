@@ -1,18 +1,10 @@
 package net.pernek.jim.exercisedetector;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.security.KeyManagementException;
@@ -22,8 +14,6 @@ import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
@@ -33,7 +23,6 @@ import net.pernek.jim.exercisedetector.database.TrainingContentProvider.Complete
 import net.pernek.jim.exercisedetector.database.TrainingContentProvider.TrainingPlan;
 import net.pernek.jim.exercisedetector.entities.Measurement;
 import net.pernek.jim.exercisedetector.entities.Training;
-import net.pernek.jim.exercisedetector.util.Compress;
 import net.pernek.jim.exercisedetector.util.Utils;
 
 import org.apache.http.HttpEntity;
@@ -63,20 +52,16 @@ import org.apache.http.params.HttpParams;
 import org.apache.http.params.HttpProtocolParams;
 import org.apache.http.protocol.HTTP;
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
-import org.json.JSONStringer;
-
-import com.google.gson.Gson;
 
 import android.app.IntentService;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
-import android.text.Html;
 import android.util.Log;
-import android.webkit.JsPromptResult;
+
+import com.google.gson.Gson;
 
 // TODO: rename file to e.g. server communicator (this service will do
 // all the server calls)
@@ -88,7 +73,15 @@ public class DataUploaderService extends IntentService {
 	public static final String ACTION_FETCH_TRAINNGS_DONE = "fetch_trainings_done";
 	public static final String ACTION_FETCH_TRAINNGS_LIST_DOWNLOADED = "fetch_trainings_list_downloaded";
 	public static final String ACTION_FETCH_TRAINNGS_ITEM_DOWNLOADED = "fetch_trainings_item_downloaded";
+	public static final String ACTION_UPLOAD_TRAINNGS_DONE = "upload_trainings_done";
+	public static final String ACTION_UPLOAD_TRAININGS_STARTED = "upload_completed_trainings_started";
+	public static final String ACTION_UPLOAD_TRAININGS_ITEM_UPLOADED = "upload_completed_trainings_item_uploaded";
 	public static final String PARAM_OP_SUCCESSFUL = "operation_successful";
+	public static final String PARAM_UPLOAD_TRAINING_NUM_ITEMS = "upload_completed_training_num_items";
+	public static final String PARAM_UPLOAD_TRAINING_ITEM_NAME = "upload_training_item_name";
+	public static final String PARAM_UPLOAD_TRAINING_STATUS = "upload_training_status";
+	public static final String PARAM_UPLOAD_TRAINING_CUR_ITEM_CNT = "upload_training_cur_item_count";
+	public static final String PARAM_UPLOAD_TRAINING_SUCESS_CNT = "upload_training_sucess_count";
 	public static final String PARAM_FETCH_TRAINNGS_NUM_ITEMS = "fetch_trainings_num_items";
 	public static final String PARAM_FETCH_TRAINNGS_CUR_ITEM_NAME = "fetch_trainings_cur_item_name";
 	public static final String PARAM_FETCH_TRAINNGS_CUR_ITEM_CNT = "fetch_trainings_cur_item_cnt";
@@ -104,17 +97,6 @@ public class DataUploaderService extends IntentService {
 	public static final String INTENT_KEY_TRAINING_ID = "training-id";
 	public static final String INTENT_KEY_USERNAME = "username";
 	public static final String INTENT_KEY_PASSWORD = "password";
-
-	// those should be moved to settings
-	private static final String TESTING_EMAIL = "igor.pernek@gmail.com";
-	private static final String TESTING_PASSWORD = "307 Lakih_Pet";
-	private static final String UPLOAD_URL = "https://dev.trainerjim.com/mapi/training/upload";
-	// private static final String TRAINING_LIST_URL = "/mapi/training/list";
-	// private static final String TRAINING_GET_URL = "/mapi/training/get";
-
-	private static final String HTTP_PARAM_EMAIL_NAME = "email";
-	private static final String HTTP_PARAM_PASSWORD_NAME = "password";
-	private static final String HTTP_PARAM_FILE_NAME = "trainingData";
 
 	private Gson jsonParser = new Gson();
 
@@ -214,15 +196,58 @@ public class DataUploaderService extends IntentService {
 					.query(CompletedTraining.CONTENT_URI, projection, null,
 							null, null);
 
-			while (trainings.moveToNext()) {
-				int trainingId = trainings.getInt(trainings
-						.getColumnIndex(TrainingPlan._ID));
-				String jsonEncodedTraining = trainings.getString(trainings
-						.getColumnIndex(TrainingPlan.DATA));
+			int numOfTrainings = trainings.getCount();
 
-				uploadTraining(trainingId, jsonEncodedTraining, username,
-						password);
+			int counterSuccess = 0;
+			if (numOfTrainings > 0) {
+				Intent broadcastIntent = new Intent();
+				broadcastIntent.setAction(ACTION_UPLOAD_TRAININGS_STARTED);
+				broadcastIntent.addCategory(Intent.CATEGORY_DEFAULT);
+				broadcastIntent.putExtra(PARAM_UPLOAD_TRAINING_NUM_ITEMS,
+						numOfTrainings);
+				sendBroadcast(broadcastIntent);
+
+				int trainingCounter = 0;
+				while (trainings.moveToNext()) {
+					int trainingId = trainings.getInt(trainings
+							.getColumnIndex(TrainingPlan._ID));
+					Training trainingToUpload = jsonParser.fromJson(trainings
+							.getString(trainings
+									.getColumnIndex(TrainingPlan.DATA)),
+							Training.class);
+					
+					broadcastIntent = new Intent();
+					broadcastIntent
+							.setAction(ACTION_UPLOAD_TRAININGS_ITEM_UPLOADED);
+					broadcastIntent.addCategory(Intent.CATEGORY_DEFAULT);
+					broadcastIntent.putExtra(PARAM_UPLOAD_TRAINING_ITEM_NAME,
+							trainingToUpload.getName());
+					broadcastIntent
+							.putExtra(PARAM_UPLOAD_TRAINING_CUR_ITEM_CNT,
+									trainingCounter);
+					broadcastIntent.putExtra(PARAM_UPLOAD_TRAINING_NUM_ITEMS,
+							numOfTrainings);
+					sendBroadcast(broadcastIntent);
+
+					boolean uploadStatus = uploadTraining(trainingId,
+							trainingToUpload, username, password);
+
+					if (uploadStatus) {
+						counterSuccess++;
+					}
+
+					trainingCounter++;
+				}
 			}
+
+			Intent broadcastIntent = new Intent();
+			broadcastIntent.setAction(ACTION_UPLOAD_TRAINNGS_DONE);
+			broadcastIntent.addCategory(Intent.CATEGORY_DEFAULT);
+			broadcastIntent.putExtra(PARAM_UPLOAD_TRAINING_SUCESS_CNT,
+					counterSuccess);
+			broadcastIntent.putExtra(PARAM_UPLOAD_TRAINING_NUM_ITEMS,
+					numOfTrainings);
+			sendBroadcast(broadcastIntent);
 
 			// uploadFile(path);
 
@@ -360,10 +385,8 @@ public class DataUploaderService extends IntentService {
 		}
 	}
 
-	private void uploadTraining(int trainingId, String jsonEncodedTraining,
+	private boolean uploadTraining(int trainingId, Training training,
 			String username, String password) {
-		Training training = jsonParser.fromJson(jsonEncodedTraining,
-				Training.class);
 
 		File trainingZip = new File(Utils.getUploadDataFolderFile(),
 				Utils.generateFileName(training.getStartDate()) + ".zip");
@@ -375,48 +398,46 @@ public class DataUploaderService extends IntentService {
 		HttpClient httpClient = getDangerousHttpClient();
 
 		try {
-			HttpPost httppost = new HttpPost(UPLOAD_URL);
+			String url = String.format("%s%s",
+					getResources().getString(R.string.server_url),
+					getResources().getString(R.string.server_path_upload));
+
+			Log.d(TAG, "Upload training with " + url);
+
+			HttpPost httppost = new HttpPost(url);
 
 			MultipartEntity multipartEntity = new MultipartEntity(
 					HttpMultipartMode.BROWSER_COMPATIBLE);
-			multipartEntity.addPart(HTTP_PARAM_EMAIL_NAME, new StringBody(
-					username));
-			multipartEntity.addPart(HTTP_PARAM_PASSWORD_NAME, new StringBody(
-					password));
-			// multipartEntity.addPart("utf8", new StringBody("&#x2713;"));
-			// multipartEntity.addPart("authenticity_token", new
-			// StringBody("QF2/iLHYEUm+kPU5ktsaw3wJJzqTG559TpLFLh9VpUw="));
-			multipartEntity.addPart(HTTP_PARAM_FILE_NAME, new FileBody(
-					trainingZip));
+			multipartEntity.addPart(
+					getResources().getString(R.string.param_email),
+					new StringBody(username));
+			multipartEntity.addPart(
+					getResources().getString(R.string.param_password),
+					new StringBody(password));
+
+			multipartEntity.addPart(
+					getResources().getString(R.string.param_zipfile),
+					new FileBody(trainingZip));
 			httppost.setEntity(multipartEntity);
 
 			HttpResponse response = httpClient.execute(httppost);
 			int status = response.getStatusLine().getStatusCode();
-			
-			if(status == HttpStatus.SC_OK){
+
+			if (status == HttpStatus.SC_OK) {
 				// delete from the local database
-				getContentResolver().delete(ContentUris.withAppendedId(CompletedTraining.CONTENT_URI, trainingId) , null, null);
+				getContentResolver().delete(
+						ContentUris.withAppendedId(
+								CompletedTraining.CONTENT_URI, trainingId),
+						null, null);
+
+				// TODO also delete the file from disk here
 			}
 
-			// signalize the status (and something else if needed) to
-			// everyone
-			// interested
-			// (most probably only to the main activity to update the
-			// screen)
-//			Intent broadcastIntent = new Intent();
-//			broadcastIntent
-//					.setAction(UploadSessionActivity.ResponseReceiver.ACTION_UPLOAD_DONE);
-//			broadcastIntent.addCategory(Intent.CATEGORY_DEFAULT);
-//			broadcastIntent
-//					.putExtra(
-//							UploadSessionActivity.ResponseReceiver.PARAM_STATUS,
-//							status);
-//			sendBroadcast(broadcastIntent);
-
-			// the file could be also deleted here
+			return true;
 		} catch (Exception e) {
 
 			Log.e(TAG, e.getLocalizedMessage());
+			return false;
 		}
 
 	}
@@ -557,49 +578,5 @@ public class DataUploaderService extends IntentService {
 		}
 
 		return null;
-	}
-
-	private void uploadFile(String path) {
-
-		HttpClient httpClient = getDangerousHttpClient();
-
-		try {
-			File data = new File(path);
-			HttpPost httppost = new HttpPost(UPLOAD_URL);
-
-			MultipartEntity multipartEntity = new MultipartEntity(
-					HttpMultipartMode.BROWSER_COMPATIBLE);
-			multipartEntity.addPart(HTTP_PARAM_EMAIL_NAME, new StringBody(
-					TESTING_EMAIL));
-			multipartEntity.addPart(HTTP_PARAM_PASSWORD_NAME, new StringBody(
-					TESTING_PASSWORD));
-			// multipartEntity.addPart("utf8", new StringBody("&#x2713;"));
-			// multipartEntity.addPart("authenticity_token", new
-			// StringBody("QF2/iLHYEUm+kPU5ktsaw3wJJzqTG559TpLFLh9VpUw="));
-			multipartEntity.addPart(HTTP_PARAM_FILE_NAME, new FileBody(data));
-			httppost.setEntity(multipartEntity);
-
-			HttpResponse response = httpClient.execute(httppost);
-			int status = response.getStatusLine().getStatusCode();
-
-			// signalize the status (and something else if needed) to
-			// everyone
-			// interested
-			// (most probably only to the main activity to update the
-			// screen)
-			Intent broadcastIntent = new Intent();
-			broadcastIntent
-					.setAction(UploadSessionActivity.ResponseReceiver.ACTION_UPLOAD_DONE);
-			broadcastIntent.addCategory(Intent.CATEGORY_DEFAULT);
-			broadcastIntent
-					.putExtra(
-							UploadSessionActivity.ResponseReceiver.PARAM_STATUS,
-							status);
-			sendBroadcast(broadcastIntent);
-
-			// the file could be also deleted here
-		} catch (Exception e) {
-			Log.e(TAG, e.getLocalizedMessage());
-		}
 	}
 }

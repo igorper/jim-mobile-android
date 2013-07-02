@@ -164,7 +164,7 @@ public class TrainingActivity extends Activity implements SwipeListener,
 		mSeriesInfoText = (TextView) findViewById(R.id.nextSeriesText);
 		mTrainingCommentText = (TextView) findViewById(R.id.textTrainingComment);
 		mAnimationRectangle = (LinearLayout) findViewById(R.id.animationRectangle);
-		mImageArrowSeriesInfo = (ImageView)findViewById(R.id.imageArrowSeriesInfo);
+		mImageArrowSeriesInfo = (ImageView) findViewById(R.id.imageArrowSeriesInfo);
 
 		updateTrainingSelector(-1);
 		initializeTrainingRatings();
@@ -188,13 +188,16 @@ public class TrainingActivity extends Activity implements SwipeListener,
 				DataUploaderService.ACTION_FETCH_TRAINNGS_DONE);
 		filter.addAction(DataUploaderService.ACTION_FETCH_TRAINNGS_LIST_DOWNLOADED);
 		filter.addAction(DataUploaderService.ACTION_FETCH_TRAINNGS_ITEM_DOWNLOADED);
+		filter.addAction(DataUploaderService.ACTION_UPLOAD_TRAININGS_STARTED);
+		filter.addAction(DataUploaderService.ACTION_UPLOAD_TRAININGS_ITEM_UPLOADED);
+		filter.addAction(DataUploaderService.ACTION_UPLOAD_TRAINNGS_DONE);
 
 		filter.addCategory(Intent.CATEGORY_DEFAULT);
 		mBroadcastReceiver = new ResponseReceiver();
 		registerReceiver(mBroadcastReceiver, filter);
-		
+
 		// try to fetch trainings if not available
-		if(!areTrainingsAvailable()){
+		if (!areTrainingsAvailable()) {
 			runTrainingsSync();
 		}
 	}
@@ -238,22 +241,6 @@ public class TrainingActivity extends Activity implements SwipeListener,
 	}
 
 	/**
-	 * This method either shows the training selector control and hides the
-	 * swipe control or vice versa.
-	 * 
-	 * @param visible
-	 */
-	private void setTrainingSelectorVisible(boolean visible) {
-		// the container should be visible in either case
-		mBottomContainer.setVisibility(View.VISIBLE);
-		mInfoButton.setVisibility(View.VISIBLE);
-
-		mTrainingSelector
-				.setVisibility(visible ? View.VISIBLE : View.INVISIBLE);
-		mSwipeControl.setVisibility(visible ? View.INVISIBLE : View.VISIBLE);
-	}
-
-	/**
 	 * This method loads the currently active training to a memory object from
 	 * json string saved in application settings. If the json string is
 	 * {@code null} the memory object gets set to {@code null} as well.
@@ -278,17 +265,17 @@ public class TrainingActivity extends Activity implements SwipeListener,
 		mSettings.saveCurrentTrainingPlan(mCurrentTraining == null ? ""
 				: mGsonInstance.toJson(mCurrentTraining));
 	}
-	
-	private boolean areTrainingsAvailable(){
+
+	private boolean areTrainingsAvailable() {
 		String[] projection = { TrainingPlan._ID };
 		String selection = null;
 		Cursor trainings = managedQuery(TrainingPlan.CONTENT_URI, projection,
 				selection, null, null);
-		
+
 		boolean av = trainings.moveToNext();
 
 		return trainings.moveToNext();
-			
+
 	}
 
 	/**
@@ -410,12 +397,12 @@ public class TrainingActivity extends Activity implements SwipeListener,
 		switch (item.getItemId()) {
 		case MENU_SYNC: {
 			runTrainingsSync();
-			
+
 			break;
 		}
 		case MENU_UPLOAD: {
 			runUploadCompleted();
-			
+
 			break;
 		}
 		case MENU_LOGOUT: {
@@ -431,7 +418,7 @@ public class TrainingActivity extends Activity implements SwipeListener,
 
 		return super.onOptionsItemSelected(item);
 	}
-	
+
 	/**
 	 * Initiates the upload completed trainings process.
 	 */
@@ -444,13 +431,19 @@ public class TrainingActivity extends Activity implements SwipeListener,
 		intent.putExtra(DataUploaderService.INTENT_KEY_PASSWORD,
 				mSettings.getPassword());
 		startService(intent);
-		
+
+		mProgressDialog = new ProgressDialog(this);
+		mProgressDialog.setIndeterminate(false);
+		mProgressDialog.setMessage("Uploading completed trainings ...");
+		mProgressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+		mProgressDialog.show();
+
 	}
 
 	/**
 	 * Initiates the training sync process.
 	 */
-	private void runTrainingsSync(){
+	private void runTrainingsSync() {
 		Intent intent = new Intent(this, DataUploaderService.class);
 		intent.putExtra(DataUploaderService.INTENT_KEY_ACTION,
 				DataUploaderService.ACTION_FETCH_TRAININGS);
@@ -494,7 +487,7 @@ public class TrainingActivity extends Activity implements SwipeListener,
 				mCurrentTraining.endTraining();
 			} else {
 				// overview button was clicked
-				
+
 				// store training to the database
 				ContentValues completedTraining = new ContentValues();
 				completedTraining.put(CompletedTraining.NAME,
@@ -504,7 +497,7 @@ public class TrainingActivity extends Activity implements SwipeListener,
 
 				getContentResolver().insert(CompletedTraining.CONTENT_URI,
 						completedTraining);
-				
+
 				mCurrentTraining = null;
 				initializeTrainingRatings();
 			}
@@ -539,17 +532,16 @@ public class TrainingActivity extends Activity implements SwipeListener,
 	 * responsible for periodic screen changes)
 	 */
 	private void updateScreen() {
-		//setTrainingSelectorVisible(mCurrentTraining == null);
+		// setTrainingSelectorVisible(mCurrentTraining == null);
 		if (mCurrentTraining == null) {
 			// no training started yet, show the start button
 			mCircularProgress.setCurrentState(CircularProgressState.START);
-			
+
 			mInfoButton.setVisibility(View.INVISIBLE);
-			
+
 			mBottomContainer.setVisibility(View.VISIBLE);
 			mSeriesInformation.setVisibility(View.INVISIBLE);
-			mTrainingSelector
-					.setVisibility(View.VISIBLE);
+			mTrainingSelector.setVisibility(View.VISIBLE);
 			mSwipeControl.setVisibility(View.INVISIBLE);
 		} else if (mCurrentTraining.getCurrentExercise() == null) {
 			if (!mCurrentTraining.isTrainingEnded()) {
@@ -563,13 +555,15 @@ public class TrainingActivity extends Activity implements SwipeListener,
 				mViewFlipper.showNext();
 			} else {
 				// show overview
-				
-				mCircularProgress.setNumberTotal(mCurrentTraining.getTotalTrainingDuration());
-				mCircularProgress.setNumberActive(mCurrentTraining.getActiveTrainingDuration());
-				
+
+				mCircularProgress.setNumberTotal(mCurrentTraining
+						.getTotalTrainingDuration());
+				mCircularProgress.setNumberActive(mCurrentTraining
+						.getActiveTrainingDuration());
+
 				mCircularProgress
 						.setCurrentState(CircularProgressState.OVERVIEW);
-				
+
 				mSeriesInfoText.setText("tap to close");
 				mBottomContainer.setVisibility(View.VISIBLE);
 				mSwipeControl.setVisibility(View.VISIBLE);
@@ -584,7 +578,7 @@ public class TrainingActivity extends Activity implements SwipeListener,
 		} else {
 			// in general, show no timer message
 			mCircularProgress.setTimerMessage("");
-			
+
 			Exercise curExercise = mCurrentTraining.getCurrentExercise();
 			// there are still some exercises to be performed
 			if (mCurrentTraining.isCurrentRest()) {
@@ -657,12 +651,11 @@ public class TrainingActivity extends Activity implements SwipeListener,
 			mCircularProgress.setExerciseMinProgress(0);
 			mCircularProgress.setExerciseProgressValue(curExercise
 					.getAllSeriesCount() - curExercise.getSeriesLeftCount());
-			
+
 			mInfoButton.setVisibility(View.VISIBLE);
 			mBottomContainer.setVisibility(View.VISIBLE);
 			mSeriesInformation.setVisibility(View.VISIBLE);
-			mTrainingSelector
-					.setVisibility(View.INVISIBLE);
+			mTrainingSelector.setVisibility(View.INVISIBLE);
 			mSwipeControl.setVisibility(View.VISIBLE);
 			mSwipeControl.setSwipeEnabled(true);
 			mImageArrowSeriesInfo.setVisibility(View.VISIBLE);
@@ -689,19 +682,19 @@ public class TrainingActivity extends Activity implements SwipeListener,
 	@Override
 	public void onSwipeRight() {
 		// don't do anything if exercise can not be scheduled for later
-		if(!mCurrentTraining.canScheduleLater()){
+		if (!mCurrentTraining.canScheduleLater()) {
 			return;
 		}
-		
+
 		if (!mCurrentTraining.isCurrentRest()) {
 			mCurrentTraining.endExercise();
 		}
 
 		// disable the get ready timer
 		mGetReadyStartTimestamp = -1;
-		
+
 		// cancel the repetition animation if running
-		if(mRepetitionAnimation.isAnimationRunning()){
+		if (mRepetitionAnimation.isAnimationRunning()) {
 			mRepetitionAnimation.cancelAnimation();
 		}
 
@@ -726,10 +719,10 @@ public class TrainingActivity extends Activity implements SwipeListener,
 		mGetReadyStartTimestamp = -1;
 
 		// cancel the repetition animation if running
-		if(mRepetitionAnimation.isAnimationRunning()){
+		if (mRepetitionAnimation.isAnimationRunning()) {
 			mRepetitionAnimation.cancelAnimation();
 		}
-		
+
 		mCurrentTraining.nextExercise();
 		saveCurrentTraining();
 		toggleInfoButtonVisible(false);
@@ -776,8 +769,10 @@ public class TrainingActivity extends Activity implements SwipeListener,
 
 		@Override
 		public void run() {
-			int secLeft = Math.round(mGetReadyInterval
-					- (float)(System.currentTimeMillis() - mGetReadyStartTimestamp)/1000);
+			int secLeft = Math
+					.round(mGetReadyInterval
+							- (float) (System.currentTimeMillis() - mGetReadyStartTimestamp)
+							/ 1000);
 
 			if (secLeft > 0) {
 				mCircularProgress.setRestProgressValue(secLeft);
@@ -917,6 +912,49 @@ public class TrainingActivity extends Activity implements SwipeListener,
 						/ totalNumberOfTrainings * 100f);
 				mProgressDialog.setMessage("Fetching " + trainingName);
 				mProgressDialog.setProgress(progress);
+			} else if (intent.getAction().equals(
+					DataUploaderService.ACTION_UPLOAD_TRAININGS_STARTED)) {
+				// started upload the trainings
+
+				// calculate progress bar information and set progress
+				int totalNumberOfTrainings = intent.getExtras().getInt(
+						DataUploaderService.PARAM_UPLOAD_TRAINING_NUM_ITEMS);
+				int progress = Math.round(1f / totalNumberOfTrainings * 100f);
+				mProgressDialog.setProgress(progress);
+			} else if (intent.getAction().equals(
+					DataUploaderService.ACTION_UPLOAD_TRAININGS_ITEM_UPLOADED)) {
+				// on individual completed training
+
+				// calculate progress bar information and set progress with
+				// training name
+				int totalNumberOfTrainings = intent.getExtras().getInt(
+						DataUploaderService.PARAM_UPLOAD_TRAINING_NUM_ITEMS);
+				int trainingCount = intent.getExtras().getInt(
+						DataUploaderService.PARAM_UPLOAD_TRAINING_CUR_ITEM_CNT);
+				String trainingName = intent.getExtras().getString(
+						DataUploaderService.PARAM_UPLOAD_TRAINING_ITEM_NAME);
+				int progress = Math.round((1f + trainingCount)
+						/ totalNumberOfTrainings * 100f);
+				mProgressDialog.setMessage("Uploading " + trainingName);
+				mProgressDialog.setProgress(progress);
+			} else if (intent.getAction().equals(
+					DataUploaderService.ACTION_UPLOAD_TRAINNGS_DONE)) {
+				// after the all the completed trainings were uploaded (or at
+				// least attempted to upload)
+
+				int successfulItems = intent.getExtras().getInt(
+						DataUploaderService.PARAM_UPLOAD_TRAINING_SUCESS_CNT);
+				int totalNumberOfTrainings = intent.getExtras().getInt(
+						DataUploaderService.PARAM_UPLOAD_TRAINING_NUM_ITEMS);
+				
+				mProgressDialog.dismiss();
+
+				Toast.makeText(
+						getApplicationContext(),
+						String.format("Uploaded %d of %d items.",
+								successfulItems, totalNumberOfTrainings),
+						Toast.LENGTH_SHORT).show();
+				
 			}
 		}
 	}
