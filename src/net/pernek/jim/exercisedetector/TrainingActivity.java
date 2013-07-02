@@ -129,13 +129,13 @@ public class TrainingActivity extends Activity implements SwipeListener,
 	 * state.
 	 */
 	private static int[] TRAINING_RATING_IMAGES = { R.drawable.sm_1_ns,
-			R.drawable.sm_2_ns, R.drawable.sm_3_ns, R.drawable.sm_4_ns };
+			R.drawable.sm_2_ns, R.drawable.sm_3_ns };
 
 	/**
 	 * Contains IDs of training rating images in selected (touched) state.
 	 */
 	private static int[] TRAINING_RATING_SELECTED_IMAGES = { R.drawable.sm_1_s,
-			R.drawable.sm_2_s, R.drawable.sm_3_s, R.drawable.sm_4_s };
+			R.drawable.sm_2_s, R.drawable.sm_3_s };
 
 	/**
 	 * References to the ImageViews hosting training rating images.
@@ -248,11 +248,10 @@ public class TrainingActivity extends Activity implements SwipeListener,
 		mTrainingRatingSelectedID = -1;
 		mTrainingCommentText.setText("");
 
-		mTrainingRatingImages = new ImageView[4];
+		mTrainingRatingImages = new ImageView[TRAINING_RATING_IMAGES.length];
 		mTrainingRatingImages[0] = (ImageView) findViewById(R.id.trainingRating1);
 		mTrainingRatingImages[1] = (ImageView) findViewById(R.id.trainingRating2);
 		mTrainingRatingImages[2] = (ImageView) findViewById(R.id.trainingRating3);
-		mTrainingRatingImages[3] = (ImageView) findViewById(R.id.trainingRating4);
 
 		for (int i = 0; i < mTrainingRatingImages.length; i++) {
 			mTrainingRatingImages[i]

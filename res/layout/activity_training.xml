@@ -218,13 +218,13 @@
                     android:onClick="onTrainingRatingSelected"
                     android:padding="@dimen/training_rating_smile_padding" />
 
-                <ImageView
-                    android:id="@+id/trainingRating4"
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:onClick="onTrainingRatingSelected"
-                    android:padding="@dimen/training_rating_smile_padding" />
+<!--                 <ImageView -->
+<!--                     android:id="@+id/trainingRating4" -->
+<!--                     android:layout_width="0dp" -->
+<!--                     android:layout_height="match_parent" -->
+<!--                     android:layout_weight="1" -->
+<!--                     android:onClick="onTrainingRatingSelected" -->
+<!--                     android:padding="@dimen/training_rating_smile_padding" /> -->
             </LinearLayout>
 
             <EditText
