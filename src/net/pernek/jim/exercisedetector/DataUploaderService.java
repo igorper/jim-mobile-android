@@ -1,10 +1,18 @@
 package net.pernek.jim.exercisedetector;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.security.KeyManagementException;
@@ -14,12 +22,18 @@ import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
+import net.pernek.jim.exercisedetector.database.TrainingContentProvider.CompletedTraining;
 import net.pernek.jim.exercisedetector.database.TrainingContentProvider.TrainingPlan;
+import net.pernek.jim.exercisedetector.entities.Measurement;
+import net.pernek.jim.exercisedetector.entities.Training;
+import net.pernek.jim.exercisedetector.util.Compress;
 import net.pernek.jim.exercisedetector.util.Utils;
 
 import org.apache.http.HttpEntity;
@@ -53,9 +67,13 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONStringer;
 
+import com.google.gson.Gson;
+
 import android.app.IntentService;
+import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Intent;
+import android.database.Cursor;
 import android.text.Html;
 import android.util.Log;
 import android.webkit.JsPromptResult;
@@ -90,13 +108,15 @@ public class DataUploaderService extends IntentService {
 	// those should be moved to settings
 	private static final String TESTING_EMAIL = "igor.pernek@gmail.com";
 	private static final String TESTING_PASSWORD = "307 Lakih_Pet";
-	private static final String UPLOAD_URL = "http://dev.trainerjim.com/measurements/upload";
+	private static final String UPLOAD_URL = "https://dev.trainerjim.com/mapi/training/upload";
 	// private static final String TRAINING_LIST_URL = "/mapi/training/list";
 	// private static final String TRAINING_GET_URL = "/mapi/training/get";
 
-	private static final String INPUT_EMAIL_NAME = "measurement_submission[email]";
-	private static final String INPUT_PASSWORD_NAME = "measurement_submission[password]";
-	private static final String INPUT_FILE_NAME = "measurement_submission[file_upload_data]";
+	private static final String HTTP_PARAM_EMAIL_NAME = "email";
+	private static final String HTTP_PARAM_PASSWORD_NAME = "password";
+	private static final String HTTP_PARAM_FILE_NAME = "trainingData";
+
+	private Gson jsonParser = new Gson();
 
 	public DataUploaderService() {
 		super("DataUploaderService");
@@ -188,9 +208,27 @@ public class DataUploaderService extends IntentService {
 		String password = intent.getExtras().getString(INTENT_KEY_PASSWORD);
 
 		if (action.equals(ACTION_UPLOAD)) {
-			String path = intent.getExtras().getString(INTENT_KEY_FILE);
+			String[] projection = { CompletedTraining._ID,
+					CompletedTraining.DATA };
+			Cursor trainings = getContentResolver()
+					.query(CompletedTraining.CONTENT_URI, projection, null,
+							null, null);
 
-			uploadFile(path);
+			while (trainings.moveToNext()) {
+				int trainingId = trainings.getInt(trainings
+						.getColumnIndex(TrainingPlan._ID));
+				String jsonEncodedTraining = trainings.getString(trainings
+						.getColumnIndex(TrainingPlan.DATA));
+
+				uploadTraining(trainingId, jsonEncodedTraining, username,
+						password);
+			}
+
+			// uploadFile(path);
+
+			// get all completed trainings from the database
+
+			// send them to the server
 		} else if (action.equals(ACTION_LOGIN)) {
 			boolean loginSuccessful = checkCredentials(username, password);
 
@@ -215,7 +253,7 @@ public class DataUploaderService extends IntentService {
 							.setAction(ACTION_FETCH_TRAINNGS_LIST_DOWNLOADED);
 					broadcastIntent.addCategory(Intent.CATEGORY_DEFAULT);
 					broadcastIntent.putExtra(PARAM_FETCH_TRAINNGS_NUM_ITEMS,
-					jaTrainingsPlans.length());
+							jaTrainingsPlans.length());
 					sendBroadcast(broadcastIntent);
 
 				}
@@ -233,13 +271,13 @@ public class DataUploaderService extends IntentService {
 
 					int trainingId = joTrainingPlan.getInt("id");
 					String trainingName = joTrainingPlan.getString("name");
-					
+
 					Intent broadcastIntent = new Intent();
 					broadcastIntent
 							.setAction(ACTION_FETCH_TRAINNGS_ITEM_DOWNLOADED);
 					broadcastIntent.addCategory(Intent.CATEGORY_DEFAULT);
-					broadcastIntent.putExtra(PARAM_FETCH_TRAINNGS_CUR_ITEM_NAME,
-					trainingName);
+					broadcastIntent.putExtra(
+							PARAM_FETCH_TRAINNGS_CUR_ITEM_NAME, trainingName);
 					broadcastIntent.putExtra(PARAM_FETCH_TRAINNGS_CUR_ITEM_CNT,
 							i);
 					broadcastIntent.putExtra(PARAM_FETCH_TRAINNGS_NUM_ITEMS,
@@ -320,6 +358,67 @@ public class DataUploaderService extends IntentService {
 					jsonTraining != null);
 			sendBroadcast(broadcastIntent);
 		}
+	}
+
+	private void uploadTraining(int trainingId, String jsonEncodedTraining,
+			String username, String password) {
+		Training training = jsonParser.fromJson(jsonEncodedTraining,
+				Training.class);
+
+		File trainingZip = new File(Utils.getUploadDataFolderFile(),
+				Utils.generateFileName(training.getStartDate()) + ".zip");
+
+		// first write training to disc
+		Measurement measurement = training.extractMeasurement();
+		measurement.zipToFile(trainingZip);
+
+		HttpClient httpClient = getDangerousHttpClient();
+
+		try {
+			HttpPost httppost = new HttpPost(UPLOAD_URL);
+
+			MultipartEntity multipartEntity = new MultipartEntity(
+					HttpMultipartMode.BROWSER_COMPATIBLE);
+			multipartEntity.addPart(HTTP_PARAM_EMAIL_NAME, new StringBody(
+					username));
+			multipartEntity.addPart(HTTP_PARAM_PASSWORD_NAME, new StringBody(
+					password));
+			// multipartEntity.addPart("utf8", new StringBody("&#x2713;"));
+			// multipartEntity.addPart("authenticity_token", new
+			// StringBody("QF2/iLHYEUm+kPU5ktsaw3wJJzqTG559TpLFLh9VpUw="));
+			multipartEntity.addPart(HTTP_PARAM_FILE_NAME, new FileBody(
+					trainingZip));
+			httppost.setEntity(multipartEntity);
+
+			HttpResponse response = httpClient.execute(httppost);
+			int status = response.getStatusLine().getStatusCode();
+			
+			if(status == HttpStatus.SC_OK){
+				// delete from the local database
+				getContentResolver().delete(ContentUris.withAppendedId(CompletedTraining.CONTENT_URI, trainingId) , null, null);
+			}
+
+			// signalize the status (and something else if needed) to
+			// everyone
+			// interested
+			// (most probably only to the main activity to update the
+			// screen)
+//			Intent broadcastIntent = new Intent();
+//			broadcastIntent
+//					.setAction(UploadSessionActivity.ResponseReceiver.ACTION_UPLOAD_DONE);
+//			broadcastIntent.addCategory(Intent.CATEGORY_DEFAULT);
+//			broadcastIntent
+//					.putExtra(
+//							UploadSessionActivity.ResponseReceiver.PARAM_STATUS,
+//							status);
+//			sendBroadcast(broadcastIntent);
+
+			// the file could be also deleted here
+		} catch (Exception e) {
+
+			Log.e(TAG, e.getLocalizedMessage());
+		}
+
 	}
 
 	/**
@@ -470,14 +569,14 @@ public class DataUploaderService extends IntentService {
 
 			MultipartEntity multipartEntity = new MultipartEntity(
 					HttpMultipartMode.BROWSER_COMPATIBLE);
-			multipartEntity.addPart(INPUT_EMAIL_NAME, new StringBody(
+			multipartEntity.addPart(HTTP_PARAM_EMAIL_NAME, new StringBody(
 					TESTING_EMAIL));
-			multipartEntity.addPart(INPUT_PASSWORD_NAME, new StringBody(
+			multipartEntity.addPart(HTTP_PARAM_PASSWORD_NAME, new StringBody(
 					TESTING_PASSWORD));
 			// multipartEntity.addPart("utf8", new StringBody("&#x2713;"));
 			// multipartEntity.addPart("authenticity_token", new
 			// StringBody("QF2/iLHYEUm+kPU5ktsaw3wJJzqTG559TpLFLh9VpUw="));
-			multipartEntity.addPart(INPUT_FILE_NAME, new FileBody(data));
+			multipartEntity.addPart(HTTP_PARAM_FILE_NAME, new FileBody(data));
 			httppost.setEntity(multipartEntity);
 
 			HttpResponse response = httpClient.execute(httppost);

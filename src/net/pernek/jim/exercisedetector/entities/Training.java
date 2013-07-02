@@ -2,18 +2,8 @@ package net.pernek.jim.exercisedetector.entities;
 
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collections;
-import java.util.Currency;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.List;
-
-import net.pernek.jim.exercisedetector.DetectorSettings;
-import net.pernek.jim.exercisedetector.database.TrainingContentProvider.TrainingPlan;
-
-import android.content.Context;
-import android.database.Cursor;
-import android.text.format.Time;
 
 /**
  * This class holds the Training information and is used for management of all
@@ -366,5 +356,21 @@ public class Training {
 	
 	public String getName(){
 		return name;
+	}
+
+	public Measurement extractMeasurement() {
+		Measurement retVal = new Measurement();
+		retVal.comment = mTrainingComment;
+		retVal.end_time = mTrainingEnded;
+		retVal.rating = mTrainingRating;
+		retVal.series_executions = mSeriesExecutions;
+		retVal.start_time = mTrainingStarted;
+		retVal.training_id = id;
+		
+		return retVal;
+	}
+	
+	public Date getStartDate(){
+		return mTrainingStarted;
 	}
 }

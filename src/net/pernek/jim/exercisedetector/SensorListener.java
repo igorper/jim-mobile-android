@@ -432,14 +432,14 @@ public class SensorListener implements SensorEventListener {
 	}
 
 	public boolean compileForUpload(String sessionId) {
-		Compress comp = new Compress(new String[] {
-				Utils.getAccelerationFile(sessionId).getPath(),
-				Utils.getTimestampsFile(sessionId).getPath() }, new File(
-				Utils.getUploadDataFolderFile(), sessionId).getPath());
+//		Compress comp = new Compress(new String[] {
+//				Utils.getAccelerationFile(sessionId).getPath(),
+//				Utils.getTimestampsFile(sessionId).getPath() }, new File(
+//				Utils.getUploadDataFolderFile(), sessionId).getPath());
 
 		// TODO: when the compilation is finished compiled files can be deleted
 
-		return comp.zip();
+		return false;//comp.zip();
 	}
 
 	public void updateTrainingPlan() {

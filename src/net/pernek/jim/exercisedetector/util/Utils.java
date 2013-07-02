@@ -3,6 +3,7 @@ package net.pernek.jim.exercisedetector.util;
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
 
 import android.os.Environment;
 
@@ -64,6 +65,10 @@ public class Utils {
 	public static String generateFileName() {
 		return new SimpleDateFormat("yyyyMMddHHmmss").format(Calendar
 				.getInstance().getTime());
+	}
+	
+	public static String generateFileName(Date date) {
+		return new SimpleDateFormat("yyyyMMddHHmmss").format(date);
 	}
 
 }

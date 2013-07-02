@@ -42,7 +42,8 @@ public class TrainingActivity extends Activity implements SwipeListener,
 	private static final String TAG = Utils.getApplicationTag();
 
 	private final static int MENU_SYNC = Menu.FIRST;
-	private final static int MENU_LOGOUT = Menu.FIRST + 1;
+	private final static int MENU_UPLOAD = Menu.FIRST + 1;
+	private final static int MENU_LOGOUT = Menu.FIRST + 2;
 
 	private static final int ACTIVITY_REQUEST_TRAININGS_LIST = 0;
 
@@ -398,6 +399,7 @@ public class TrainingActivity extends Activity implements SwipeListener,
 		// disable sync if no user is logged in)
 		if (!mSettings.getUsername().equals("")) {
 			menu.add(1, MENU_SYNC, 1, "Sync");
+			menu.add(1, MENU_UPLOAD, 1, "Upload");
 		}
 		menu.add(1, MENU_LOGOUT, 3, "Logout");
 		return true;
@@ -408,6 +410,11 @@ public class TrainingActivity extends Activity implements SwipeListener,
 		switch (item.getItemId()) {
 		case MENU_SYNC: {
 			runTrainingsSync();
+			
+			break;
+		}
+		case MENU_UPLOAD: {
+			runUploadCompleted();
 			
 			break;
 		}
@@ -425,6 +432,24 @@ public class TrainingActivity extends Activity implements SwipeListener,
 		return super.onOptionsItemSelected(item);
 	}
 	
+	/**
+	 * Initiates the upload completed trainings process.
+	 */
+	private void runUploadCompleted() {
+		Intent intent = new Intent(this, DataUploaderService.class);
+		intent.putExtra(DataUploaderService.INTENT_KEY_ACTION,
+				DataUploaderService.ACTION_UPLOAD);
+		intent.putExtra(DataUploaderService.INTENT_KEY_USERNAME,
+				mSettings.getUsername());
+		intent.putExtra(DataUploaderService.INTENT_KEY_PASSWORD,
+				mSettings.getPassword());
+		startService(intent);
+		
+	}
+
+	/**
+	 * Initiates the training sync process.
+	 */
 	private void runTrainingsSync(){
 		Intent intent = new Intent(this, DataUploaderService.class);
 		intent.putExtra(DataUploaderService.INTENT_KEY_ACTION,
