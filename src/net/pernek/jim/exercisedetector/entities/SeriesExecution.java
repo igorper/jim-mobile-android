@@ -13,6 +13,7 @@ public class SeriesExecution {
 	public int weight;
 	public int rest_time;
 	private int duration;
+	public int rating;
 	
 	public int getDuration(){
 		return duration;

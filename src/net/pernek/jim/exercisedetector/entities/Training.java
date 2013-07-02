@@ -27,7 +27,12 @@ public class Training {
 	/************************
 	 * Fields deserialized from local data.
 	 ************************/
-
+	
+	/**
+	 * Rating for the current series execution.
+	 */
+	private int mCurrentSeriesExecutionRating = -1;
+	
 	/**
 	 * Holds the nanosec timestamp of the training start. Used for normalizing
 	 * acceleration sensor data.
@@ -188,6 +193,10 @@ public class Training {
 		currentSeriesExecution.num_repetitions = currentSeries
 				.getNumberTotalRepetitions();
 		currentSeriesExecution.weight = currentSeries.getWeight();
+		currentSeriesExecution.rating = mCurrentSeriesExecutionRating;
+		
+		// reset the series execution rating for the next exercise
+		mCurrentSeriesExecutionRating = -1;
 
 		mSeriesExecutions.add(currentSeriesExecution);
 
@@ -414,5 +423,9 @@ public class Training {
 	
 	public long getTrainingStartTimestamp(){
 		return mTrainingStartTimestamp;
+	}
+	
+	public void setCurrentSeriesExecutionRating(int rating){
+		mCurrentSeriesExecutionRating = rating;
 	}
 }

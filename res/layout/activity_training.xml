@@ -209,7 +209,7 @@
                             android:layout_width="0dp"
                             android:layout_height="match_parent"
                             android:layout_weight="1"
-                            android:onClick="onTrainingRatingSelected"
+                            android:onClick="onExerciseRatingSelected"
                             android:padding="@dimen/training_rating_smile_padding"
                             android:src="@drawable/sm_1_ns" />
 
@@ -218,7 +218,7 @@
                             android:layout_width="0dp"
                             android:layout_height="match_parent"
                             android:layout_weight="1"
-                            android:onClick="onTrainingRatingSelected"
+                            android:onClick="onExerciseRatingSelected"
                             android:padding="@dimen/training_rating_smile_padding"
                             android:src="@drawable/sm_2_ns" />
 
@@ -227,7 +227,7 @@
                             android:layout_width="0dp"
                             android:layout_height="match_parent"
                             android:layout_weight="1"
-                            android:onClick="onTrainingRatingSelected"
+                            android:onClick="onExerciseRatingSelected"
                             android:padding="@dimen/training_rating_smile_padding"
                             android:src="@drawable/sm_3_ns" />
                     </LinearLayout>

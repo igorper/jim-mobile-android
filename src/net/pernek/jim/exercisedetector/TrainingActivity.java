@@ -173,7 +173,7 @@ public class TrainingActivity extends Activity implements SwipeListener,
 		mAnimationRectangle = (LinearLayout) findViewById(R.id.animationRectangle);
 		mImageArrowSeriesInfo = (ImageView) findViewById(R.id.imageArrowSeriesInfo);
 		mViewRateExercise = (LinearLayout) findViewById(R.id.viewRateExercise);
-		mIconWeight = (ImageView)findViewById(R.id.iconWeight);
+		mIconWeight = (ImageView) findViewById(R.id.iconWeight);
 
 		updateTrainingSelector(-1);
 		initializeTrainingRatings();
@@ -373,6 +373,22 @@ public class TrainingActivity extends Activity implements SwipeListener,
 			mViewFlipper.showPrevious();
 		}
 	}
+	
+	public void onExerciseRatingSelected(View v){
+		ImageView trainingRatingSelected = (ImageView) v;
+
+		// loop through training ratings image views and set the appropriate
+		// image
+		for (int i = 0; i < mTrainingRatingImages.length; i++) {
+			if (mTrainingRatingImages[i] == trainingRatingSelected) {
+				mCurrentTraining.setCurrentSeriesExecutionRating(i);
+				break;
+			} 
+		}
+		
+		mViewRateExercise.setVisibility(View.GONE);
+		changeTrainingPlanState();
+	}
 
 	/**
 	 * Triggered when clicked on a specific training rating icon.
@@ -422,6 +438,7 @@ public class TrainingActivity extends Activity implements SwipeListener,
 
 	// TODO: delete this
 	int menuToggle = 1;
+
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
@@ -442,23 +459,23 @@ public class TrainingActivity extends Activity implements SwipeListener,
 
 			break;
 		}
-		case MENU_FULL_RATE_TOGGLE:{
-			if(menuToggle % 3 == 1){
+		case MENU_FULL_RATE_TOGGLE: {
+			if (menuToggle % 3 == 1) {
 				// show full screen
 				mViewRateExercise.setVisibility(View.VISIBLE);
 				mIconWeight.setVisibility(View.VISIBLE);
-				mViewRateExercise.setBackgroundColor(getResources().getColor(R.color.jim_orange));
-			}
-			else if(menuToggle % 3 == 2){
+				mViewRateExercise.setBackgroundColor(getResources().getColor(
+						R.color.jim_orange));
+			} else if (menuToggle % 3 == 2) {
 				mViewRateExercise.setVisibility(View.VISIBLE);
 				mIconWeight.setVisibility(View.INVISIBLE);
 				mViewRateExercise.setBackgroundColor(0x00000000);
-			}else if(menuToggle % 3 == 0){
+			} else if (menuToggle % 3 == 0) {
 				mViewRateExercise.setVisibility(View.GONE);
 			}
-			
+
 			menuToggle++;
-			
+
 			break;
 		}
 		default:
@@ -590,7 +607,6 @@ public class TrainingActivity extends Activity implements SwipeListener,
 	 * responsible for periodic screen changes)
 	 */
 	private void updateScreen() {
-		// setTrainingSelectorVisible(mCurrentTraining == null);
 		if (mCurrentTraining == null) {
 			// no training started yet, show the start button
 			mCircularProgress.setCurrentState(CircularProgressState.START);
@@ -626,13 +642,13 @@ public class TrainingActivity extends Activity implements SwipeListener,
 				mBottomContainer.setVisibility(View.VISIBLE);
 				mSwipeControl.setVisibility(View.VISIBLE);
 				mTrainingSelector.setVisibility(View.INVISIBLE);
-				mSwipeControl.setCenterText("", "GREAT JOB, CHAMP!");
+				mSwipeControl.setCenterText("", "GREAT JOB!");
 			}
 
 			mInfoButton.setVisibility(View.INVISIBLE);
 			mSeriesInformation.setVisibility(View.VISIBLE);
 			mSwipeControl.setSwipeEnabled(false);
-			mImageArrowSeriesInfo.setVisibility(View.INVISIBLE);
+			mImageArrowSeriesInfo.setVisibility(View.GONE);
 		} else {
 			// in general, show no timer message
 			mCircularProgress.setTimerMessage("");
@@ -796,7 +812,10 @@ public class TrainingActivity extends Activity implements SwipeListener,
 	 */
 	@Override
 	public void onAnimationEnded() {
-		changeTrainingPlanState();
+		mViewRateExercise.setVisibility(View.VISIBLE);
+		mIconWeight.setVisibility(View.INVISIBLE);
+		mViewRateExercise.setBackgroundColor(0x00000000);
+		//changeTrainingPlanState();
 	}
 
 	/*
@@ -844,19 +863,26 @@ public class TrainingActivity extends Activity implements SwipeListener,
 				mCurrentTraining.startExercise();
 				// TODO: here we could decide to either show the count down,
 				// repetition animation or just an empty exercise screen
+				// this is a temporal solution for demonstration purposes
+				if (mCurrentTraining.getCurrentSeriesNumber() % 2 == 0) {
+					// TODO: change repetition duration with actual number once
+					// stored
+					// in the training plan
+					// start animation
+					mRepetitionAnimation.startAnimation(
+							mViewFlipper.getMeasuredHeight(), 1000, 400, 500,
+							2000, mCurrentTraining.getTotalRepetitions());
+				} else {
+					mViewRateExercise.setVisibility(View.VISIBLE);
+					mIconWeight.setVisibility(View.VISIBLE);
+					mViewRateExercise.setBackgroundColor(getResources().getColor(
+							R.color.jim_orange));
+				}
 
 				// do acceleration sampling
 				mAccelerationRecorder
 						.startAccelerationSampling(mCurrentTraining
 								.getTrainingStartTimestamp());
-
-				// TODO: change repetition duration with actual number once
-				// stored
-				// in the training plan
-				// start animation
-				mRepetitionAnimation.startAnimation(
-						mViewFlipper.getMeasuredHeight(), 1000, 400, 500, 2000,
-						mCurrentTraining.getTotalRepetitions());
 
 				updateScreen();
 			}

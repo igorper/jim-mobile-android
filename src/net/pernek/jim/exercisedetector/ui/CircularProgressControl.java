@@ -1339,7 +1339,7 @@ public class CircularProgressControl extends View {
 						3 * dashedLineLength, mCenterX, mOverviewDashPaint);
 				
 				StringBuilder unit = new StringBuilder();
-				String timerText = getFormatedTime(mNumberActive, unit, false);
+				String activeTimerText = getFormatedTime(mNumberActive, unit, false);
 				String activeUnit = String.format("%s ", unit.toString()); 
 
 				// position the ("min active") text in the center of the button
@@ -1364,24 +1364,24 @@ public class CircularProgressControl extends View {
 
 				// center and draw the big active number
 				float activeNumberLength = mTextOverviewNumberPaint
-						.measureText(Integer.toString(mNumberActive));
+						.measureText(activeTimerText);
 
-				canvas.drawText(Integer.toString(mNumberActive), mCenterX
+				canvas.drawText(activeTimerText, mCenterX
 						- activeNumberLength / 2, mCenterY - 3 * textDescent
 						+ textAscent, mTextOverviewNumberPaint);
 				
 				unit = new StringBuilder();
-				timerText = getFormatedTime(mNumberTotal, unit, false);
+				activeTimerText = getFormatedTime(mNumberTotal, unit, false);
 				String totalUnit = String.format("%s ", unit.toString());
 
 				// center and draw the big total number
 				float unitTotalLength = mTextOverviewMinPaint
 						.measureText(totalUnit);
 				float totalNumberLength = mTextOverviewNumberPaint
-						.measureText(timerText);
+						.measureText(activeTimerText);
 
 				float numberTextAscent = mTextOverviewNumberPaint.ascent();
-				canvas.drawText(timerText, mCenterX
+				canvas.drawText(activeTimerText, mCenterX
 						- totalNumberLength / 2, mCenterY + textDescent
 						- numberTextAscent, mTextOverviewNumberPaint);
 

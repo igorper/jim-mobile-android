@@ -302,7 +302,10 @@ public class RepetitionAnimation {
 	private Runnable mAfterRepetitionRestRunnable = new Runnable() {
 		@Override
 		public void run() {
-			notifyRepetitionCompleted();
+			if (mCurrentRepetition < mTotalRepetitions) {
+				notifyRepetitionCompleted();
+			}
+			
 			runRepetitionAnimation();
 		}
 	};
@@ -366,9 +369,10 @@ public class RepetitionAnimation {
 			// pixels, corresponding to the repetition animation, visible.
 			mAnimationObject.setVisibility(View.GONE);
 			mCurrentRepetition++;
-			
+
 			mUiHandler.postDelayed(mAfterRepetitionRestRunnable,
-					mCurrentRepetition == mTotalRepetitions ? 0 : mAfterRepetitionDuration);
+					mCurrentRepetition == mTotalRepetitions ? 0
+							: mAfterRepetitionDuration);
 		}
 	};
 
