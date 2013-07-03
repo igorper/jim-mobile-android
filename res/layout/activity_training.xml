@@ -209,27 +209,30 @@
                             android:layout_width="0dp"
                             android:layout_height="match_parent"
                             android:layout_weight="1"
+                            android:clickable="true"
                             android:onClick="onExerciseRatingSelected"
-                            android:padding="@dimen/training_rating_smile_padding"
-                            android:src="@drawable/sm_1_ns" />
+                            android:padding="@dimen/exercise_rating_smile_padding"
+                            android:src="@drawable/rating1" />
 
                         <ImageView
                             android:id="@+id/exerciseRating2"
                             android:layout_width="0dp"
                             android:layout_height="match_parent"
                             android:layout_weight="1"
+                            android:clickable="true"
                             android:onClick="onExerciseRatingSelected"
-                            android:padding="@dimen/training_rating_smile_padding"
-                            android:src="@drawable/sm_2_ns" />
+                            android:padding="@dimen/exercise_rating_smile_padding"
+                            android:src="@drawable/rating2" />
 
                         <ImageView
                             android:id="@+id/exerciseRating3"
                             android:layout_width="0dp"
                             android:layout_height="match_parent"
                             android:layout_weight="1"
+                            android:clickable="true"
                             android:onClick="onExerciseRatingSelected"
-                            android:padding="@dimen/training_rating_smile_padding"
-                            android:src="@drawable/sm_3_ns" />
+                            android:padding="@dimen/exercise_rating_smile_padding"
+                            android:src="@drawable/rating3" />
                     </LinearLayout>
                 </LinearLayout>
             </LinearLayout>

@@ -22,13 +22,16 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.database.Cursor;
+import android.graphics.Rect;
 import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.View.OnTouchListener;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
@@ -145,6 +148,11 @@ public class TrainingActivity extends Activity implements SwipeListener,
 	 */
 	private ImageView[] mTrainingRatingImages;
 
+	/**
+	 * References to the ImageViews hosting exercise rating images.
+	 */
+	private ImageView[] mExerciseRatingImages;
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 
@@ -177,6 +185,7 @@ public class TrainingActivity extends Activity implements SwipeListener,
 
 		updateTrainingSelector(-1);
 		initializeTrainingRatings();
+		initializeExerciseRatings();
 		loadCurrentTraining();
 		updateScreen();
 
@@ -213,6 +222,28 @@ public class TrainingActivity extends Activity implements SwipeListener,
 		// try to fetch trainings if not available
 		if (!areTrainingsAvailable()) {
 			runTrainingsSync();
+		}
+	}
+
+	private void initializeExerciseRatings() {
+		mExerciseRatingImages = new ImageView[TRAINING_RATING_IMAGES.length];
+		mExerciseRatingImages[0] = (ImageView) findViewById(R.id.exerciseRating1);
+		mExerciseRatingImages[1] = (ImageView) findViewById(R.id.exerciseRating2);
+		mExerciseRatingImages[2] = (ImageView) findViewById(R.id.exerciseRating3);
+	}
+
+	public void onExerciseRatingSelected(View v) {
+		ImageView trainingRatingSelected = (ImageView) v;
+
+		// loop through training ratings image views and set the appropriate
+		// image
+		for (int i = 0; i < mTrainingRatingImages.length; i++) {
+			if (mExerciseRatingImages[i] == trainingRatingSelected) {
+				mCurrentTraining.setCurrentSeriesExecutionRating(i);
+				mViewRateExercise.setVisibility(View.GONE);
+				changeTrainingPlanState();
+				break;
+			}
 		}
 	}
 
@@ -373,22 +404,6 @@ public class TrainingActivity extends Activity implements SwipeListener,
 			mViewFlipper.showPrevious();
 		}
 	}
-	
-	public void onExerciseRatingSelected(View v){
-		ImageView trainingRatingSelected = (ImageView) v;
-
-		// loop through training ratings image views and set the appropriate
-		// image
-		for (int i = 0; i < mTrainingRatingImages.length; i++) {
-			if (mTrainingRatingImages[i] == trainingRatingSelected) {
-				mCurrentTraining.setCurrentSeriesExecutionRating(i);
-				break;
-			} 
-		}
-		
-		mViewRateExercise.setVisibility(View.GONE);
-		changeTrainingPlanState();
-	}
 
 	/**
 	 * Triggered when clicked on a specific training rating icon.
@@ -527,7 +542,10 @@ public class TrainingActivity extends Activity implements SwipeListener,
 	}
 
 	private void changeTrainingPlanState() {
-		if (mCircularProgress.isInfoVisible()) {
+		if (mViewRateExercise.getVisibility() == View.VISIBLE) {
+			// exercise has to be rated before doing anything else
+
+		} else if (mCircularProgress.isInfoVisible()) {
 			// if info button is visible close it on tap
 			toggleInfoButtonVisible(false);
 		} else if (mCurrentTraining == null) {
@@ -815,7 +833,7 @@ public class TrainingActivity extends Activity implements SwipeListener,
 		mViewRateExercise.setVisibility(View.VISIBLE);
 		mIconWeight.setVisibility(View.INVISIBLE);
 		mViewRateExercise.setBackgroundColor(0x00000000);
-		//changeTrainingPlanState();
+		// changeTrainingPlanState();
 	}
 
 	/*
@@ -875,8 +893,8 @@ public class TrainingActivity extends Activity implements SwipeListener,
 				} else {
 					mViewRateExercise.setVisibility(View.VISIBLE);
 					mIconWeight.setVisibility(View.VISIBLE);
-					mViewRateExercise.setBackgroundColor(getResources().getColor(
-							R.color.jim_orange));
+					mViewRateExercise.setBackgroundColor(getResources()
+							.getColor(R.color.jim_orange));
 				}
 
 				// do acceleration sampling
