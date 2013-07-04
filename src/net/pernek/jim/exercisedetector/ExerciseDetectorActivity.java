@@ -1,6 +1,5 @@
 package net.pernek.jim.exercisedetector;
 
-import net.pernek.jim.exercisedetector.entities.TrainingPlanOld;
 import net.pernek.jim.exercisedetector.util.Utils;
 
 import org.json.JSONException;

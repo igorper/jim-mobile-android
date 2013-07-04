@@ -3,17 +3,15 @@ package net.pernek.jim.exercisedetector;
 import java.io.File;
 import java.io.IOException;
 
+import net.pernek.jim.exercisedetector.util.Utils;
+
 import org.json.JSONException;
 
-import net.pernek.jim.exercisedetector.entities.TrainingPlanOld;
-import net.pernek.jim.exercisedetector.util.Compress;
-import net.pernek.jim.exercisedetector.util.Utils;
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
 import android.os.Binder;
-import android.os.Environment;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.util.Log;
@@ -168,9 +166,9 @@ public class DetectorService extends Service {
 		return status;
 	}
 
-	public TrainingPlanOld getCurrentTrainingPlan() {
-		return mSensorListener.getCurrentTrainingPlan();
-	}
+//	public TrainingPlanOld getCurrentTrainingPlan() {
+//		return mSensorListener.getCurrentTrainingPlan();
+//	}
 
 	private void pushServiceToForeground() {
 		String message = "Detector service on.";

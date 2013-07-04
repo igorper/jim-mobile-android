@@ -5,12 +5,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import net.pernek.jim.exercisedetector.entities.TrainingPlanOld;
 import net.pernek.jim.exercisedetector.util.Utils;
 import android.app.ExpandableListActivity;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.util.Log;
 import android.view.View;
 import android.widget.ExpandableListView;
 import android.widget.SimpleExpandableListAdapter;
@@ -22,7 +20,7 @@ public class TrainingManifestActivity extends ExpandableListActivity {
 	private static final String EXERCISE_ITEM = "exercise.item";
 	private static final String SERIES_ITEM = "series.item";
 
-	private TrainingPlanOld mTrainingPlan;
+//	private TrainingPlanOld mTrainingPlan;
 	private DetectorSettings mSettings;
 	private String mTrainingMainfestFile;
 
@@ -38,13 +36,13 @@ public class TrainingManifestActivity extends ExpandableListActivity {
 		mTrainingMainfestFile = new File(Utils.getDataFolderFile(),
 				Utils.getTrainingManifestFileName(mSettings.getOutputFile()))
 				.getPath();
-		mTrainingPlan = TrainingPlanOld.readFromFile(mTrainingMainfestFile);
+//		mTrainingPlan = TrainingPlanOld.readFromFile(mTrainingMainfestFile);
 
 		// if no training plan was returned we can not show anything
 		// (a current training plan has to be present at this point)
-		if (mTrainingPlan != null) {
-			setListAdapter(createTrainingData());
-		}
+//		if (mTrainingPlan != null) {
+//			setListAdapter(createTrainingData());
+//		}
 	}
 
 	private SimpleExpandableListAdapter createTrainingData() {
@@ -125,9 +123,9 @@ public class TrainingManifestActivity extends ExpandableListActivity {
 		setListAdapter(createTrainingData());
 
 		// save the updated file to disk
-		boolean status = mTrainingPlan.saveToTempFile(mTrainingMainfestFile);
-
-		Log.d(TAG, Boolean.toString(status));
+//		boolean status = mTrainingPlan.saveToTempFile(mTrainingMainfestFile);
+//
+//		Log.d(TAG, Boolean.toString(status));
 
 		return true;
 	}

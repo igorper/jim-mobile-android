@@ -1,7 +1,6 @@
 package net.pernek.jim.exercisedetector;
 
 import java.io.BufferedWriter;
-import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -13,13 +12,8 @@ import java.util.Queue;
 
 import net.pernek.jim.exercisedetector.alg.CircularArrayInt;
 import net.pernek.jim.exercisedetector.alg.DetectedEvent;
-import net.pernek.jim.exercisedetector.entities.TrainingPlanOld;
-import net.pernek.jim.exercisedetector.util.Compress;
 import net.pernek.jim.exercisedetector.util.Statistics;
 import net.pernek.jim.exercisedetector.util.Utils;
-
-import org.json.JSONException;
-
 import android.content.Context;
 import android.content.Intent;
 import android.hardware.Sensor;
@@ -81,7 +75,7 @@ public class SensorListener implements SensorEventListener {
 
 	private String mSessionId;
 
-	private TrainingPlanOld mCurrentTrainingPlan;
+//	private TrainingPlanOld mCurrentTrainingPlan;
 
 	private SensorListener() {
 	}
@@ -109,25 +103,25 @@ public class SensorListener implements SensorEventListener {
 		String tempTrainingMainfestPath = Utils.getTrainingManifestFile(
 				sessionId).getPath();
 
-		if (new File(tempTrainingMainfestPath).exists()) {
-			// if the training file is already stored on the reload it
-			// (this happened when the service was killed and recovered)
-			retVal.mCurrentTrainingPlan = TrainingPlanOld
-					.readFromFile(tempTrainingMainfestPath);
-		} else {
-			// create the current training from the shared preferences
-			try {
-				retVal.mCurrentTrainingPlan = TrainingPlanOld
-						.parseFromJson(jsonEncodedTrainingPlan);
-			} catch (JSONException e) {
-				e.printStackTrace();
-				return null;
-			}
-
-			// save the file to disk as well (for the case the service crashes)
-			retVal.mCurrentTrainingPlan
-					.saveToTempFile(tempTrainingMainfestPath);
-		}
+//		if (new File(tempTrainingMainfestPath).exists()) {
+//			// if the training file is already stored on the reload it
+//			// (this happened when the service was killed and recovered)
+//			retVal.mCurrentTrainingPlan = TrainingPlanOld
+//					.readFromFile(tempTrainingMainfestPath);
+//		} else {
+//			// create the current training from the shared preferences
+//			try {
+//				retVal.mCurrentTrainingPlan = TrainingPlanOld
+//						.parseFromJson(jsonEncodedTrainingPlan);
+//			} catch (JSONException e) {
+//				e.printStackTrace();
+//				return null;
+//			}
+//
+//			// save the file to disk as well (for the case the service crashes)
+//			retVal.mCurrentTrainingPlan
+//					.saveToTempFile(tempTrainingMainfestPath);
+//		}
 
 		// create a handler thread to which sampled acceleration will
 		// be delivered
@@ -443,8 +437,8 @@ public class SensorListener implements SensorEventListener {
 	}
 
 	public void updateTrainingPlan() {
-		mCurrentTrainingPlan = TrainingPlanOld.readFromFile(Utils
-				.getTrainingManifestFile(mSessionId).getPath());
+//		mCurrentTrainingPlan = TrainingPlanOld.readFromFile(Utils
+//				.getTrainingManifestFile(mSessionId).getPath());
 	}
 
 	// returns true if moving to the next activity is possible otherwise false
@@ -468,9 +462,9 @@ public class SensorListener implements SensorEventListener {
 		return true;
 	}
 
-	public TrainingPlanOld getCurrentTrainingPlan() {
-		return mCurrentTrainingPlan;
-	}
+//	public TrainingPlanOld getCurrentTrainingPlan() {
+//		return mCurrentTrainingPlan;
+//	}
 
 	public int getCurrentExerciseIdx() {
 		return mCurrentExerciseIdx;
