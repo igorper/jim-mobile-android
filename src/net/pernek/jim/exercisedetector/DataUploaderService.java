@@ -23,6 +23,7 @@ import net.pernek.jim.exercisedetector.database.TrainingContentProvider.Complete
 import net.pernek.jim.exercisedetector.database.TrainingContentProvider.TrainingPlan;
 import net.pernek.jim.exercisedetector.entities.Measurement;
 import net.pernek.jim.exercisedetector.entities.Training;
+import net.pernek.jim.exercisedetector.util.HttpsHelpers;
 import net.pernek.jim.exercisedetector.util.Utils;
 
 import org.apache.http.HttpEntity;
@@ -102,85 +103,6 @@ public class DataUploaderService extends IntentService {
 
 	public DataUploaderService() {
 		super("DataUploaderService");
-	}
-
-	// This SSLSocketFactory does not check if a certificate issued is secured
-	// and
-	// just simply accepts it.
-	// TODO: Remove it when or certificate will be issued by a trusted authority
-	class DangeroursSSLSocketFactory extends SSLSocketFactory {
-		SSLContext sslContext = SSLContext.getInstance("TLS");
-
-		public DangeroursSSLSocketFactory(KeyStore truststore)
-				throws NoSuchAlgorithmException, KeyManagementException,
-				KeyStoreException, UnrecoverableKeyException {
-			super(truststore);
-
-			TrustManager tm = new X509TrustManager() {
-				public java.security.cert.X509Certificate[] getAcceptedIssuers() {
-					return null;
-				}
-
-				@Override
-				public void checkClientTrusted(
-						java.security.cert.X509Certificate[] arg0, String arg1)
-						throws java.security.cert.CertificateException {
-					// TODO Auto-generated method stub
-
-				}
-
-				@Override
-				public void checkServerTrusted(
-						java.security.cert.X509Certificate[] arg0, String arg1)
-						throws java.security.cert.CertificateException {
-					// TODO Auto-generated method stub
-
-				}
-			};
-
-			sslContext.init(null, new TrustManager[] { tm }, null);
-		}
-
-		@Override
-		public Socket createSocket(Socket socket, String host, int port,
-				boolean autoClose) throws IOException, UnknownHostException {
-			return sslContext.getSocketFactory().createSocket(socket, host,
-					port, autoClose);
-		}
-
-		@Override
-		public Socket createSocket() throws IOException {
-			return sslContext.getSocketFactory().createSocket();
-		}
-	}
-
-	// this client simply accepts all certificats
-	// TODO: change it before serious production
-	public HttpClient getDangerousHttpClient() {
-		try {
-			KeyStore trustStore = KeyStore.getInstance(KeyStore
-					.getDefaultType());
-			trustStore.load(null, null);
-
-			SSLSocketFactory sf = new DangeroursSSLSocketFactory(trustStore);
-			sf.setHostnameVerifier(SSLSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
-
-			HttpParams params = new BasicHttpParams();
-			HttpProtocolParams.setVersion(params, HttpVersion.HTTP_1_1);
-			HttpProtocolParams.setContentCharset(params, HTTP.UTF_8);
-
-			SchemeRegistry registry = new SchemeRegistry();
-			registry.register(new Scheme("http", PlainSocketFactory
-					.getSocketFactory(), 80));
-			registry.register(new Scheme("https", sf, 443));
-
-			ClientConnectionManager ccm = new ThreadSafeClientConnManager(
-					params, registry);
-
-			return new DefaultHttpClient(ccm, params);
-		} catch (Exception e) {
-			return new DefaultHttpClient();
-		}
 	}
 
 	@Override
@@ -395,7 +317,7 @@ public class DataUploaderService extends IntentService {
 		Measurement measurement = training.extractMeasurement();
 		measurement.zipToFile(trainingZip);
 
-		HttpClient httpClient = getDangerousHttpClient();
+		HttpClient httpClient = HttpsHelpers.getDangerousHttpClient();
 
 		try {
 			String url = String.format("%s%s",
@@ -458,7 +380,7 @@ public class DataUploaderService extends IntentService {
 	 */
 	private String getTraining(int trainingId, String username, String password)
 			throws ClientProtocolException, IOException {
-		HttpClient httpClient = getDangerousHttpClient();
+		HttpClient httpClient = HttpsHelpers.getDangerousHttpClient();
 
 		List<NameValuePair> params = new ArrayList<NameValuePair>();
 		params.add(new BasicNameValuePair("email", username));
@@ -505,7 +427,7 @@ public class DataUploaderService extends IntentService {
 	}
 
 	private boolean checkCredentials(String username, String password) {
-		HttpClient httpClient = getDangerousHttpClient();
+		HttpClient httpClient = HttpsHelpers.getDangerousHttpClient();
 		boolean loginSuccessful;
 
 		try {
@@ -542,7 +464,7 @@ public class DataUploaderService extends IntentService {
 	}
 
 	private String getTrainingList(String username, String password) {
-		HttpClient httpClient = getDangerousHttpClient();
+		HttpClient httpClient = HttpsHelpers.getDangerousHttpClient();
 
 		try {
 			List<NameValuePair> params = new ArrayList<NameValuePair>();
