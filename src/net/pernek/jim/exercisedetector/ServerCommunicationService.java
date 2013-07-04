@@ -125,10 +125,14 @@ public class ServerCommunicationService extends IntentService {
 	/***********************
 	 * UPLOAD TRAININGS TASK PARAMETERS
 	 ***********************/
-	public static final String PARAM_UPLOAD_TRAINING_NUM_ITEMS = "upload_completed_training_num_items";
+	
+	/**
+	 * This ID marks the number of all items to be uploaded.
+	 */
+	public static final String PARAM_UPLOAD_TRAINING_NUM_ALL_ITEMS = "upload_completed_training_num_items";
 
 	/**
-	 * 
+	 * This ID marks the name of the particular completed training to be uploaded.
 	 */
 	public static final String PARAM_UPLOAD_TRAINING_ITEM_NAME = "upload_training_item_name";
 	public static final String PARAM_UPLOAD_TRAINING_STATUS = "upload_training_status";
@@ -213,7 +217,7 @@ public class ServerCommunicationService extends IntentService {
 			statusIntent.addCategory(Intent.CATEGORY_DEFAULT);
 			statusIntent.putExtra(PARAM_UPLOAD_TRAINING_SUCESS_CNT,
 					counterSuccess);
-			statusIntent.putExtra(PARAM_UPLOAD_TRAINING_NUM_ITEMS,
+			statusIntent.putExtra(PARAM_UPLOAD_TRAINING_NUM_ALL_ITEMS,
 					mNumCompletedTrainings);
 		} else if (action.equals(ACTION_LOGIN)) {
 			boolean loginSuccessful = checkCredentials(username, password);
@@ -347,7 +351,7 @@ public class ServerCommunicationService extends IntentService {
 			Intent broadcastIntent = new Intent();
 			broadcastIntent.setAction(ACTION_UPLOAD_TRAININGS_STARTED);
 			broadcastIntent.addCategory(Intent.CATEGORY_DEFAULT);
-			broadcastIntent.putExtra(PARAM_UPLOAD_TRAINING_NUM_ITEMS,
+			broadcastIntent.putExtra(PARAM_UPLOAD_TRAINING_NUM_ALL_ITEMS,
 					mNumCompletedTrainings);
 			sendBroadcast(broadcastIntent);
 
@@ -371,7 +375,8 @@ public class ServerCommunicationService extends IntentService {
 						trainingToUpload.getName());
 				broadcastIntent.putExtra(PARAM_UPLOAD_TRAINING_CUR_ITEM_CNT,
 						trainingCounter);
-				broadcastIntent.putExtra(PARAM_UPLOAD_TRAINING_NUM_ITEMS,
+				broadcastIntent.putExtra(PARAM_UPLOAD_TRAINING_STATUS, uploadStatus);
+				broadcastIntent.putExtra(PARAM_UPLOAD_TRAINING_NUM_ALL_ITEMS,
 						mNumCompletedTrainings);
 				sendBroadcast(broadcastIntent);
 

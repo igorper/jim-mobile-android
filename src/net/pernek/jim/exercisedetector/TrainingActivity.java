@@ -463,7 +463,7 @@ public class TrainingActivity extends Activity implements SwipeListener,
 			break;
 		}
 		case MENU_UPLOAD: {
-			runUploadCompleted();
+			runUploadTrainings();
 
 			break;
 		}
@@ -501,9 +501,9 @@ public class TrainingActivity extends Activity implements SwipeListener,
 	}
 
 	/**
-	 * Initiates the upload completed trainings process.
+	 * Initiates the upload of completed trainings.
 	 */
-	private void runUploadCompleted() {
+	private void runUploadTrainings() {
 		Intent intent = new Intent(this, ServerCommunicationService.class);
 		intent.putExtra(ServerCommunicationService.INTENT_KEY_ACTION,
 				ServerCommunicationService.ACTION_UPLOAD);
@@ -512,13 +512,6 @@ public class TrainingActivity extends Activity implements SwipeListener,
 		intent.putExtra(ServerCommunicationService.INTENT_KEY_PASSWORD,
 				mSettings.getPassword());
 		startService(intent);
-
-		mProgressDialog = new ProgressDialog(this);
-		mProgressDialog.setIndeterminate(false);
-		mProgressDialog.setMessage("Uploading completed trainings ...");
-		mProgressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-		mProgressDialog.show();
-
 	}
 
 	/**
@@ -993,27 +986,34 @@ public class TrainingActivity extends Activity implements SwipeListener,
 				if (getTrainingSuccessful) {
 					updateTrainingSelector(-1);
 				}
-			} else if (intent.getAction().equals(
-					ServerCommunicationService.ACTION_GET_TRAINNGS_LIST_COMPLETED)) {
+			} else if (intent
+					.getAction()
+					.equals(ServerCommunicationService.ACTION_GET_TRAINNGS_LIST_COMPLETED)) {
 				// on list with training names fetched
 
 				// calculate progress bar information and set progress
-				int totalNumberOfTrainings = intent.getExtras().getInt(
-						ServerCommunicationService.PARAM_FETCH_TRAINNGS_NUM_ITEMS);
+				int totalNumberOfTrainings = intent
+						.getExtras()
+						.getInt(ServerCommunicationService.PARAM_FETCH_TRAINNGS_NUM_ITEMS);
 				int progress = Math.round(1f / totalNumberOfTrainings * 100f);
 				mProgressDialog.setProgress(progress);
-			} else if (intent.getAction().equals(
-					ServerCommunicationService.ACTION_FETCH_TRAINNG_ITEM_COMPLETED)) {
+			} else if (intent
+					.getAction()
+					.equals(ServerCommunicationService.ACTION_FETCH_TRAINNG_ITEM_COMPLETED)) {
 				// on individual training item downloaded
 
 				// calculate progress bar information and set progress with
 				// training name
-				int totalNumberOfTrainings = intent.getExtras().getInt(
-						ServerCommunicationService.PARAM_FETCH_TRAINNGS_NUM_ITEMS);
-				int trainingCount = intent.getExtras().getInt(
-						ServerCommunicationService.PARAM_FETCH_TRAINNGS_CUR_ITEM_CNT);
-				String trainingName = intent.getExtras().getString(
-						ServerCommunicationService.PARAM_FETCH_TRAINNGS_CUR_ITEM_NAME);
+				int totalNumberOfTrainings = intent
+						.getExtras()
+						.getInt(ServerCommunicationService.PARAM_FETCH_TRAINNGS_NUM_ITEMS);
+				int trainingCount = intent
+						.getExtras()
+						.getInt(ServerCommunicationService.PARAM_FETCH_TRAINNGS_CUR_ITEM_CNT);
+				String trainingName = intent
+						.getExtras()
+						.getString(
+								ServerCommunicationService.PARAM_FETCH_TRAINNGS_CUR_ITEM_NAME);
 				int progress = Math.round((1f + trainingCount)
 						/ totalNumberOfTrainings * 100f);
 				mProgressDialog.setMessage("Fetching " + trainingName);
@@ -1022,9 +1022,17 @@ public class TrainingActivity extends Activity implements SwipeListener,
 					ServerCommunicationService.ACTION_UPLOAD_TRAININGS_STARTED)) {
 				// started upload the trainings
 
+				mProgressDialog = new ProgressDialog(TrainingActivity.this);
+				mProgressDialog.setIndeterminate(false);
+				mProgressDialog.setMessage("Uploading completed trainings ...");
+				mProgressDialog
+						.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+				mProgressDialog.show();
+
 				// calculate progress bar information and set progress
-				int totalNumberOfTrainings = intent.getExtras().getInt(
-						ServerCommunicationService.PARAM_UPLOAD_TRAINING_NUM_ITEMS);
+				int totalNumberOfTrainings = intent
+						.getExtras()
+						.getInt(ServerCommunicationService.PARAM_UPLOAD_TRAINING_NUM_ALL_ITEMS);
 				int progress = Math.round(1f / totalNumberOfTrainings * 100f);
 				mProgressDialog.setProgress(progress);
 			} else if (intent.getAction().equals(
@@ -1033,27 +1041,41 @@ public class TrainingActivity extends Activity implements SwipeListener,
 
 				// calculate progress bar information and set progress with
 				// training name
-				int totalNumberOfTrainings = intent.getExtras().getInt(
-						ServerCommunicationService.PARAM_UPLOAD_TRAINING_NUM_ITEMS);
-				int trainingCount = intent.getExtras().getInt(
-						ServerCommunicationService.PARAM_UPLOAD_TRAINING_CUR_ITEM_CNT);
-				String trainingName = intent.getExtras().getString(
-						ServerCommunicationService.PARAM_UPLOAD_TRAINING_ITEM_NAME);
+				int totalNumberOfTrainings = intent
+						.getExtras()
+						.getInt(ServerCommunicationService.PARAM_UPLOAD_TRAINING_NUM_ALL_ITEMS);
+				int trainingCount = intent
+						.getExtras()
+						.getInt(ServerCommunicationService.PARAM_UPLOAD_TRAINING_CUR_ITEM_CNT);
+				String trainingName = intent
+						.getExtras()
+						.getString(
+								ServerCommunicationService.PARAM_UPLOAD_TRAINING_ITEM_NAME);
+				boolean uploadStatus = intent
+						.getExtras()
+						.getBoolean(
+								ServerCommunicationService.PARAM_UPLOAD_TRAINING_STATUS);
 				int progress = Math.round((1f + trainingCount)
 						/ totalNumberOfTrainings * 100f);
-				mProgressDialog.setMessage("Uploading " + trainingName);
+				mProgressDialog.setMessage("Uploading " + trainingName + " "
+						+ (uploadStatus ? "OK" : "FAILED"));
 				mProgressDialog.setProgress(progress);
-			} else if (intent.getAction().equals(
-					ServerCommunicationService.ACTION_UPLOAD_TRAINNGS_COMPLETED)) {
+			} else if (intent
+					.getAction()
+					.equals(ServerCommunicationService.ACTION_UPLOAD_TRAINNGS_COMPLETED)) {
 				// after the all the completed trainings were uploaded (or at
 				// least attempted to upload)
 
-				int successfulItems = intent.getExtras().getInt(
-						ServerCommunicationService.PARAM_UPLOAD_TRAINING_SUCESS_CNT);
-				int totalNumberOfTrainings = intent.getExtras().getInt(
-						ServerCommunicationService.PARAM_UPLOAD_TRAINING_NUM_ITEMS);
+				int successfulItems = intent
+						.getExtras()
+						.getInt(ServerCommunicationService.PARAM_UPLOAD_TRAINING_SUCESS_CNT);
+				int totalNumberOfTrainings = intent
+						.getExtras()
+						.getInt(ServerCommunicationService.PARAM_UPLOAD_TRAINING_NUM_ALL_ITEMS);
 
-				mProgressDialog.dismiss();
+				if (mProgressDialog != null && mProgressDialog.isShowing()) {
+					mProgressDialog.dismiss();
+				}
 
 				Toast.makeText(
 						getApplicationContext(),
