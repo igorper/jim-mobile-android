@@ -10,11 +10,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 
-import net.pernek.jim.exercisedetector.ExerciseDetectorActivity;
 import net.pernek.jim.exercisedetector.util.Statistics;
 import net.pernek.jim.exercisedetector.util.Utils;
 import android.content.Context;
-import android.content.Intent;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
