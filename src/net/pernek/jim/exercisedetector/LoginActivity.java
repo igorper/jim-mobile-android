@@ -49,7 +49,7 @@ public class LoginActivity extends Activity {
 			}
 		});
 
-		IntentFilter filter = new IntentFilter(DataUploaderService.ACTION_DONE);
+		IntentFilter filter = new IntentFilter(DataUploaderService.ACTION_LOGIN_COMPLETED);
 		filter.addCategory(Intent.CATEGORY_DEFAULT);
 		mBroadcastReceiver = new ResponseReceiver();
 		registerReceiver(mBroadcastReceiver, filter);

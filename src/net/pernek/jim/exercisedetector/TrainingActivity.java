@@ -208,12 +208,12 @@ public class TrainingActivity extends Activity implements SwipeListener,
 		// define all (e.g.
 		// DetectiorSettings, TAG, etc)
 		IntentFilter filter = new IntentFilter(
-				DataUploaderService.ACTION_FETCH_TRAINNGS_DONE);
-		filter.addAction(DataUploaderService.ACTION_FETCH_TRAINNGS_LIST_DOWNLOADED);
-		filter.addAction(DataUploaderService.ACTION_FETCH_TRAINNGS_ITEM_DOWNLOADED);
+				DataUploaderService.ACTION_FETCH_TRAINNGS_COMPLETED);
+		filter.addAction(DataUploaderService.ACTION_GET_TRAINNGS_LIST_COMPLETED);
+		filter.addAction(DataUploaderService.ACTION_FETCH_TRAINNG_ITEM_COMPLETED);
 		filter.addAction(DataUploaderService.ACTION_UPLOAD_TRAININGS_STARTED);
-		filter.addAction(DataUploaderService.ACTION_UPLOAD_TRAININGS_ITEM_UPLOADED);
-		filter.addAction(DataUploaderService.ACTION_UPLOAD_TRAINNGS_DONE);
+		filter.addAction(DataUploaderService.ACTION_TRAININGS_ITEM_UPLOADED);
+		filter.addAction(DataUploaderService.ACTION_UPLOAD_TRAINNGS_COMPLETED);
 
 		filter.addCategory(Intent.CATEGORY_DEFAULT);
 		mBroadcastReceiver = new ResponseReceiver();
@@ -982,7 +982,7 @@ public class TrainingActivity extends Activity implements SwipeListener,
 		@Override
 		public void onReceive(Context context, Intent intent) {
 			if (intent.getAction().equals(
-					DataUploaderService.ACTION_FETCH_TRAINNGS_DONE)) {
+					DataUploaderService.ACTION_FETCH_TRAINNGS_COMPLETED)) {
 				// on finished fetching trainings
 
 				mProgressDialog.dismiss();
@@ -994,7 +994,7 @@ public class TrainingActivity extends Activity implements SwipeListener,
 					updateTrainingSelector(-1);
 				}
 			} else if (intent.getAction().equals(
-					DataUploaderService.ACTION_FETCH_TRAINNGS_LIST_DOWNLOADED)) {
+					DataUploaderService.ACTION_GET_TRAINNGS_LIST_COMPLETED)) {
 				// on list with training names fetched
 
 				// calculate progress bar information and set progress
@@ -1003,7 +1003,7 @@ public class TrainingActivity extends Activity implements SwipeListener,
 				int progress = Math.round(1f / totalNumberOfTrainings * 100f);
 				mProgressDialog.setProgress(progress);
 			} else if (intent.getAction().equals(
-					DataUploaderService.ACTION_FETCH_TRAINNGS_ITEM_DOWNLOADED)) {
+					DataUploaderService.ACTION_FETCH_TRAINNG_ITEM_COMPLETED)) {
 				// on individual training item downloaded
 
 				// calculate progress bar information and set progress with
@@ -1028,7 +1028,7 @@ public class TrainingActivity extends Activity implements SwipeListener,
 				int progress = Math.round(1f / totalNumberOfTrainings * 100f);
 				mProgressDialog.setProgress(progress);
 			} else if (intent.getAction().equals(
-					DataUploaderService.ACTION_UPLOAD_TRAININGS_ITEM_UPLOADED)) {
+					DataUploaderService.ACTION_TRAININGS_ITEM_UPLOADED)) {
 				// on individual completed training
 
 				// calculate progress bar information and set progress with
@@ -1044,7 +1044,7 @@ public class TrainingActivity extends Activity implements SwipeListener,
 				mProgressDialog.setMessage("Uploading " + trainingName);
 				mProgressDialog.setProgress(progress);
 			} else if (intent.getAction().equals(
-					DataUploaderService.ACTION_UPLOAD_TRAINNGS_DONE)) {
+					DataUploaderService.ACTION_UPLOAD_TRAINNGS_COMPLETED)) {
 				// after the all the completed trainings were uploaded (or at
 				// least attempted to upload)
 

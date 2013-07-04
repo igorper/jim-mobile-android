@@ -55,14 +55,14 @@ public class UploadSessionActivity extends ListActivity {
 		super.onListItemClick(l, v, position, id);
 
 		String file = (String) l.getItemAtPosition(position);
-
-		Intent intent = new Intent(this, DataUploaderService.class);
-		intent.putExtra(DataUploaderService.INTENT_KEY_ACTION,
-				DataUploaderService.ACTION_UPLOAD);
-		intent.putExtra(DataUploaderService.INTENT_KEY_FILE,
-				new File(new File(Environment.getExternalStorageDirectory(),
-						Utils.getUploadDataFolder()), file).getPath());
-		startService(intent);
+//
+//		Intent intent = new Intent(this, DataUploaderService.class);
+//		intent.putExtra(DataUploaderService.INTENT_KEY_ACTION,
+//				DataUploaderService.ACTION_UPLOAD);
+//		intent.putExtra(DataUploaderService.INTENT_KEY_FILE,
+//				new File(new File(Environment.getExternalStorageDirectory(),
+//						Utils.getUploadDataFolder()), file).getPath());
+//		startService(intent);
 	}
 
 	class ResponseReceiver extends BroadcastReceiver {

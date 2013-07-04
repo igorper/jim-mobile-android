@@ -155,12 +155,12 @@ public class ExerciseDetectorActivity extends Activity {
 			// TODO: Hardcoded, should be picked by the person exercising
 			int trainingId = 1;
 
-			Intent intent = new Intent(this, DataUploaderService.class);
-			intent.putExtra(DataUploaderService.INTENT_KEY_ACTION,
-					DataUploaderService.ACTION_GET_TRAINING);
-			intent.putExtra(DataUploaderService.INTENT_KEY_TRAINING_ID,
-					trainingId);
-			startService(intent);
+//			Intent intent = new Intent(this, DataUploaderService.class);
+//			intent.putExtra(DataUploaderService.INTENT_KEY_ACTION,
+//					DataUploaderService.ACTION_GET_TRAINING);
+//			intent.putExtra(DataUploaderService.INTENT_KEY_TRAINING_ID,
+//					trainingId);
+//			startService(intent);
 
 			break;
 		}

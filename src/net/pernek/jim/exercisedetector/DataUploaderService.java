@@ -70,13 +70,53 @@ public class DataUploaderService extends IntentService {
 
 	private static final String TAG = Utils.getApplicationTag();
 
-	public static final String ACTION_DONE = "action_done";
-	public static final String ACTION_FETCH_TRAINNGS_DONE = "fetch_trainings_done";
-	public static final String ACTION_FETCH_TRAINNGS_LIST_DOWNLOADED = "fetch_trainings_list_downloaded";
-	public static final String ACTION_FETCH_TRAINNGS_ITEM_DOWNLOADED = "fetch_trainings_item_downloaded";
-	public static final String ACTION_UPLOAD_TRAINNGS_DONE = "upload_trainings_done";
+	/***********************
+	 * LOGIN TASK ACTIONS
+	 ***********************/
+	
+	/**
+	 * This ID marks the login completed action. 
+	 */
+	public static final String ACTION_LOGIN_COMPLETED = "action_done";
+	
+	/***********************
+	 * FETCH TRAININGS TASK ACTIONS
+	 ***********************/
+	
+	/**
+	 * This ID marks the fetch trainings completed action.
+	 */
+	public static final String ACTION_FETCH_TRAINNGS_COMPLETED = "fetch_trainings_done";
+	
+	/**
+	 * This ID marks the get trainings list completed action. 
+	 */
+	public static final String ACTION_GET_TRAINNGS_LIST_COMPLETED = "fetch_trainings_list_downloaded";
+	
+	/**
+	 * This ID marks that the individual training item was successfully fetched. 
+	 */
+	public static final String ACTION_FETCH_TRAINNG_ITEM_COMPLETED = "fetch_trainings_item_downloaded";
+	
+	/***********************
+	 * UPLOAD TRAININGS TASK ACTIONS
+	 ***********************/
+	
+	/**
+	 * This ID marks the upload trainings started action.
+	 */
 	public static final String ACTION_UPLOAD_TRAININGS_STARTED = "upload_completed_trainings_started";
-	public static final String ACTION_UPLOAD_TRAININGS_ITEM_UPLOADED = "upload_completed_trainings_item_uploaded";
+	
+	/**
+	 * This ID marks the upload trainings completed action.
+	 */
+	public static final String ACTION_UPLOAD_TRAINNGS_COMPLETED = "upload_trainings_done";
+	
+	/**
+	 * This ID marks the trainings item uploaded action.
+	 */
+	public static final String ACTION_TRAININGS_ITEM_UPLOADED = "upload_completed_trainings_item_uploaded";
+	
 	public static final String PARAM_OP_SUCCESSFUL = "operation_successful";
 	public static final String PARAM_UPLOAD_TRAINING_NUM_ITEMS = "upload_completed_training_num_items";
 	public static final String PARAM_UPLOAD_TRAINING_ITEM_NAME = "upload_training_item_name";
@@ -88,99 +128,81 @@ public class DataUploaderService extends IntentService {
 	public static final String PARAM_FETCH_TRAINNGS_CUR_ITEM_CNT = "fetch_trainings_cur_item_cnt";
 	public static final String PARAM_GET_TRAINING_SUCCESSFUL = "get_training_successful";
 
+	/***********************
+	 * Keys used by the IntentService.
+	 ***********************/
+	
+	/**
+	 * This ID marks the action to be performed by this intent service.
+	 */
+	public static final String INTENT_KEY_ACTION = "action";
+	
+	/**
+	 * This ID marks the authentication username. 
+	 */
+	public static final String INTENT_KEY_USERNAME = "username";
+	
+	/**
+	 * This ID marks the authentication password. 
+	 */
+	public static final String INTENT_KEY_PASSWORD = "password";
+	
+	/**
+	 * This ID marks the upload completed trainings action.
+	 */
 	public static final String ACTION_UPLOAD = "action-upload";
+	
+	
+	/**
+	 * This ID marks the fetch trainings from the server action. 
+	 */
 	public static final String ACTION_FETCH_TRAININGS = "action-get-training-list";
-	public static final String ACTION_GET_TRAINING = "action-get-training";
+	
+	/**
+	 * This ID marks the login action. 
+	 */
 	public static final String ACTION_LOGIN = "action-login";
 
-	public static final String INTENT_KEY_ACTION = "action";
-	public static final String INTENT_KEY_FILE = "file";
-	public static final String INTENT_KEY_TRAINING_ID = "training-id";
-	public static final String INTENT_KEY_USERNAME = "username";
-	public static final String INTENT_KEY_PASSWORD = "password";
-
-	private Gson jsonParser = new Gson();
-
+	/**
+	 * Instance of the engine used for json serialization.
+	 */
+	private Gson mJsonEngine = new Gson();
+	
+	/**
+	 * The number of completed trainings stored in the local database.
+	 */
+	private int mNumCompletedTrainings = 0;
+	
 	public DataUploaderService() {
 		super("DataUploaderService");
 	}
 
+	/* (non-Javadoc)
+	 * @see android.app.IntentService#onHandleIntent(android.content.Intent)
+	 */
 	@Override
 	protected void onHandleIntent(Intent intent) {
 		String action = intent.getExtras().getString(INTENT_KEY_ACTION);
 		String username = intent.getExtras().getString(INTENT_KEY_USERNAME);
 		String password = intent.getExtras().getString(INTENT_KEY_PASSWORD);
+		
+		// this one will hold the status of the service task (each action should return a status)
+		Intent statusIntent = new Intent();
 
 		if (action.equals(ACTION_UPLOAD)) {
-			String[] projection = { CompletedTraining._ID,
-					CompletedTraining.DATA };
-			Cursor trainings = getContentResolver()
-					.query(CompletedTraining.CONTENT_URI, projection, null,
-							null, null);
+			int counterSuccess = uploadCompletedTrainings(username, password);
 
-			int numOfTrainings = trainings.getCount();
-
-			int counterSuccess = 0;
-			if (numOfTrainings > 0) {
-				Intent broadcastIntent = new Intent();
-				broadcastIntent.setAction(ACTION_UPLOAD_TRAININGS_STARTED);
-				broadcastIntent.addCategory(Intent.CATEGORY_DEFAULT);
-				broadcastIntent.putExtra(PARAM_UPLOAD_TRAINING_NUM_ITEMS,
-						numOfTrainings);
-				sendBroadcast(broadcastIntent);
-
-				int trainingCounter = 0;
-				while (trainings.moveToNext()) {
-					int trainingId = trainings.getInt(trainings
-							.getColumnIndex(TrainingPlan._ID));
-					Training trainingToUpload = jsonParser.fromJson(trainings
-							.getString(trainings
-									.getColumnIndex(TrainingPlan.DATA)),
-							Training.class);
-					
-					broadcastIntent = new Intent();
-					broadcastIntent
-							.setAction(ACTION_UPLOAD_TRAININGS_ITEM_UPLOADED);
-					broadcastIntent.addCategory(Intent.CATEGORY_DEFAULT);
-					broadcastIntent.putExtra(PARAM_UPLOAD_TRAINING_ITEM_NAME,
-							trainingToUpload.getName());
-					broadcastIntent
-							.putExtra(PARAM_UPLOAD_TRAINING_CUR_ITEM_CNT,
-									trainingCounter);
-					broadcastIntent.putExtra(PARAM_UPLOAD_TRAINING_NUM_ITEMS,
-							numOfTrainings);
-					sendBroadcast(broadcastIntent);
-
-					boolean uploadStatus = uploadTraining(trainingId,
-							trainingToUpload, username, password);
-
-					if (uploadStatus) {
-						counterSuccess++;
-					}
-
-					trainingCounter++;
-				}
-			}
-
-			Intent broadcastIntent = new Intent();
-			broadcastIntent.setAction(ACTION_UPLOAD_TRAINNGS_DONE);
-			broadcastIntent.addCategory(Intent.CATEGORY_DEFAULT);
-			broadcastIntent.putExtra(PARAM_UPLOAD_TRAINING_SUCESS_CNT,
+			statusIntent.setAction(ACTION_UPLOAD_TRAINNGS_COMPLETED);
+			statusIntent.addCategory(Intent.CATEGORY_DEFAULT);
+			statusIntent.putExtra(PARAM_UPLOAD_TRAINING_SUCESS_CNT,
 					counterSuccess);
-			broadcastIntent.putExtra(PARAM_UPLOAD_TRAINING_NUM_ITEMS,
-					numOfTrainings);
-			sendBroadcast(broadcastIntent);
-
-			// uploadFile(path);
-
-			// get all completed trainings from the database
-
-			// send them to the server
+			statusIntent.putExtra(PARAM_UPLOAD_TRAINING_NUM_ITEMS,
+					mNumCompletedTrainings);
 		} else if (action.equals(ACTION_LOGIN)) {
 			boolean loginSuccessful = checkCredentials(username, password);
 
 			Intent broadcastIntent = new Intent();
-			broadcastIntent.setAction(ACTION_DONE);
+			broadcastIntent.setAction(ACTION_LOGIN_COMPLETED);
 			broadcastIntent.addCategory(Intent.CATEGORY_DEFAULT);
 			broadcastIntent.putExtra(PARAM_OP_SUCCESSFUL, loginSuccessful);
 			sendBroadcast(broadcastIntent);
@@ -197,7 +219,7 @@ public class DataUploaderService extends IntentService {
 					jaTrainingsPlans = new JSONArray(jsonTrainingPlans);
 					Intent broadcastIntent = new Intent();
 					broadcastIntent
-							.setAction(ACTION_FETCH_TRAINNGS_LIST_DOWNLOADED);
+							.setAction(ACTION_GET_TRAINNGS_LIST_COMPLETED);
 					broadcastIntent.addCategory(Intent.CATEGORY_DEFAULT);
 					broadcastIntent.putExtra(PARAM_FETCH_TRAINNGS_NUM_ITEMS,
 							jaTrainingsPlans.length());
@@ -221,7 +243,7 @@ public class DataUploaderService extends IntentService {
 
 					Intent broadcastIntent = new Intent();
 					broadcastIntent
-							.setAction(ACTION_FETCH_TRAINNGS_ITEM_DOWNLOADED);
+							.setAction(ACTION_FETCH_TRAINNG_ITEM_COMPLETED);
 					broadcastIntent.addCategory(Intent.CATEGORY_DEFAULT);
 					broadcastIntent.putExtra(
 							PARAM_FETCH_TRAINNGS_CUR_ITEM_NAME, trainingName);
@@ -270,41 +292,68 @@ public class DataUploaderService extends IntentService {
 
 			// send status intent
 			Intent broadcastIntent = new Intent();
-			broadcastIntent.setAction(ACTION_FETCH_TRAINNGS_DONE);
+			broadcastIntent.setAction(ACTION_FETCH_TRAINNGS_COMPLETED);
 			broadcastIntent.addCategory(Intent.CATEGORY_DEFAULT);
 			broadcastIntent
 					.putExtra(PARAM_OP_SUCCESSFUL, getTrainingsSucessful);
 			sendBroadcast(broadcastIntent);
 
-		} else if (action.equalsIgnoreCase(ACTION_GET_TRAINING)) {
-			int trainingId = intent.getExtras().getInt(INTENT_KEY_TRAINING_ID);
-
-			String jsonTraining = null;
-			try {
-				jsonTraining = getTraining(trainingId, username, password);
-			} catch (ClientProtocolException e) {
-				e.printStackTrace();
-				Log.e(TAG, e.getLocalizedMessage());
-			} catch (IOException e) {
-				e.printStackTrace();
-				Log.e(TAG, e.getLocalizedMessage());
-			}
-
-			Intent broadcastIntent = new Intent();
-			broadcastIntent
-					.setAction(ExerciseDetectorActivity.ResponseReceiver.ACTION_TRAINING_PLAN_DOWNLOADED);
-			broadcastIntent.addCategory(Intent.CATEGORY_DEFAULT);
-			if (jsonTraining != null) {
-				broadcastIntent
-						.putExtra(
-								ExerciseDetectorActivity.ResponseReceiver.PARAM_TRAINING_PLAN,
-								jsonTraining);
-			}
-			broadcastIntent.putExtra(
-					UploadSessionActivity.ResponseReceiver.PARAM_STATUS,
-					jsonTraining != null);
-			sendBroadcast(broadcastIntent);
 		}
+		
+		sendBroadcast(statusIntent);
+	}
+
+	private int uploadCompletedTrainings(String username, String password) {
+		String[] projection = { CompletedTraining._ID,
+				CompletedTraining.DATA };
+		Cursor trainings = getContentResolver()
+				.query(CompletedTraining.CONTENT_URI, projection, null,
+						null, null);
+
+		mNumCompletedTrainings = trainings.getCount();
+
+		int counterSuccess = 0;
+		if (mNumCompletedTrainings > 0) {
+			Intent broadcastIntent = new Intent();
+			broadcastIntent.setAction(ACTION_UPLOAD_TRAININGS_STARTED);
+			broadcastIntent.addCategory(Intent.CATEGORY_DEFAULT);
+			broadcastIntent.putExtra(PARAM_UPLOAD_TRAINING_NUM_ITEMS,
+					mNumCompletedTrainings);
+			sendBroadcast(broadcastIntent);
+
+			int trainingCounter = 0;
+			while (trainings.moveToNext()) {
+				int trainingId = trainings.getInt(trainings
+						.getColumnIndex(TrainingPlan._ID));
+				Training trainingToUpload = mJsonEngine.fromJson(trainings
+						.getString(trainings
+								.getColumnIndex(TrainingPlan.DATA)),
+						Training.class);
+				
+				broadcastIntent = new Intent();
+				broadcastIntent
+						.setAction(ACTION_TRAININGS_ITEM_UPLOADED);
+				broadcastIntent.addCategory(Intent.CATEGORY_DEFAULT);
+				broadcastIntent.putExtra(PARAM_UPLOAD_TRAINING_ITEM_NAME,
+						trainingToUpload.getName());
+				broadcastIntent
+						.putExtra(PARAM_UPLOAD_TRAINING_CUR_ITEM_CNT,
+								trainingCounter);
+				broadcastIntent.putExtra(PARAM_UPLOAD_TRAINING_NUM_ITEMS,
+						mNumCompletedTrainings);
+				sendBroadcast(broadcastIntent);
+
+				boolean uploadStatus = uploadTraining(trainingId,
+						trainingToUpload, username, password);
+
+				if (uploadStatus) {
+					counterSuccess++;
+				}
+
+				trainingCounter++;
+			}
+		}
+		return counterSuccess;
 	}
 
 	private boolean uploadTraining(int trainingId, Training training,
