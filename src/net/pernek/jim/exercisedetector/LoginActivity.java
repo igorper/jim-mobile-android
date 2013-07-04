@@ -49,7 +49,7 @@ public class LoginActivity extends Activity {
 			}
 		});
 
-		IntentFilter filter = new IntentFilter(DataUploaderService.ACTION_LOGIN_COMPLETED);
+		IntentFilter filter = new IntentFilter(ServerCommunicationService.ACTION_LOGIN_COMPLETED);
 		filter.addCategory(Intent.CATEGORY_DEFAULT);
 		mBroadcastReceiver = new ResponseReceiver();
 		registerReceiver(mBroadcastReceiver, filter);
@@ -62,12 +62,12 @@ public class LoginActivity extends Activity {
 	}
 
 	public void onLoginButtonClick(View source) {
-		Intent intent = new Intent(this, DataUploaderService.class);
-		intent.putExtra(DataUploaderService.INTENT_KEY_ACTION,
-				DataUploaderService.ACTION_LOGIN);
-		intent.putExtra(DataUploaderService.INTENT_KEY_USERNAME,
+		Intent intent = new Intent(this, ServerCommunicationService.class);
+		intent.putExtra(ServerCommunicationService.INTENT_KEY_ACTION,
+				ServerCommunicationService.ACTION_LOGIN);
+		intent.putExtra(ServerCommunicationService.INTENT_KEY_USERNAME,
 				mUsernameEditText.getText().toString());
-		intent.putExtra(DataUploaderService.INTENT_KEY_PASSWORD,
+		intent.putExtra(ServerCommunicationService.INTENT_KEY_PASSWORD,
 				mPasswordEditText.getText().toString());
 		startService(intent);
 
@@ -82,7 +82,7 @@ public class LoginActivity extends Activity {
 		@Override
 		public void onReceive(Context context, Intent intent) {
 			boolean loginSuccessful = intent.getExtras().getBoolean(
-					DataUploaderService.PARAM_OP_SUCCESSFUL);
+					ServerCommunicationService.PARAM_OP_SUCCESSFUL);
 
 			mLoginProgress.dismiss();
 

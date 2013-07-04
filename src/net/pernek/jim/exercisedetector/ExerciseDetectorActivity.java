@@ -142,9 +142,9 @@ public class ExerciseDetectorActivity extends Activity {
 		case MENU_GET_TRAINING_LIST: {
 			Log.d(TAG, "get training list");
 
-			Intent intent = new Intent(this, DataUploaderService.class);
-			intent.putExtra(DataUploaderService.INTENT_KEY_ACTION,
-					DataUploaderService.ACTION_FETCH_TRAININGS);
+			Intent intent = new Intent(this, ServerCommunicationService.class);
+			intent.putExtra(ServerCommunicationService.INTENT_KEY_ACTION,
+					ServerCommunicationService.ACTION_FETCH_TRAININGS);
 			startService(intent);
 
 			break;

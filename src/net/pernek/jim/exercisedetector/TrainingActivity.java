@@ -208,12 +208,12 @@ public class TrainingActivity extends Activity implements SwipeListener,
 		// define all (e.g.
 		// DetectiorSettings, TAG, etc)
 		IntentFilter filter = new IntentFilter(
-				DataUploaderService.ACTION_FETCH_TRAINNGS_COMPLETED);
-		filter.addAction(DataUploaderService.ACTION_GET_TRAINNGS_LIST_COMPLETED);
-		filter.addAction(DataUploaderService.ACTION_FETCH_TRAINNG_ITEM_COMPLETED);
-		filter.addAction(DataUploaderService.ACTION_UPLOAD_TRAININGS_STARTED);
-		filter.addAction(DataUploaderService.ACTION_TRAININGS_ITEM_UPLOADED);
-		filter.addAction(DataUploaderService.ACTION_UPLOAD_TRAINNGS_COMPLETED);
+				ServerCommunicationService.ACTION_FETCH_TRAINNGS_COMPLETED);
+		filter.addAction(ServerCommunicationService.ACTION_GET_TRAINNGS_LIST_COMPLETED);
+		filter.addAction(ServerCommunicationService.ACTION_FETCH_TRAINNG_ITEM_COMPLETED);
+		filter.addAction(ServerCommunicationService.ACTION_UPLOAD_TRAININGS_STARTED);
+		filter.addAction(ServerCommunicationService.ACTION_TRAININGS_ITEM_UPLOADED);
+		filter.addAction(ServerCommunicationService.ACTION_UPLOAD_TRAINNGS_COMPLETED);
 
 		filter.addCategory(Intent.CATEGORY_DEFAULT);
 		mBroadcastReceiver = new ResponseReceiver();
@@ -504,12 +504,12 @@ public class TrainingActivity extends Activity implements SwipeListener,
 	 * Initiates the upload completed trainings process.
 	 */
 	private void runUploadCompleted() {
-		Intent intent = new Intent(this, DataUploaderService.class);
-		intent.putExtra(DataUploaderService.INTENT_KEY_ACTION,
-				DataUploaderService.ACTION_UPLOAD);
-		intent.putExtra(DataUploaderService.INTENT_KEY_USERNAME,
+		Intent intent = new Intent(this, ServerCommunicationService.class);
+		intent.putExtra(ServerCommunicationService.INTENT_KEY_ACTION,
+				ServerCommunicationService.ACTION_UPLOAD);
+		intent.putExtra(ServerCommunicationService.INTENT_KEY_USERNAME,
 				mSettings.getUsername());
-		intent.putExtra(DataUploaderService.INTENT_KEY_PASSWORD,
+		intent.putExtra(ServerCommunicationService.INTENT_KEY_PASSWORD,
 				mSettings.getPassword());
 		startService(intent);
 
@@ -525,12 +525,12 @@ public class TrainingActivity extends Activity implements SwipeListener,
 	 * Initiates the training sync process.
 	 */
 	private void runTrainingsSync() {
-		Intent intent = new Intent(this, DataUploaderService.class);
-		intent.putExtra(DataUploaderService.INTENT_KEY_ACTION,
-				DataUploaderService.ACTION_FETCH_TRAININGS);
-		intent.putExtra(DataUploaderService.INTENT_KEY_USERNAME,
+		Intent intent = new Intent(this, ServerCommunicationService.class);
+		intent.putExtra(ServerCommunicationService.INTENT_KEY_ACTION,
+				ServerCommunicationService.ACTION_FETCH_TRAININGS);
+		intent.putExtra(ServerCommunicationService.INTENT_KEY_USERNAME,
 				mSettings.getUsername());
-		intent.putExtra(DataUploaderService.INTENT_KEY_PASSWORD,
+		intent.putExtra(ServerCommunicationService.INTENT_KEY_PASSWORD,
 				mSettings.getPassword());
 		startService(intent);
 
@@ -982,76 +982,76 @@ public class TrainingActivity extends Activity implements SwipeListener,
 		@Override
 		public void onReceive(Context context, Intent intent) {
 			if (intent.getAction().equals(
-					DataUploaderService.ACTION_FETCH_TRAINNGS_COMPLETED)) {
+					ServerCommunicationService.ACTION_FETCH_TRAINNGS_COMPLETED)) {
 				// on finished fetching trainings
 
 				mProgressDialog.dismiss();
 
 				boolean getTrainingSuccessful = intent.getExtras().getBoolean(
-						DataUploaderService.PARAM_OP_SUCCESSFUL);
+						ServerCommunicationService.PARAM_OP_SUCCESSFUL);
 
 				if (getTrainingSuccessful) {
 					updateTrainingSelector(-1);
 				}
 			} else if (intent.getAction().equals(
-					DataUploaderService.ACTION_GET_TRAINNGS_LIST_COMPLETED)) {
+					ServerCommunicationService.ACTION_GET_TRAINNGS_LIST_COMPLETED)) {
 				// on list with training names fetched
 
 				// calculate progress bar information and set progress
 				int totalNumberOfTrainings = intent.getExtras().getInt(
-						DataUploaderService.PARAM_FETCH_TRAINNGS_NUM_ITEMS);
+						ServerCommunicationService.PARAM_FETCH_TRAINNGS_NUM_ITEMS);
 				int progress = Math.round(1f / totalNumberOfTrainings * 100f);
 				mProgressDialog.setProgress(progress);
 			} else if (intent.getAction().equals(
-					DataUploaderService.ACTION_FETCH_TRAINNG_ITEM_COMPLETED)) {
+					ServerCommunicationService.ACTION_FETCH_TRAINNG_ITEM_COMPLETED)) {
 				// on individual training item downloaded
 
 				// calculate progress bar information and set progress with
 				// training name
 				int totalNumberOfTrainings = intent.getExtras().getInt(
-						DataUploaderService.PARAM_FETCH_TRAINNGS_NUM_ITEMS);
+						ServerCommunicationService.PARAM_FETCH_TRAINNGS_NUM_ITEMS);
 				int trainingCount = intent.getExtras().getInt(
-						DataUploaderService.PARAM_FETCH_TRAINNGS_CUR_ITEM_CNT);
+						ServerCommunicationService.PARAM_FETCH_TRAINNGS_CUR_ITEM_CNT);
 				String trainingName = intent.getExtras().getString(
-						DataUploaderService.PARAM_FETCH_TRAINNGS_CUR_ITEM_NAME);
+						ServerCommunicationService.PARAM_FETCH_TRAINNGS_CUR_ITEM_NAME);
 				int progress = Math.round((1f + trainingCount)
 						/ totalNumberOfTrainings * 100f);
 				mProgressDialog.setMessage("Fetching " + trainingName);
 				mProgressDialog.setProgress(progress);
 			} else if (intent.getAction().equals(
-					DataUploaderService.ACTION_UPLOAD_TRAININGS_STARTED)) {
+					ServerCommunicationService.ACTION_UPLOAD_TRAININGS_STARTED)) {
 				// started upload the trainings
 
 				// calculate progress bar information and set progress
 				int totalNumberOfTrainings = intent.getExtras().getInt(
-						DataUploaderService.PARAM_UPLOAD_TRAINING_NUM_ITEMS);
+						ServerCommunicationService.PARAM_UPLOAD_TRAINING_NUM_ITEMS);
 				int progress = Math.round(1f / totalNumberOfTrainings * 100f);
 				mProgressDialog.setProgress(progress);
 			} else if (intent.getAction().equals(
-					DataUploaderService.ACTION_TRAININGS_ITEM_UPLOADED)) {
+					ServerCommunicationService.ACTION_TRAININGS_ITEM_UPLOADED)) {
 				// on individual completed training
 
 				// calculate progress bar information and set progress with
 				// training name
 				int totalNumberOfTrainings = intent.getExtras().getInt(
-						DataUploaderService.PARAM_UPLOAD_TRAINING_NUM_ITEMS);
+						ServerCommunicationService.PARAM_UPLOAD_TRAINING_NUM_ITEMS);
 				int trainingCount = intent.getExtras().getInt(
-						DataUploaderService.PARAM_UPLOAD_TRAINING_CUR_ITEM_CNT);
+						ServerCommunicationService.PARAM_UPLOAD_TRAINING_CUR_ITEM_CNT);
 				String trainingName = intent.getExtras().getString(
-						DataUploaderService.PARAM_UPLOAD_TRAINING_ITEM_NAME);
+						ServerCommunicationService.PARAM_UPLOAD_TRAINING_ITEM_NAME);
 				int progress = Math.round((1f + trainingCount)
 						/ totalNumberOfTrainings * 100f);
 				mProgressDialog.setMessage("Uploading " + trainingName);
 				mProgressDialog.setProgress(progress);
 			} else if (intent.getAction().equals(
-					DataUploaderService.ACTION_UPLOAD_TRAINNGS_COMPLETED)) {
+					ServerCommunicationService.ACTION_UPLOAD_TRAINNGS_COMPLETED)) {
 				// after the all the completed trainings were uploaded (or at
 				// least attempted to upload)
 
 				int successfulItems = intent.getExtras().getInt(
-						DataUploaderService.PARAM_UPLOAD_TRAINING_SUCESS_CNT);
+						ServerCommunicationService.PARAM_UPLOAD_TRAINING_SUCESS_CNT);
 				int totalNumberOfTrainings = intent.getExtras().getInt(
-						DataUploaderService.PARAM_UPLOAD_TRAINING_NUM_ITEMS);
+						ServerCommunicationService.PARAM_UPLOAD_TRAINING_NUM_ITEMS);
 
 				mProgressDialog.dismiss();
 
