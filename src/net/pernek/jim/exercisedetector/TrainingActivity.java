@@ -22,16 +22,13 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.database.Cursor;
-import android.graphics.Rect;
 import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.MotionEvent;
 import android.view.View;
-import android.view.View.OnTouchListener;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
@@ -220,9 +217,13 @@ public class TrainingActivity extends Activity implements SwipeListener,
 		registerReceiver(mBroadcastReceiver, filter);
 
 		// try to fetch trainings if not available
-		if (!areTrainingsAvailable()) {
+		if (isUserLoggedIn() && !areTrainingsAvailable()) {
 			runTrainingsSync();
 		}
+	}
+
+	private boolean isUserLoggedIn() {
+		return !mSettings.getUsername().equals("");
 	}
 
 	private void initializeExerciseRatings() {
@@ -250,8 +251,7 @@ public class TrainingActivity extends Activity implements SwipeListener,
 	private void initializeAccelerationWriter() {
 		if (mCurrentTraining != null) {
 			try {
-				mAccelerationRecorder.openOutput(mCurrentTraining
-						.getRawFile());
+				mAccelerationRecorder.openOutput(mCurrentTraining.getRawFile());
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				Toast.makeText(getApplicationContext(),
@@ -470,6 +470,9 @@ public class TrainingActivity extends Activity implements SwipeListener,
 		case MENU_LOGOUT: {
 			mSettings.saveUsername("");
 			mSettings.savePassword("");
+
+			// TODO: should also delete everything from the local database
+
 			finish();
 
 			break;
