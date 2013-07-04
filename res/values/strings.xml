@@ -35,7 +35,7 @@
     <string name="raw_data_name">raw</string>
 
     <!-- CUSTOM APPLICATION CONFIGURATION -->
-    <!-- Research mode means we are gathering some additional data on external storage -->
+    <!-- Research mode means we are storing some additional data on external storage -->
     <bool name="research_mode">true</bool>
 
 </resources>
