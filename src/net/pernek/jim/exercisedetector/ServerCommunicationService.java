@@ -76,7 +76,7 @@ public class ServerCommunicationService extends IntentService {
 	private static final String TAG = Utils.getApplicationTag();
 
 	/***********************
-	 * LOGIN TASK ACTIONS
+	 * LOGIN TASK ACTIONS AND PARAMETERS
 	 ***********************/
 
 	/**
@@ -84,8 +84,13 @@ public class ServerCommunicationService extends IntentService {
 	 */
 	public static final String ACTION_LOGIN_COMPLETED = "action_done";
 
+	/**
+	 * This ID marks if the login operation was successful or not.
+	 */
+	public static final String PARAM_LOGIN_SUCCESSFUL = "login_successful";
+
 	/***********************
-	 * FETCH TRAININGS TASK ACTIONS
+	 * FETCH TRAININGS TASK ACTIONS AND PARAMETERS
 	 ***********************/
 
 	/**
@@ -103,8 +108,25 @@ public class ServerCommunicationService extends IntentService {
 	 */
 	public static final String ACTION_FETCH_TRAINNG_ITEM_COMPLETED = "fetch_trainings_item_downloaded";
 
+	/**
+	 * This ID marks the number of all trainings to fetch from the server.
+	 */
+	public static final String PARAM_FETCH_TRAINNGS_NUM_ALL_ITEMS = "fetch_trainings_num_items";
+
+	/**
+	 * This ID marks the name of the item being currently fetched from the
+	 * server.
+	 */
+	public static final String PARAM_FETCH_TRAINNGS_CUR_ITEM_NAME = "fetch_trainings_cur_item_name";
+
+	/**
+	 * This ID marks the current count of the trainings downloaded from the
+	 * server (used for progress visualization).
+	 */
+	public static final String PARAM_FETCH_TRAINNGS_CUR_ITEM_CNT = "fetch_trainings_cur_item_cnt";
+
 	/***********************
-	 * UPLOAD TRAININGS TASK ACTIONS
+	 * UPLOAD TRAININGS TASK ACTIONS AND PARAMETERS
 	 ***********************/
 
 	/**
@@ -122,29 +144,33 @@ public class ServerCommunicationService extends IntentService {
 	 */
 	public static final String ACTION_TRAININGS_ITEM_UPLOADED = "upload_completed_trainings_item_uploaded";
 
-	/***********************
-	 * UPLOAD TRAININGS TASK PARAMETERS
-	 ***********************/
-	
 	/**
 	 * This ID marks the number of all items to be uploaded.
 	 */
 	public static final String PARAM_UPLOAD_TRAINING_NUM_ALL_ITEMS = "upload_completed_training_num_items";
 
 	/**
-	 * This ID marks the name of the particular completed training to be uploaded.
+	 * This ID marks the name of the particular completed training to be
+	 * uploaded.
 	 */
 	public static final String PARAM_UPLOAD_TRAINING_ITEM_NAME = "upload_training_item_name";
-	public static final String PARAM_UPLOAD_TRAINING_STATUS = "upload_training_status";
+
+	/**
+	 * This ID marks the upload status for a particular completed training item.
+	 */
+	public static final String PARAM_UPLOAD_TRAINING_ITEM_STATUS = "upload_training_status";
+
+	/**
+	 * This ID marks the current count of processed completed trainings (and is
+	 * primarly used for visualizing upload progress).
+	 */
 	public static final String PARAM_UPLOAD_TRAINING_CUR_ITEM_CNT = "upload_training_cur_item_count";
+
+	/**
+	 * This ID marks the number of successfully uploaded completed training
+	 * items.
+	 */
 	public static final String PARAM_UPLOAD_TRAINING_SUCESS_CNT = "upload_training_sucess_count";
-
-	public static final String PARAM_OP_SUCCESSFUL = "operation_successful";
-
-	public static final String PARAM_FETCH_TRAINNGS_NUM_ITEMS = "fetch_trainings_num_items";
-	public static final String PARAM_FETCH_TRAINNGS_CUR_ITEM_NAME = "fetch_trainings_cur_item_name";
-	public static final String PARAM_FETCH_TRAINNGS_CUR_ITEM_CNT = "fetch_trainings_cur_item_cnt";
-	public static final String PARAM_GET_TRAINING_SUCCESSFUL = "get_training_successful";
 
 	/***********************
 	 * Keys used by the IntentService.
@@ -168,7 +194,7 @@ public class ServerCommunicationService extends IntentService {
 	/**
 	 * This ID marks the upload completed trainings action.
 	 */
-	public static final String ACTION_UPLOAD = "action-upload";
+	public static final String ACTION_UPLOAD_COMPLETED_TRAININGS = "action-upload";
 
 	/**
 	 * This ID marks the fetch trainings from the server action.
@@ -190,11 +216,14 @@ public class ServerCommunicationService extends IntentService {
 	 */
 	private int mNumCompletedTrainings = 0;
 
+	private HttpClient httpClient = HttpsHelpers.getDangerousHttpClient();
+
 	public ServerCommunicationService() {
 		super("DataUploaderService");
 	}
 
 	/*
+	 * Central method receiving all the server communication requests.
 	 * (non-Javadoc)
 	 * 
 	 * @see android.app.IntentService#onHandleIntent(android.content.Intent)
@@ -209,7 +238,7 @@ public class ServerCommunicationService extends IntentService {
 		// return a status)
 		Intent statusIntent = new Intent();
 
-		if (action.equals(ACTION_UPLOAD)) {
+		if (action.equals(ACTION_UPLOAD_COMPLETED_TRAININGS)) {
 			int counterSuccess = uploadCompletedTrainings(username, password);
 
 			// prepare the status intent
@@ -225,7 +254,7 @@ public class ServerCommunicationService extends IntentService {
 			Intent broadcastIntent = new Intent();
 			broadcastIntent.setAction(ACTION_LOGIN_COMPLETED);
 			broadcastIntent.addCategory(Intent.CATEGORY_DEFAULT);
-			broadcastIntent.putExtra(PARAM_OP_SUCCESSFUL, loginSuccessful);
+			broadcastIntent.putExtra(PARAM_LOGIN_SUCCESSFUL, loginSuccessful);
 			sendBroadcast(broadcastIntent);
 
 		} else if (action.equals(ACTION_FETCH_TRAININGS)) {
@@ -242,7 +271,8 @@ public class ServerCommunicationService extends IntentService {
 					broadcastIntent
 							.setAction(ACTION_GET_TRAINNGS_LIST_COMPLETED);
 					broadcastIntent.addCategory(Intent.CATEGORY_DEFAULT);
-					broadcastIntent.putExtra(PARAM_FETCH_TRAINNGS_NUM_ITEMS,
+					broadcastIntent.putExtra(
+							PARAM_FETCH_TRAINNGS_NUM_ALL_ITEMS,
 							jaTrainingsPlans.length());
 					sendBroadcast(broadcastIntent);
 
@@ -270,7 +300,8 @@ public class ServerCommunicationService extends IntentService {
 							PARAM_FETCH_TRAINNGS_CUR_ITEM_NAME, trainingName);
 					broadcastIntent.putExtra(PARAM_FETCH_TRAINNGS_CUR_ITEM_CNT,
 							i);
-					broadcastIntent.putExtra(PARAM_FETCH_TRAINNGS_NUM_ITEMS,
+					broadcastIntent.putExtra(
+							PARAM_FETCH_TRAINNGS_NUM_ALL_ITEMS,
 							jaTrainingsPlans.length());
 					sendBroadcast(broadcastIntent);
 
@@ -315,8 +346,8 @@ public class ServerCommunicationService extends IntentService {
 			Intent broadcastIntent = new Intent();
 			broadcastIntent.setAction(ACTION_FETCH_TRAINNGS_COMPLETED);
 			broadcastIntent.addCategory(Intent.CATEGORY_DEFAULT);
-			broadcastIntent
-					.putExtra(PARAM_OP_SUCCESSFUL, getTrainingsSucessful);
+			broadcastIntent.putExtra(PARAM_LOGIN_SUCCESSFUL,
+					getTrainingsSucessful);
 			sendBroadcast(broadcastIntent);
 
 		}
@@ -355,6 +386,8 @@ public class ServerCommunicationService extends IntentService {
 					mNumCompletedTrainings);
 			sendBroadcast(broadcastIntent);
 
+			// this counter is used by the progress dialog to show the upload
+			// progress
 			int trainingCounter = 0;
 			while (trainings.moveToNext()) {
 				int trainingId = trainings.getInt(trainings
@@ -368,6 +401,7 @@ public class ServerCommunicationService extends IntentService {
 				boolean uploadStatus = uploadTraining(trainingId,
 						trainingToUpload, username, password);
 
+				// notify the uploading progress
 				broadcastIntent = new Intent();
 				broadcastIntent.setAction(ACTION_TRAININGS_ITEM_UPLOADED);
 				broadcastIntent.addCategory(Intent.CATEGORY_DEFAULT);
@@ -375,39 +409,46 @@ public class ServerCommunicationService extends IntentService {
 						trainingToUpload.getName());
 				broadcastIntent.putExtra(PARAM_UPLOAD_TRAINING_CUR_ITEM_CNT,
 						trainingCounter);
-				broadcastIntent.putExtra(PARAM_UPLOAD_TRAINING_STATUS, uploadStatus);
+				broadcastIntent.putExtra(PARAM_UPLOAD_TRAINING_ITEM_STATUS,
+						uploadStatus);
 				broadcastIntent.putExtra(PARAM_UPLOAD_TRAINING_NUM_ALL_ITEMS,
 						mNumCompletedTrainings);
 				sendBroadcast(broadcastIntent);
 
+				// increase the counts
+				trainingCounter++;
 				if (uploadStatus) {
 					counterSuccess++;
 				}
-
-				trainingCounter++;
 			}
 		}
 		return counterSuccess;
 	}
 
+	/**
+	 * This method uploads a @param training locally specified with the @param
+	 * trainingId to the remote server.
+	 * 
+	 * @param username
+	 * @param password
+	 * @return <code>true</code> if upload was successful, otherwise
+	 *         <code>false</code>.
+	 */
 	private boolean uploadTraining(int trainingId, Training training,
 			String username, String password) {
 
-		File trainingZip = new File(Utils.getUploadDataFolderFile(),
-				training.getZipFilename());
-
-		// first write training to disc
-		Measurement measurement = training.extractMeasurement();
-		measurement.zipToFile(trainingZip);
-
-		HttpClient httpClient = HttpsHelpers.getDangerousHttpClient();
+		// create a zip file that will containt the training to upload
+		File trainingZip = training.getZipFile();
+		training.zipToFile(
+				getResources().getString(R.string.training_mainfest_name),
+				getResources().getString(R.string.raw_data_name));
 
 		try {
 			String url = String.format("%s%s",
 					getResources().getString(R.string.server_url),
 					getResources().getString(R.string.server_path_upload));
 
-			Log.d(TAG, "Upload training with " + url);
+			Log.d(TAG, "Upload training to " + url);
 
 			HttpPost httppost = new HttpPost(url);
 
@@ -429,13 +470,20 @@ public class ServerCommunicationService extends IntentService {
 			int status = response.getStatusLine().getStatusCode();
 
 			if (status == HttpStatus.SC_OK) {
-				// delete from the local database
+				// if upload was successful delete training from the local
+				// database
 				getContentResolver().delete(
 						ContentUris.withAppendedId(
 								CompletedTraining.CONTENT_URI, trainingId),
 						null, null);
 
-				// TODO also delete the file from disk here
+				// delete the raw data
+				boolean delr = training.getRawFile().delete();
+
+				if (!getResources().getBoolean(R.bool.research_mode)) {
+					// keep the zip file in research mode, otherwise delete it
+					boolean delz = training.getZipFile().delete();
+				}
 			}
 
 			return true;

@@ -7,26 +7,35 @@
     <string name="login_button_text">login</string>
     <string name="username_edittext_text">username or email</string>
     <string name="password_edittext_text">password</string>
-    
-	<!-- From demo -->
+
+    <!-- From demo -->
     <drawable name="white">#ffffff</drawable>
-	<drawable name="blue">#2554C7</drawable>
-	<drawable name="green">#347C2C</drawable>
-	<drawable name="orange">#ff9900</drawable>
-	<drawable name="pink">#FF00FF</drawable>
-	<drawable name="violet">#a020f0</drawable>
-	<drawable name="gray">#778899</drawable>
-	<drawable name="red">#C11B17</drawable>
-	<!-- END from demo -->
-	
-	<!-- REST SERVICES URLS AND PARAMETERS -->
-	<string name="server_url">https://dev.trainerjim.com</string>
-	<string name="server_path_training_list">/mapi/training/list</string>
-	<string name="server_path_auth">/mapi/users/authenticate</string>
-	<string name="server_path_training">/mapi/training/get</string>
-	<string name="server_path_upload">/mapi/training/upload</string>
-	<string name="param_email">email</string>
-	<string name="param_password">password</string>
-	<string name="param_zipfile">trainingData</string>
-	
+    <drawable name="blue">#2554C7</drawable>
+    <drawable name="green">#347C2C</drawable>
+    <drawable name="orange">#ff9900</drawable>
+    <drawable name="pink">#FF00FF</drawable>
+    <drawable name="violet">#a020f0</drawable>
+    <drawable name="gray">#778899</drawable>
+    <drawable name="red">#C11B17</drawable>
+    <!-- END from demo -->
+
+
+    <!-- REST SERVICES URLS AND PARAMETERS -->
+    <string name="server_url">https://dev.trainerjim.com</string>
+    <string name="server_path_training_list">/mapi/training/list</string>
+    <string name="server_path_auth">/mapi/users/authenticate</string>
+    <string name="server_path_training">/mapi/training/get</string>
+    <string name="server_path_upload">/mapi/training/upload</string>
+    <string name="param_email">email</string>
+    <string name="param_password">password</string>
+    <string name="param_zipfile">trainingData</string>
+    
+    <!-- UPLOAD ZIP PARAMETERS -->
+    <string name="training_mainfest_name">training</string>
+    <string name="raw_data_name">raw</string>
+
+    <!-- CUSTOM APPLICATION CONFIGURATION -->
+    <!-- Research mode means we are gathering some additional data on external storage -->
+    <bool name="research_mode">true</bool>
+
 </resources>

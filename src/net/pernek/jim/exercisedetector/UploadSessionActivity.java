@@ -36,18 +36,18 @@ public class UploadSessionActivity extends ListActivity {
 	}
 
 	private void updateUi() {
-		File f = new File(Environment.getExternalStorageDirectory(),
-				Utils.getUploadDataFolder());
-
-		File[] files = f.listFiles();
-		List<String> fileList = new ArrayList<String>(files.length);
-		for (File file : files) {
-			fileList.add(file.getName());
-		}
-
-		ArrayAdapter<String> directoryList = new ArrayAdapter<String>(this,
-				android.R.layout.simple_list_item_1, fileList);
-		setListAdapter(directoryList);
+//		File f = new File(Environment.getExternalStorageDirectory(),
+//				Utils.getUploadDataFolder());
+//
+//		File[] files = f.listFiles();
+//		List<String> fileList = new ArrayList<String>(files.length);
+//		for (File file : files) {
+//			fileList.add(file.getName());
+//		}
+//
+//		ArrayAdapter<String> directoryList = new ArrayAdapter<String>(this,
+//				android.R.layout.simple_list_item_1, fileList);
+//		setListAdapter(directoryList);
 	}
 
 	@Override

@@ -23,32 +23,4 @@ public class Measurement {
 	public String comment;
 
 	public List<SeriesExecution> series_executions;
-
-	public boolean zipToFile(File zipFile) {
-		try {
-			FileOutputStream dest = new FileOutputStream(zipFile);
-
-			ZipOutputStream out = new ZipOutputStream(new BufferedOutputStream(
-					dest));
-
-			byte trainingData[] = new Gson().toJson(this).getBytes();
-
-			ZipEntry entry = new ZipEntry("training");
-			out.putNextEntry(entry);
-
-			out.write(trainingData, 0, trainingData.length);
-			
-			entry = new ZipEntry("raw");
-			out.putNextEntry(entry);
-			
-			out.close();
-			
-			return true;
-		} catch (Exception e) {
-			e.printStackTrace();
-			return false;
-		}
-
-	}
-
 }

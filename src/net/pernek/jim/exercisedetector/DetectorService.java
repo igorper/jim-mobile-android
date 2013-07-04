@@ -134,8 +134,8 @@ public class DetectorService extends Service {
 
 		// compile all collected data to one JSON file
 		// this file will be visible in upload activity
-		File uploadFolder = Utils.getUploadDataFolderFile();
-		uploadFolder.mkdir();
+//		File uploadFolder = Utils.getUploadDataFolderFile();
+//		uploadFolder.mkdir();
 
 		return mSensorListener.compileForUpload(outputId);
 	}

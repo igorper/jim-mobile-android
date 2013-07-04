@@ -48,9 +48,9 @@ public class AccelerationRecorder implements SensorEventListener {
 		return retVal;
 	}
 
-	public void openOutput(String outputFile) throws IOException {
+	public void openOutput(File outputFile) throws IOException {
 		mAccelerationWritter = new PrintWriter(new BufferedWriter(
-				new FileWriter(new File(Utils.getDataFolderFile(), outputFile),
+				new FileWriter(outputFile,
 						true)));
 	}
 

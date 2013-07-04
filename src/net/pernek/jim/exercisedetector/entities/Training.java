@@ -1,10 +1,19 @@
 package net.pernek.jim.exercisedetector.entities;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
+
+import com.google.gson.Gson;
 
 import net.pernek.jim.exercisedetector.util.Utils;
 
@@ -17,6 +26,11 @@ import net.pernek.jim.exercisedetector.util.Utils;
  */
 public class Training {
 
+	/**
+	 * Size of the buffer used for copying data between streams.
+	 */
+	private static final int COPY_BUFFER = 2048;
+
 	/***********************
 	 * Fields deserialized from server data;
 	 ***********************/
@@ -27,12 +41,12 @@ public class Training {
 	/************************
 	 * Fields deserialized from local data.
 	 ************************/
-	
+
 	/**
 	 * Rating for the current series execution.
 	 */
 	private int mCurrentSeriesExecutionRating = -1;
-	
+
 	/**
 	 * Holds the nanosec timestamp of the training start. Used for normalizing
 	 * acceleration sensor data.
@@ -194,7 +208,7 @@ public class Training {
 				.getNumberTotalRepetitions();
 		currentSeriesExecution.weight = currentSeries.getWeight();
 		currentSeriesExecution.rating = mCurrentSeriesExecutionRating;
-		
+
 		// reset the series execution rating for the next exercise
 		mCurrentSeriesExecutionRating = -1;
 
@@ -411,21 +425,75 @@ public class Training {
 		return retVal;
 	}
 
-	public String getZipFilename() {
+	private String getZipFilename() {
 		return new SimpleDateFormat("yyyyMMddHHmmss").format(mTrainingStarted)
 				+ ".zip";
 	}
 
-	public String getRawFilename() {
+	private String getRawFilename() {
 		return new SimpleDateFormat("yyyyMMddHHmmss").format(mTrainingStarted)
 				+ ".csv";
 	}
-	
-	public long getTrainingStartTimestamp(){
+
+	public File getZipFile() {
+		return new File(Utils.getDataFolderFile(), getZipFilename());
+	}
+
+	public File getRawFile() {
+		String fif = getRawFilename();
+		return new File(Utils.getDataFolderFile(), getRawFilename());
+	}
+
+	public long getTrainingStartTimestamp() {
 		return mTrainingStartTimestamp;
 	}
-	
-	public void setCurrentSeriesExecutionRating(int rating){
+
+	public void setCurrentSeriesExecutionRating(int rating) {
 		mCurrentSeriesExecutionRating = rating;
+	}
+
+	/**
+	 * Writes the training to a zip file. The handle to the output file is
+	 * returned by the getZipFile method.
+	 * 
+	 * @param trainingManifestPartName is the name of the training description part in the zip file
+	 * @param rawDataPartName is the name of the raw acceleration data part in the zip file
+	 * @return
+	 */
+	public boolean zipToFile(String trainingManifestPartName,
+			String rawDataPartName) {
+		try {
+			ZipOutputStream out = new ZipOutputStream(new BufferedOutputStream(
+					new FileOutputStream(getZipFile())));
+
+			byte trainingData[] = new Gson().toJson(extractMeasurement())
+					.getBytes();
+
+			ZipEntry entry = new ZipEntry(trainingManifestPartName);
+			out.putNextEntry(entry);
+
+			out.write(trainingData, 0, trainingData.length);
+
+			entry = new ZipEntry(rawDataPartName);
+			out.putNextEntry(entry);
+
+			BufferedInputStream rawData = new BufferedInputStream(
+					new FileInputStream(getRawFile()));
+			byte[] data = new byte[COPY_BUFFER];
+
+			int count;
+			while ((count = rawData.read(data, 0, COPY_BUFFER)) != -1) {
+				out.write(data, 0, count);
+			}
+
+			rawData.close();
+			out.close();
+
+			return true;
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+
 	}
 }

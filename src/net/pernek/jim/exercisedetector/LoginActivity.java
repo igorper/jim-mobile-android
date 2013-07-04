@@ -82,7 +82,7 @@ public class LoginActivity extends Activity {
 		@Override
 		public void onReceive(Context context, Intent intent) {
 			boolean loginSuccessful = intent.getExtras().getBoolean(
-					ServerCommunicationService.PARAM_OP_SUCCESSFUL);
+					ServerCommunicationService.PARAM_LOGIN_SUCCESSFUL);
 
 			mLoginProgress.dismiss();
 

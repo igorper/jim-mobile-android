@@ -251,7 +251,7 @@ public class TrainingActivity extends Activity implements SwipeListener,
 		if (mCurrentTraining != null) {
 			try {
 				mAccelerationRecorder.openOutput(mCurrentTraining
-						.getRawFilename());
+						.getRawFile());
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				Toast.makeText(getApplicationContext(),
@@ -506,7 +506,7 @@ public class TrainingActivity extends Activity implements SwipeListener,
 	private void runUploadTrainings() {
 		Intent intent = new Intent(this, ServerCommunicationService.class);
 		intent.putExtra(ServerCommunicationService.INTENT_KEY_ACTION,
-				ServerCommunicationService.ACTION_UPLOAD);
+				ServerCommunicationService.ACTION_UPLOAD_COMPLETED_TRAININGS);
 		intent.putExtra(ServerCommunicationService.INTENT_KEY_USERNAME,
 				mSettings.getUsername());
 		intent.putExtra(ServerCommunicationService.INTENT_KEY_PASSWORD,
@@ -981,7 +981,7 @@ public class TrainingActivity extends Activity implements SwipeListener,
 				mProgressDialog.dismiss();
 
 				boolean getTrainingSuccessful = intent.getExtras().getBoolean(
-						ServerCommunicationService.PARAM_OP_SUCCESSFUL);
+						ServerCommunicationService.PARAM_LOGIN_SUCCESSFUL);
 
 				if (getTrainingSuccessful) {
 					updateTrainingSelector(-1);
@@ -994,7 +994,7 @@ public class TrainingActivity extends Activity implements SwipeListener,
 				// calculate progress bar information and set progress
 				int totalNumberOfTrainings = intent
 						.getExtras()
-						.getInt(ServerCommunicationService.PARAM_FETCH_TRAINNGS_NUM_ITEMS);
+						.getInt(ServerCommunicationService.PARAM_FETCH_TRAINNGS_NUM_ALL_ITEMS);
 				int progress = Math.round(1f / totalNumberOfTrainings * 100f);
 				mProgressDialog.setProgress(progress);
 			} else if (intent
@@ -1006,7 +1006,7 @@ public class TrainingActivity extends Activity implements SwipeListener,
 				// training name
 				int totalNumberOfTrainings = intent
 						.getExtras()
-						.getInt(ServerCommunicationService.PARAM_FETCH_TRAINNGS_NUM_ITEMS);
+						.getInt(ServerCommunicationService.PARAM_FETCH_TRAINNGS_NUM_ALL_ITEMS);
 				int trainingCount = intent
 						.getExtras()
 						.getInt(ServerCommunicationService.PARAM_FETCH_TRAINNGS_CUR_ITEM_CNT);
@@ -1054,7 +1054,7 @@ public class TrainingActivity extends Activity implements SwipeListener,
 				boolean uploadStatus = intent
 						.getExtras()
 						.getBoolean(
-								ServerCommunicationService.PARAM_UPLOAD_TRAINING_STATUS);
+								ServerCommunicationService.PARAM_UPLOAD_TRAINING_ITEM_STATUS);
 				int progress = Math.round((1f + trainingCount)
 						/ totalNumberOfTrainings * 100f);
 				mProgressDialog.setMessage("Uploading " + trainingName + " "

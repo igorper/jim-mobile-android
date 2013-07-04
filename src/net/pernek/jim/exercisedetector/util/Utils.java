@@ -23,14 +23,6 @@ public class Utils {
 		dataFolder.mkdirs();
 		return dataFolder;
 	}
-	
-	public static File getUploadDataFolderFile() {
-		File uploadFolder = new File(Environment.getExternalStorageDirectory(),
-				Utils.getUploadDataFolder());
-		uploadFolder.mkdirs();
-		
-		return uploadFolder;
-	}
 
 	public static File getAccelerationFile(String outputFile) {
 		return new File(getDataFolderFile(), outputFile);
@@ -49,10 +41,6 @@ public class Utils {
 	public static File getTimestampsFile(String outputFile) {
 		return new File(getDataFolderFile(),
 				getTimestampsFileName(outputFile));
-	}
-
-	public static String getUploadDataFolder() {
-		return "jimdata/upload";
 	}
 
 	public static String getTrainingManifestFileName(String outputFile) {
