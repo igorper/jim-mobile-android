@@ -3,6 +3,7 @@ package net.pernek.jim.exercisedetector;
 import java.io.File;
 import java.io.IOException;
 
+import net.pernek.jim.exercisedetector.alg.SensorListener;
 import net.pernek.jim.exercisedetector.util.Utils;
 
 import org.json.JSONException;
@@ -78,11 +79,11 @@ public class DetectorService extends Service {
 		 */
 		// gym detection values
 
-		mSensorListener = SensorListener.create(mSettings.getOutputFile(),
-				getApplicationContext(), 8000, 30000, 1000000, 600, 200,
-				200000, 14, mSettings.getCurrentTrainingPlan(),
-				mSettings.getCurrentExerciseIndex(),
-				mSettings.getCurrentSeriesIndex());
+//		mSensorListener = SensorListener.create(mSettings.getOutputFile(),
+//				getApplicationContext(), 8000, 30000, 1000000, 600, 200,
+//				200000, 14, mSettings.getCurrentTrainingPlan(),
+//				mSettings.getCurrentExerciseIndex(),
+//				mSettings.getCurrentSeriesIndex());
 
 		try {
 			mSensorListener.openOutputFiles();

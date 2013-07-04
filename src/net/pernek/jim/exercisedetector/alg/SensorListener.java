@@ -1,4 +1,4 @@
-package net.pernek.jim.exercisedetector;
+package net.pernek.jim.exercisedetector.alg;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
@@ -10,8 +10,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 
-import net.pernek.jim.exercisedetector.alg.CircularArrayInt;
-import net.pernek.jim.exercisedetector.alg.DetectedEvent;
+import net.pernek.jim.exercisedetector.ExerciseDetectorActivity;
 import net.pernek.jim.exercisedetector.util.Statistics;
 import net.pernek.jim.exercisedetector.util.Utils;
 import android.content.Context;
@@ -24,6 +23,15 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.util.Log;
 
+/**
+ * This class contains the implementation of the exercise detection algorithm.
+ * This code is legacy of an old experimental implementation and needs lots of
+ * work to be fixed and suitable for real use again (it's left here only as a
+ * remainder of how the exercise detection was done).
+ * 
+ * @author Igor
+ * 
+ */
 public class SensorListener implements SensorEventListener {
 	private static final String TAG = Utils.getApplicationTag();
 
@@ -75,11 +83,29 @@ public class SensorListener implements SensorEventListener {
 
 	private String mSessionId;
 
-//	private TrainingPlanOld mCurrentTrainingPlan;
+	// private TrainingPlanOld mCurrentTrainingPlan;
 
 	private SensorListener() {
 	}
 
+	/*
+	 * Those values for used to run the exercise detection algorithm.
+	 */
+
+	// hand testing values
+	/*
+	 * mSensorListener = SensorListener.create(mSettings.getOutputFile(),
+	 * getApplicationContext(), 50000, 200000, 1000000, 180, 100, 200000, 4,
+	 * mSettings.getCurrentTrainingPlan(), mSettings.getCurrentExerciseIndex(),
+	 * mSettings.getCurrentSeriesIndex());
+	 */
+	// gym detection values
+
+	// mSensorListener = SensorListener.create(mSettings.getOutputFile(),
+	// getApplicationContext(), 8000, 30000, 1000000, 600, 200,
+	// 200000, 14, mSettings.getCurrentTrainingPlan(),
+	// mSettings.getCurrentExerciseIndex(),
+	// mSettings.getCurrentSeriesIndex());
 	public static SensorListener create(String sessionId, Context context,
 			int thresholdActive, int thresholdInactive, int expectedMean,
 			int windowMain, int stepMain, int meanDistanceThreshold,
@@ -103,25 +129,25 @@ public class SensorListener implements SensorEventListener {
 		String tempTrainingMainfestPath = Utils.getTrainingManifestFile(
 				sessionId).getPath();
 
-//		if (new File(tempTrainingMainfestPath).exists()) {
-//			// if the training file is already stored on the reload it
-//			// (this happened when the service was killed and recovered)
-//			retVal.mCurrentTrainingPlan = TrainingPlanOld
-//					.readFromFile(tempTrainingMainfestPath);
-//		} else {
-//			// create the current training from the shared preferences
-//			try {
-//				retVal.mCurrentTrainingPlan = TrainingPlanOld
-//						.parseFromJson(jsonEncodedTrainingPlan);
-//			} catch (JSONException e) {
-//				e.printStackTrace();
-//				return null;
-//			}
-//
-//			// save the file to disk as well (for the case the service crashes)
-//			retVal.mCurrentTrainingPlan
-//					.saveToTempFile(tempTrainingMainfestPath);
-//		}
+		// if (new File(tempTrainingMainfestPath).exists()) {
+		// // if the training file is already stored on the reload it
+		// // (this happened when the service was killed and recovered)
+		// retVal.mCurrentTrainingPlan = TrainingPlanOld
+		// .readFromFile(tempTrainingMainfestPath);
+		// } else {
+		// // create the current training from the shared preferences
+		// try {
+		// retVal.mCurrentTrainingPlan = TrainingPlanOld
+		// .parseFromJson(jsonEncodedTrainingPlan);
+		// } catch (JSONException e) {
+		// e.printStackTrace();
+		// return null;
+		// }
+		//
+		// // save the file to disk as well (for the case the service crashes)
+		// retVal.mCurrentTrainingPlan
+		// .saveToTempFile(tempTrainingMainfestPath);
+		// }
 
 		// create a handler thread to which sampled acceleration will
 		// be delivered
@@ -157,7 +183,7 @@ public class SensorListener implements SensorEventListener {
 	}
 
 	public void openOutputFiles() throws IOException {
-		
+
 		// the files are initialized with autoflush on
 		// (if facing performance problems some optimizations can be performed
 		// here)
@@ -165,11 +191,13 @@ public class SensorListener implements SensorEventListener {
 				Utils.getAccelerationFile(mSessionId), true)), true);
 
 		mDetectedTimestampsWriter = new PrintWriter(new BufferedWriter(
-				new FileWriter(Utils.getTimestampsFile(mSessionId), true)), true);
+				new FileWriter(Utils.getTimestampsFile(mSessionId), true)),
+				true);
 
 		mInterpolatedWriter = new PrintWriter(new BufferedWriter(
 				new FileWriter(Utils
-						.getInterpolatedAccelerationFile(mSessionId), true)), true);
+						.getInterpolatedAccelerationFile(mSessionId), true)),
+				true);
 	}
 
 	public boolean startAccelerationSampling() {
@@ -407,17 +435,17 @@ public class SensorListener implements SensorEventListener {
 		}
 
 		// broadcast current state to change the UI
-		Intent broadcastIntent = new Intent();
-		broadcastIntent
-				.setAction(ExerciseDetectorActivity.ResponseReceiver.ACTION_EXERCISE_STATE_CHANGED);
-		broadcastIntent.addCategory(Intent.CATEGORY_DEFAULT);
-		broadcastIntent.putExtra(
-				ExerciseDetectorActivity.ResponseReceiver.PARAM_STATE,
-				isExercise);
-		broadcastIntent.putExtra(
-				ExerciseDetectorActivity.ResponseReceiver.PARAM_TIMESTAMP,
-				timestamp);
-		mApplicationContext.sendBroadcast(broadcastIntent);
+//		Intent broadcastIntent = new Intent();
+//		broadcastIntent
+//				.setAction(ExerciseDetectorActivity.ResponseReceiver.ACTION_EXERCISE_STATE_CHANGED);
+//		broadcastIntent.addCategory(Intent.CATEGORY_DEFAULT);
+//		broadcastIntent.putExtra(
+//				ExerciseDetectorActivity.ResponseReceiver.PARAM_STATE,
+//				isExercise);
+//		broadcastIntent.putExtra(
+//				ExerciseDetectorActivity.ResponseReceiver.PARAM_TIMESTAMP,
+//				timestamp);
+//		mApplicationContext.sendBroadcast(broadcastIntent);
 
 		/*
 		 * Log.d(TAG, "SensorProcessor.exerciseStatCh: " +
@@ -426,50 +454,50 @@ public class SensorListener implements SensorEventListener {
 	}
 
 	public boolean compileForUpload(String sessionId) {
-//		Compress comp = new Compress(new String[] {
-//				Utils.getAccelerationFile(sessionId).getPath(),
-//				Utils.getTimestampsFile(sessionId).getPath() }, new File(
-//				Utils.getUploadDataFolderFile(), sessionId).getPath());
+		// Compress comp = new Compress(new String[] {
+		// Utils.getAccelerationFile(sessionId).getPath(),
+		// Utils.getTimestampsFile(sessionId).getPath() }, new File(
+		// Utils.getUploadDataFolderFile(), sessionId).getPath());
 
 		// TODO: when the compilation is finished compiled files can be deleted
 
-		return false;//comp.zip();
+		return false;// comp.zip();
 	}
 
 	public void updateTrainingPlan() {
-//		mCurrentTrainingPlan = TrainingPlanOld.readFromFile(Utils
-//				.getTrainingManifestFile(mSessionId).getPath());
+		// mCurrentTrainingPlan = TrainingPlanOld.readFromFile(Utils
+		// .getTrainingManifestFile(mSessionId).getPath());
 	}
 
 	// returns true if moving to the next activity is possible otherwise false
 	public boolean moveToNextActivity() {
-//		if (mCurrentSeriesIdx + 1 < mCurrentTrainingPlan.getExercises()
-//				.get(mCurrentExerciseIdx).getSeries().size()) {
-//			mCurrentSeriesIdx++;
-//		} else {
-//			mCurrentSeriesIdx = 0;
-//
-//			// we have move to the next exercise
-//			if (mCurrentExerciseIdx + 1 < mCurrentTrainingPlan.getExercises()
-//					.size()) {
-//				mCurrentExerciseIdx++;
-//			} else {
-//				// last exercise done
-//				return false;
-//			}
-//		}
+		// if (mCurrentSeriesIdx + 1 < mCurrentTrainingPlan.getExercises()
+		// .get(mCurrentExerciseIdx).getSeries().size()) {
+		// mCurrentSeriesIdx++;
+		// } else {
+		// mCurrentSeriesIdx = 0;
+		//
+		// // we have move to the next exercise
+		// if (mCurrentExerciseIdx + 1 < mCurrentTrainingPlan.getExercises()
+		// .size()) {
+		// mCurrentExerciseIdx++;
+		// } else {
+		// // last exercise done
+		// return false;
+		// }
+		// }
 
 		return true;
 	}
 
-//	public TrainingPlanOld getCurrentTrainingPlan() {
-//		return mCurrentTrainingPlan;
-//	}
+	// public TrainingPlanOld getCurrentTrainingPlan() {
+	// return mCurrentTrainingPlan;
+	// }
 
 	public int getCurrentExerciseIdx() {
 		return mCurrentExerciseIdx;
 	}
-	
+
 	public int getCurrentSeriesIdx() {
 		return mCurrentSeriesIdx;
 	}
