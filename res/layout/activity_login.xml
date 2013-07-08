@@ -26,9 +26,9 @@
                 android:layout_margin="@dimen/login_element_margin"
                 android:background="@color/jim_white"
                 android:gravity="center"
-                android:hint="@string/username_edittext_text"
+                android:hint="@string/input_username_hint_text"
                 android:textAppearance="?android:attr/textAppearanceLarge"
-                android:textColor="@color/jim_gray" />
+                android:textColor="@color/input_text" />
 
             <EditText
                 android:id="@+id/password_edittext"
@@ -39,9 +39,9 @@
                 android:layout_margin="@dimen/login_element_margin"
                 android:background="@color/jim_white"
                 android:gravity="center"
-                android:hint="@string/password_edittext_text"
+                android:hint="@string/input_password_hint_text"
                 android:textAppearance="?android:attr/textAppearanceLarge"
-                android:textColor="@color/jim_gray" />
+                android:textColor="@color/input_text" />
         </LinearLayout>
     </RelativeLayout>
 
@@ -62,10 +62,10 @@
                 android:layout_marginLeft="@dimen/login_element_margin"
                 android:layout_marginRight="@dimen/login_element_margin"
                 android:layout_marginTop="@dimen/login_button_top_margin"
-                android:background="@drawable/blue_button_style"
-                android:text="login"
+                android:background="@drawable/standard_button_background_style"
+                android:text="@string/login_button_text"
                 android:textAppearance="?android:attr/textAppearanceLarge"
-                android:textColor="@drawable/blue_button_text"
+                android:textColor="@drawable/standard_button_text_style"
                 android:onClick="onLoginButtonClick" />
 
             <ImageView

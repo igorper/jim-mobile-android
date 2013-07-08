@@ -1,13 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <dimen name="finnish_button_text_size">40dp</dimen>
     <dimen name="finnish_button_padding">10dp</dimen>
     <dimen name="training_rating_top_margin">30dp</dimen>
     <dimen name="training_rating_smile_padding">20dp</dimen>
     <dimen name="training_rating_smile_selected_padding">10dp</dimen>
     <dimen name="exercise_rating_smile_padding">20dp</dimen>
     <dimen name="exercise_rating_smile_selected_padding">10dp</dimen>
-    <dimen name="training_comment_text_size">30dp</dimen>
     <dimen name="status_rect_height">70dp</dimen>
     <dimen name="status_rect_training_selection_small_font_size">25dp</dimen>
     <dimen name="status_rect_training_selection_font_size">30dp</dimen>

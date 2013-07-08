@@ -488,7 +488,6 @@ public class Training {
 	 * @return
 	 */
 	public File getRawFile() {
-		String fif = getRawFilename();
 		return new File(Utils.getDataFolderFile(), getRawFilename());
 	}
 

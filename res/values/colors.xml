@@ -1,16 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="finnish_button_background">#FF0080D0</color>
-    <color name="finnish_button_pressed">#990080D0</color>
-    <color name="finnish_button_text">#FFFFFFFF</color>
-    <color name="jim_orange">#FFFBC911</color>
-    <color name="jim_red">#FFE1563E</color>
-    <color name="jim_gray">#FF999999</color>
-    <color name="jim_background">#FFF1F2F2</color>
-    <color name="jim_black">#FF000000</color>
-    <color name="jim_white">#FFFFFFFF</color>
-    <color name="training_comment_text">#ffBFC1C1</color>
-    <color name="jim_blue">#ff0080d0</color>
+    <!-- Standard button  -->
+    <color name="standard_button_background">#FF0080D0</color>
+    <color name="standard_button_pressed">#990080D0</color>
+    <color name="standard_button_text">#FFFFFFFF</color>
+    
+    <color name="input_text">#FF999999</color>
+    
     <color name="missing">#FF000000</color>
     <color name="status_rect_left_off_text">#FFFFFFFF</color>
     <color name="status_rect_right_off_text">#FFFFFFFF</color>
@@ -18,4 +14,11 @@
     <color name="status_rect_center_right_text">#FFE1563E</color>
     <color name="status_rect_left_swipe_background">#FFE1563E</color>
     <color name="status_rect_right_swipe_background">#ff0080d0</color>
+    
+    <color name="jim_blue">#ff0080d0</color>
+    <color name="jim_orange">#FFFBC911</color>
+    <color name="jim_red">#FFE1563E</color>
+    <color name="jim_background">#FFF1F2F2</color>
+    <color name="jim_black">#FF000000</color>
+    <color name="jim_white">#FFFFFFFF</color>
 </resources>

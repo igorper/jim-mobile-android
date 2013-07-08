@@ -305,22 +305,22 @@
                 android:layout_weight="1"
                 android:background="@drawable/training_comment_border"
                 android:gravity="top"
-                android:hint="comment ..."
+                android:hint="@string/input_comment_hint_text"
                 android:inputType="textShortMessage"
                 android:padding="@dimen/finnish_button_padding"
-                android:textColor="@color/training_comment_text"
-                android:textSize="@dimen/training_comment_text_size" />
+                android:textColor="@color/input_text"
+                android:textAppearance="?android:attr/textAppearanceMedium" />
 
             <Button
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_margin="@dimen/finnish_button_padding"
-                android:background="@drawable/blue_button_style"
+                android:background="@drawable/standard_button_background_style"
                 android:onClick="onFinishClick"
                 android:padding="@dimen/finnish_button_padding"
                 android:text="Finish"
-                android:textColor="@drawable/blue_button_text"
-                android:textSize="@dimen/finnish_button_text_size" />
+                android:textColor="@drawable/standard_button_text_style"
+                android:textAppearance="?android:attr/textAppearanceLarge" />
         </LinearLayout>
     </ViewFlipper>
 
