@@ -1,4 +1,4 @@
-package net.pernek.jim.exercisedetector.test;
+package com.trainerjim.android.test;
 
 import junit.framework.TestCase;
 
