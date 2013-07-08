@@ -486,7 +486,7 @@ public class TrainingActivity extends Activity implements SwipeListener,
 				mViewRateExercise.setVisibility(View.VISIBLE);
 				mIconWeight.setVisibility(View.VISIBLE);
 				mViewRateExercise.setBackgroundColor(getResources().getColor(
-						R.color.jim_orange));
+						R.color.rate_exercise_background));
 			} else if (menuToggle % 3 == 2) {
 				mViewRateExercise.setVisibility(View.VISIBLE);
 				mIconWeight.setVisibility(View.INVISIBLE);
@@ -895,7 +895,7 @@ public class TrainingActivity extends Activity implements SwipeListener,
 					mViewRateExercise.setVisibility(View.VISIBLE);
 					mIconWeight.setVisibility(View.VISIBLE);
 					mViewRateExercise.setBackgroundColor(getResources()
-							.getColor(R.color.jim_orange));
+							.getColor(R.color.rate_exercise_background));
 				}
 
 				// do acceleration sampling
