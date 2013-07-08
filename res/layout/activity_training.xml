@@ -75,7 +75,7 @@
                                     android:layout_height="wrap_content"
                                     android:gravity="center"
                                     android:text="Workout selected:"
-                                    android:textColor="@color/jim_black"
+                                    android:textColor="@color/select_training_title_text"
                                     android:textSize="@dimen/status_rect_training_selection_small_font_size" />
 
                                 <RelativeLayout
@@ -98,7 +98,7 @@
                                             android:layout_gravity="center_vertical"
                                             android:gravity="top"
                                             android:includeFontPadding="false"
-                                            android:textColor="@color/jim_red"
+                                            android:textColor="@color/select_training_text"
                                             android:textSize="@dimen/status_rect_training_selection_font_size" />
 
                                         <ImageView
@@ -195,7 +195,7 @@
                         android:layout_height="wrap_content"
                         android:gravity="center"
                         android:text="Rate to proceed!"
-                        android:textColor="@color/jim_red"
+                        android:textColor="@color/rate_exercise_text"
                         android:textAppearance="?android:attr/textAppearanceLarge" />
 
                     <LinearLayout
@@ -253,8 +253,8 @@
                 android:gravity="center"
                 android:paddingBottom="@dimen/standard_button_padding"
                 android:paddingTop="@dimen/standard_button_padding"
-                android:text="How was it?"
-                android:textColor="@color/jim_red"
+                android:text="@string/rate_training_title_text"
+                android:textColor="@color/rate_training_text"
                 android:textAppearance="?android:attr/textAppearanceLarge" />
 
             <LinearLayout

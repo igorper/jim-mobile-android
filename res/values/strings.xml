@@ -9,6 +9,7 @@
     <string name="input_password_hint_text">password</string>
     <string name="input_comment_hint_text">comment &#8230;</string>
     <string name="button_rate_text">Rate</string>
+    <string name="rate_training_title_text">How was it?</string>
 
 
 

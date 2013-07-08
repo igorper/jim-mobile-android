@@ -11,17 +11,15 @@
     <color name="status_rect_background">#FFFBC911</color>
     <color name="rate_training_title_background">#FFFBC911</color>
     <color name="rate_exercise_background">#FFFBC911</color>
-    
+    <color name="rate_exercise_text">#FFE1563E</color>
+    <color name="rate_training_text">#FFE1563E</color>
+    <color name="select_training_text">#FFE1563E</color>
+    <color name="select_training_title_text">#FF000000</color>
+    <color name="input_login_background">#FFFFFFFF</color> 
     <color name="status_rect_left_off_text">#FFFFFFFF</color>
     <color name="status_rect_right_off_text">#FFFFFFFF</color>
     <color name="status_rect_center_left_text">#FF000000</color>
     <color name="status_rect_center_right_text">#FFE1563E</color>
     <color name="status_rect_left_swipe_background">#FFE1563E</color>
     <color name="status_rect_right_swipe_background">#ff0080d0</color>
-<!--     <color name="jim_blue">#ff0080d0</color> -->
-<!--     <color name="jim_orange">#FFFBC911</color> -->
-    <color name="jim_red">#FFE1563E</color>
-    <color name="jim_black">#FF000000</color>
-    <color name="jim_white">#FFFFFFFF</color>
-
 </resources>
