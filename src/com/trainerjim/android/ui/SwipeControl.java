@@ -3,8 +3,6 @@ package com.trainerjim.android.ui;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.trainerjim.android.util.Utils;
-
 import net.pernek.jim.exercisedetector.R;
 import android.app.Activity;
 import android.content.Context;
@@ -18,15 +16,14 @@ import android.text.Html;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
 import android.util.Log;
-import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewTreeObserver;
 import android.widget.HorizontalScrollView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
+
+import com.trainerjim.android.util.Utils;
 
 /**
  * A horizontal swipe control with textual clues. Notes: - currently colors are
@@ -66,7 +63,6 @@ public class SwipeControl extends HorizontalScrollView {
 
 	private int mColorDelay = 200;
 
-	private int mFontSize;
 	private Typeface mTypeface;
 
 	public SwipeControl(Context context, AttributeSet attrs) {

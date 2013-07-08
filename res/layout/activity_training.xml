@@ -162,7 +162,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="1px"
                 android:layout_alignParentBottom="true"
-                android:background="#ff0000"
+                android:background="@color/repetition_animation_background"
                 android:orientation="horizontal"
                 android:visibility="gone" >
             </LinearLayout>

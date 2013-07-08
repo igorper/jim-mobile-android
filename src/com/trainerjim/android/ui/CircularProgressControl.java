@@ -1,5 +1,7 @@
 package com.trainerjim.android.ui;
 
+import net.pernek.jim.exercisedetector.R;
+
 import com.trainerjim.android.util.Utils;
 
 import android.content.Context;
@@ -38,116 +40,6 @@ public class CircularProgressControl extends View {
 	}
 
 	private static final String TAG = Utils.getApplicationTag();
-
-	/**
-	 * Training progress bar background color.
-	 */
-	private static final int TRAIN_PROG_BG_COLOR = 0xFFD1D2D4;
-
-	/**
-	 * Training progress bar foreground color.
-	 */
-	private static final int TRAIN_PROG_FG_COLOR = 0xFFEAB130;
-
-	/**
-	 * Exercise progress bar background color.
-	 */
-	private static final int EXER_PROG_BG_COLOR = 0xFFBDBEC2;
-
-	/**
-	 * Exercise progress bar foreground color.
-	 */
-	private static final int EXER_PROG_FG_COLOR = 0xFF55A0C0;
-
-	/**
-	 * Rest progress bar background color.
-	 */
-	private static final int REST_PROG_BG_COLOR = 0xFFFBC911;
-
-	/**
-	 * Rest progress bar foreground color.
-	 */
-	private static final int REST_PROG_FG_COLOR = 0xFFE1563E;
-
-	/**
-	 * Rest progress bar click background color.
-	 */
-	private static final int REST_PROG_BG_CLICK_COLOR = 0x99FBC911;
-
-	/**
-	 * Rest progress bar click foreground color.
-	 */
-	private static final int REST_PROG_FG_CLICK_COLOR = 0x99E1563E;
-
-	/**
-	 * Start button outer border color.
-	 */
-	private static final int START_PROG_OUT_COLOR = 0xFFE5E8E8;
-
-	/**
-	 * Start button middle border color.
-	 */
-	private static final int START_PROG_MID_COLOR = 0xFFFFFFFF;
-
-	/**
-	 * Start button inner border color.
-	 */
-	private static final int START_PROG_IN_COLOR = 0xFFF2F2F2;
-
-	/**
-	 * Start and stop button strong text color.
-	 */
-	private static final int START_STRONG_TEXT_COLOR = 0xFF424242;
-
-	/**
-	 * Rest counter text color.
-	 */
-	private static final int REST_COUNTER_TEXT_COLOR = 0xFFFFFFFF;
-
-	/**
-	 * Timer message text color.
-	 */
-	private static final int TIMER_MESSAGE_TEXT_COLOR = 0xFFFFFFFF;
-
-	/**
-	 * Info button text color.
-	 */
-	private static final int INFO_BUTTON_TEXT_COLOR = 0xFFFFFFFF;
-
-	/**
-	 * Dash color in the overview screen.
-	 */
-	private static final int OVERVIEW_DASH_COLOR = 0xFFE1563E;
-
-	/**
-	 * Current repetition text color.
-	 */
-	private static final int CURRENT_REPETITION_TEXT_COLOR = 0xFF000000;
-
-	/**
-	 * Total repetitions text color.
-	 */
-	private static final int TOTAL_REPETITIONS_TEXT_COLOR = 0xFFFFFFFF;
-
-	/**
-	 * Current series text color.
-	 */
-	private static final int CURRENT_SERIES_TEXT_COLOR = 0xFF55A0C0;
-
-	/**
-	 * Total series text color.
-	 */
-	private static final int TOTAL_SERIES_TEXT_COLOR = 0xFFFFFFFF;
-
-	/**
-	 * Start and stop button thin text color.
-	 */
-	private static final int START_THIN_TEXT_COLOR = 0xFFFFFFFF;
-
-	/**
-	 * Info button background color.
-	 */
-	private static final int INFO_BUTTON_BG_COLOR = 0xF20080d0;
 
 	/**
 	 * Thickness of training and exercise progress bars in dp.
@@ -1014,31 +906,31 @@ public class CircularProgressControl extends View {
 
 		// exercise state variables
 		mInfoButtonBackgroundPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-		mInfoButtonBackgroundPaint.setColor(INFO_BUTTON_BG_COLOR);
+		mInfoButtonBackgroundPaint.setColor(getResources().getColor(R.color.cpc_info_button_background));
 
 		mTrainingProgressBackgroundPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-		mTrainingProgressBackgroundPaint.setColor(TRAIN_PROG_BG_COLOR);
+		mTrainingProgressBackgroundPaint.setColor(getResources().getColor(R.color.cpc_training_progress_background));
 
 		mExerciseProgressBackgroundPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-		mExerciseProgressBackgroundPaint.setColor(EXER_PROG_BG_COLOR);
+		mExerciseProgressBackgroundPaint.setColor(getResources().getColor(R.color.cpc_exercise_progress_background));
 
 		mRestProgressBackgroundPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-		mRestProgressBackgroundPaint.setColor(REST_PROG_BG_COLOR);
+		mRestProgressBackgroundPaint.setColor(getResources().getColor(R.color.cpc_rest_progress_background));
 
 		mTrainingProgressForegroundPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-		mTrainingProgressForegroundPaint.setColor(TRAIN_PROG_FG_COLOR);
+		mTrainingProgressForegroundPaint.setColor(getResources().getColor(R.color.cpc_training_progress_foreground));
 
 		mExerciseProgressForegroundPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-		mExerciseProgressForegroundPaint.setColor(EXER_PROG_FG_COLOR);
+		mExerciseProgressForegroundPaint.setColor(getResources().getColor(R.color.cpc_exercise_progress_foreground));
 
 		mRestProgressForegroundPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-		mRestProgressForegroundPaint.setColor(REST_PROG_FG_COLOR);
+		mRestProgressForegroundPaint.setColor(getResources().getColor(R.color.cpc_rest_progress_foreground));
 
 		mRestProgressClickBackgroundPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-		mRestProgressClickBackgroundPaint.setColor(REST_PROG_BG_CLICK_COLOR);
+		mRestProgressClickBackgroundPaint.setColor(getResources().getColor(R.color.cpc_rest_progress_pressed_background));
 
 		mRestProgressClickForegroundPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-		mRestProgressClickForegroundPaint.setColor(REST_PROG_FG_CLICK_COLOR);
+		mRestProgressClickForegroundPaint.setColor(getResources().getColor(R.color.cpc_rest_progress_pressed_foreground));
 
 		mProgThicknessInPx = TypedValue.applyDimension(
 				TypedValue.COMPLEX_UNIT_DIP, PROG_THICK_IN_DIP, getResources()
@@ -1046,16 +938,16 @@ public class CircularProgressControl extends View {
 
 		// start button state variables
 		mStartProgressOuterPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-		mStartProgressOuterPaint.setColor(START_PROG_OUT_COLOR);
+		mStartProgressOuterPaint.setColor(getResources().getColor(R.color.cpc_start_button_outer_border));
 
 		mStartProgressMiddlePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-		mStartProgressMiddlePaint.setColor(START_PROG_MID_COLOR);
+		mStartProgressMiddlePaint.setColor(getResources().getColor(R.color.cpc_start_button_middle_border));
 
 		mStartProgressInnerPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-		mStartProgressInnerPaint.setColor(START_PROG_IN_COLOR);
+		mStartProgressInnerPaint.setColor(getResources().getColor(R.color.cpc_start_button_inner_border));
 
 		mInfoButtonLargeTextPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-		mInfoButtonLargeTextPaint.setColor(INFO_BUTTON_TEXT_COLOR);
+		mInfoButtonLargeTextPaint.setColor(getResources().getColor(R.color.cpc_info_button_text));
 		mInfoButtonLargeTextPaint.setTextSize(TypedValue.applyDimension(
 				TypedValue.COMPLEX_UNIT_DIP,
 				INFO_BUTTON_LARGE_TEXT_SIZE_IN_DIP, getResources()
@@ -1063,7 +955,7 @@ public class CircularProgressControl extends View {
 		mInfoButtonLargeTextPaint.setTypeface(mOpenSansRegular);
 
 		mInfoButtonSmallTextPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-		mInfoButtonSmallTextPaint.setColor(INFO_BUTTON_TEXT_COLOR);
+		mInfoButtonSmallTextPaint.setColor(getResources().getColor(R.color.cpc_info_button_text));
 		mInfoButtonSmallTextPaint.setTextSize(TypedValue.applyDimension(
 				TypedValue.COMPLEX_UNIT_DIP,
 				INFO_BUTTON_SMALL_TEXT_SIZE_IN_DIP, getResources()
@@ -1071,14 +963,14 @@ public class CircularProgressControl extends View {
 		mInfoButtonSmallTextPaint.setTypeface(mOpenSansRegular);
 
 		mStartButtonStrongTextPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-		mStartButtonStrongTextPaint.setColor(START_STRONG_TEXT_COLOR);
+		mStartButtonStrongTextPaint.setColor(getResources().getColor(R.color.cpc_start_strong_text));
 		mStartButtonStrongTextPaint.setTextSize(TypedValue.applyDimension(
 				TypedValue.COMPLEX_UNIT_DIP, START_STRONG_TEXT_SIZE_IN_DIP,
 				getResources().getDisplayMetrics()));
 		mStartButtonStrongTextPaint.setTypeface(mCooperBlackTypeface);
 
 		mStartButtonThinTextPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-		mStartButtonThinTextPaint.setColor(START_THIN_TEXT_COLOR);
+		mStartButtonThinTextPaint.setColor(getResources().getColor(R.color.cpc_start_thin_text));
 		mStartButtonThinTextPaint.setTextSize(TypedValue.applyDimension(
 				TypedValue.COMPLEX_UNIT_DIP, START_THIN_TEXT_SIZE_IN_DIP,
 				getResources().getDisplayMetrics()));
@@ -1102,7 +994,7 @@ public class CircularProgressControl extends View {
 				getResources().getDisplayMetrics());
 
 		mOverviewDashPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-		mOverviewDashPaint.setColor(OVERVIEW_DASH_COLOR);
+		mOverviewDashPaint.setColor(getResources().getColor(R.color.cpc_overview_dash));
 		mOverviewDashPaint.setStyle(Style.STROKE);
 		mOverviewDashPaint.setPathEffect(new DashPathEffect(new float[] {
 				dashPartLenInPx, dashPartLenInPx }, 0));
@@ -1111,45 +1003,45 @@ public class CircularProgressControl extends View {
 				getResources().getDisplayMetrics()));
 
 		mTextOverviewMinPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-		mTextOverviewMinPaint.setColor(REST_PROG_FG_COLOR);
+		mTextOverviewMinPaint.setColor(getResources().getColor(R.color.cpc_overiview_units_text));
 		mTextOverviewMinPaint.setTextSize(TypedValue.applyDimension(
 				TypedValue.COMPLEX_UNIT_DIP, OVERVIEW_TEXT_SIZE_IN_DIP,
 				getResources().getDisplayMetrics()));
 
 		mTextOverviewTotalPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-		mTextOverviewTotalPaint.setColor(START_STRONG_TEXT_COLOR);
+		mTextOverviewTotalPaint.setColor(getResources().getColor(R.color.cpc_start_strong_text));
 		mTextOverviewTotalPaint.setTypeface(Typeface.DEFAULT_BOLD);
 		mTextOverviewTotalPaint.setTextSize(TypedValue.applyDimension(
 				TypedValue.COMPLEX_UNIT_DIP, OVERVIEW_TEXT_SIZE_IN_DIP,
 				getResources().getDisplayMetrics()));
 
 		mTextOverviewNumberPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-		mTextOverviewNumberPaint.setColor(START_STRONG_TEXT_COLOR);
+		mTextOverviewNumberPaint.setColor(getResources().getColor(R.color.cpc_start_strong_text));
 		mTextOverviewNumberPaint.setTextSize(TypedValue.applyDimension(
 				TypedValue.COMPLEX_UNIT_DIP, OVERVIEW_TEXT_NUMBER_SIZE_IN_DIP,
 				getResources().getDisplayMetrics()));
 
 		mTextTimerPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-		mTextTimerPaint.setColor(REST_COUNTER_TEXT_COLOR);
+		mTextTimerPaint.setColor(getResources().getColor(R.color.cpc_timer_counter_text));
 		mTextTimerPaint.setTextSize(TypedValue.applyDimension(
 				TypedValue.COMPLEX_UNIT_DIP, REST_COUNTER_TEXT_SIZE_IN_DIP,
 				getResources().getDisplayMetrics()));
 		
 		mTextTimerUnitPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-		mTextTimerUnitPaint.setColor(REST_COUNTER_TEXT_COLOR);
+		mTextTimerUnitPaint.setColor(getResources().getColor(R.color.cpc_timer_counter_text));
 		mTextTimerUnitPaint.setTextSize(TypedValue.applyDimension(
 				TypedValue.COMPLEX_UNIT_DIP, TIMER_COUNTER_UNIT_TEXT_SIZE_IN_DIP,
 				getResources().getDisplayMetrics()));
 
 		mTextTimerMessagePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-		mTextTimerMessagePaint.setColor(TIMER_MESSAGE_TEXT_COLOR);
+		mTextTimerMessagePaint.setColor(getResources().getColor(R.color.cpc_timer_message_text));
 		mTextTimerMessagePaint.setTextSize(TypedValue.applyDimension(
 				TypedValue.COMPLEX_UNIT_DIP, TIMER_MESSAGE_TEXT_SIZE_IN_DIP,
 				getResources().getDisplayMetrics()));
 		mTextTimerMessagePaint.setTypeface(mFinenessRegularTypeface);
 
 		mTextCurrentRepetitionPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-		mTextCurrentRepetitionPaint.setColor(CURRENT_REPETITION_TEXT_COLOR);
+		mTextCurrentRepetitionPaint.setColor(getResources().getColor(R.color.cpc_current_repetition_text));
 		mTextCurrentRepetitionPaint.setTypeface(Typeface.DEFAULT_BOLD);
 		mTextCurrentRepetitionPaint.setTextSize(TypedValue.applyDimension(
 				TypedValue.COMPLEX_UNIT_DIP,
@@ -1158,7 +1050,7 @@ public class CircularProgressControl extends View {
 		mTextCurrentRepetitionPaint.setTypeface(mFinenessRegularTypeface);
 
 		mTextTotalRepetitionsPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-		mTextTotalRepetitionsPaint.setColor(TOTAL_REPETITIONS_TEXT_COLOR);
+		mTextTotalRepetitionsPaint.setColor(getResources().getColor(R.color.cpc_total_repetitions_text));
 		mTextTotalRepetitionsPaint.setTextSize(TypedValue.applyDimension(
 				TypedValue.COMPLEX_UNIT_DIP,
 				TOTAL_REPETITIONS_TEXT_SIZE_IN_DIP, getResources()
@@ -1166,14 +1058,14 @@ public class CircularProgressControl extends View {
 		mTextTotalRepetitionsPaint.setTypeface(mFinenessRegularTypeface);
 
 		mTextCurrentSeriesPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-		mTextCurrentSeriesPaint.setColor(CURRENT_SERIES_TEXT_COLOR);
+		mTextCurrentSeriesPaint.setColor(getResources().getColor(R.color.cpc_current_series_text));
 		mTextCurrentSeriesPaint.setTextSize(TypedValue.applyDimension(
 				TypedValue.COMPLEX_UNIT_DIP, CURRENT_SERIES_TEXT_SIZE_IN_DIP,
 				getResources().getDisplayMetrics()));
 		mTextCurrentSeriesPaint.setTypeface(mFinenessRegularTypeface);
 
 		mTextTotalSeriesPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-		mTextTotalSeriesPaint.setColor(TOTAL_SERIES_TEXT_COLOR);
+		mTextTotalSeriesPaint.setColor(getResources().getColor(R.color.cpc_total_series_text));
 		mTextTotalSeriesPaint.setTextSize(TypedValue.applyDimension(
 				TypedValue.COMPLEX_UNIT_DIP, TOTAL_SERIES_TEXT_SIZE_IN_DIP,
 				getResources().getDisplayMetrics()));

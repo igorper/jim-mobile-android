@@ -22,4 +22,31 @@
     <color name="status_rect_center_right_text">#FFE1563E</color>
     <color name="status_rect_left_swipe_background">#FFE1563E</color>
     <color name="status_rect_right_swipe_background">#ff0080d0</color>
+    <color name="repetition_animation_background">#FF0080D0</color>
+    
+    <!-- Start Ciruclar progress control colors -->
+    <color name="cpc_training_progress_background">#FFD1D2D4</color>
+    <color name="cpc_training_progress_foreground">#FFEAB130</color>
+    <color name="cpc_exercise_progress_background">#FFBDBEC2</color>
+    <color name="cpc_exercise_progress_foreground">#FF55A0C0</color>
+    <color name="cpc_rest_progress_background">#FFFBC911</color>
+    <color name="cpc_rest_progress_foreground">#FFE1563E</color>
+    <color name="cpc_rest_progress_pressed_background">#FFFFD454</color>
+    <color name="cpc_rest_progress_pressed_foreground">#FFFF563E</color>
+    <color name="cpc_overiview_units_text">#FFE1563E</color>
+    <color name="cpc_start_button_outer_border">#FFE5E8E8</color>
+    <color name="cpc_start_button_middle_border">#FFFFFFFF</color>
+    <color name="cpc_start_button_inner_border">#FFF2F2F2</color>
+    <color name="cpc_start_strong_text">#FF424242</color>
+    <color name="cpc_start_thin_text">#FFFFFFFF</color>
+    <color name="cpc_timer_counter_text">#FFFFFFFF</color>
+    <color name="cpc_timer_message_text">#FFFFFFFF</color>
+    <color name="cpc_info_button_text">#FFFFFFFF</color>
+    <color name="cpc_info_button_background">#F20080d0</color>
+    <color name="cpc_overview_dash">#FFE1563E</color>
+    <color name="cpc_current_repetition_text">#FF000000</color>
+    <color name="cpc_total_repetitions_text">#FFFFFFFF</color>
+    <color name="cpc_current_series_text">#FF55A0C0</color>
+    <color name="cpc_total_series_text">#FFFFFFFF</color>
+    <!-- End Ciruclar progress control colors -->
 </resources>
