@@ -1,8 +1,9 @@
-package net.pernek.jim.exercisedetector.database;
+package com.trainerjim.android.database;
 
 import java.util.HashMap;
 
-import net.pernek.jim.exercisedetector.util.Utils;
+import com.trainerjim.android.util.Utils;
+
 import android.content.ContentProvider;
 import android.content.ContentUris;
 import android.content.ContentValues;

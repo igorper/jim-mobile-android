@@ -25,7 +25,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content" >
 
-                    <net.pernek.jim.exercisedetector.ui.CircularProgressControl
+                    <com.trainerjim.android.ui.CircularProgressControl
                         android:id="@+id/circularProgress"
                         android:layout_width="match_parent"
                         android:layout_height="0dp"
@@ -113,7 +113,7 @@
                                 </RelativeLayout>
                             </LinearLayout>
 
-                            <net.pernek.jim.exercisedetector.ui.SwipeControl
+                            <com.trainerjim.android.ui.SwipeControl
                                 android:id="@+id/swipeControl"
                                 android:layout_width="match_parent"
                                 android:layout_height="match_parent"

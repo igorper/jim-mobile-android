@@ -1,4 +1,4 @@
-package net.pernek.jim.exercisedetector.entities;
+package com.trainerjim.android.entities;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -14,8 +14,8 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 import com.google.gson.Gson;
+import com.trainerjim.android.util.Utils;
 
-import net.pernek.jim.exercisedetector.util.Utils;
 
 /**
  * This class holds the Training information and is used for management of all

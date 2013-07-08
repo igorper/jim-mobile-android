@@ -1,4 +1,4 @@
-package net.pernek.jim.exercisedetector.ui;
+package com.trainerjim.android.ui;
 
 public interface RepetitionAnimationListener {
 	

@@ -1,4 +1,4 @@
-package net.pernek.jim.exercisedetector;
+package com.trainerjim.android;
 
 import android.content.SharedPreferences;
 

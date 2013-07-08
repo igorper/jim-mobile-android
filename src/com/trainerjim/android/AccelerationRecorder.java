@@ -1,4 +1,4 @@
-package net.pernek.jim.exercisedetector;
+package com.trainerjim.android;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -6,7 +6,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 
-import net.pernek.jim.exercisedetector.util.Utils;
+import com.trainerjim.android.util.Utils;
+
 import android.content.Context;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;

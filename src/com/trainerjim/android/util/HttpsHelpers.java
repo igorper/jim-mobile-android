@@ -1,4 +1,4 @@
-package net.pernek.jim.exercisedetector.util;
+package com.trainerjim.android.util;
 
 import java.security.KeyStore;
 

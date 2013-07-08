@@ -1,19 +1,8 @@
-package net.pernek.jim.exercisedetector;
+package com.trainerjim.android;
 
 import java.io.IOException;
 
-import net.pernek.jim.exercisedetector.database.TrainingContentProvider.CompletedTraining;
-import net.pernek.jim.exercisedetector.database.TrainingContentProvider.TrainingPlan;
-import net.pernek.jim.exercisedetector.entities.Exercise;
-import net.pernek.jim.exercisedetector.entities.Series;
-import net.pernek.jim.exercisedetector.entities.Training;
-import net.pernek.jim.exercisedetector.ui.CircularProgressControl;
-import net.pernek.jim.exercisedetector.ui.CircularProgressControl.CircularProgressState;
-import net.pernek.jim.exercisedetector.ui.RepetitionAnimation;
-import net.pernek.jim.exercisedetector.ui.RepetitionAnimationListener;
-import net.pernek.jim.exercisedetector.ui.SwipeControl;
-import net.pernek.jim.exercisedetector.ui.SwipeListener;
-import net.pernek.jim.exercisedetector.util.Utils;
+import net.pernek.jim.exercisedetector.R;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
@@ -37,6 +26,18 @@ import android.widget.Toast;
 import android.widget.ViewFlipper;
 
 import com.google.gson.Gson;
+import com.trainerjim.android.database.TrainingContentProvider.CompletedTraining;
+import com.trainerjim.android.database.TrainingContentProvider.TrainingPlan;
+import com.trainerjim.android.entities.Exercise;
+import com.trainerjim.android.entities.Series;
+import com.trainerjim.android.entities.Training;
+import com.trainerjim.android.ui.CircularProgressControl;
+import com.trainerjim.android.ui.RepetitionAnimation;
+import com.trainerjim.android.ui.RepetitionAnimationListener;
+import com.trainerjim.android.ui.SwipeControl;
+import com.trainerjim.android.ui.SwipeListener;
+import com.trainerjim.android.ui.CircularProgressControl.CircularProgressState;
+import com.trainerjim.android.util.Utils;
 
 public class TrainingActivity extends Activity implements SwipeListener,
 		RepetitionAnimationListener {

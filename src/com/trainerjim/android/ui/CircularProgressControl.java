@@ -1,6 +1,7 @@
-package net.pernek.jim.exercisedetector.ui;
+package com.trainerjim.android.ui;
 
-import net.pernek.jim.exercisedetector.util.Utils;
+import com.trainerjim.android.util.Utils;
+
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.DashPathEffect;

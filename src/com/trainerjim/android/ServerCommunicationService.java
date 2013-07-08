@@ -1,4 +1,4 @@
-package net.pernek.jim.exercisedetector;
+package com.trainerjim.android;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -19,12 +19,7 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
-import net.pernek.jim.exercisedetector.database.TrainingContentProvider.CompletedTraining;
-import net.pernek.jim.exercisedetector.database.TrainingContentProvider.TrainingPlan;
-import net.pernek.jim.exercisedetector.entities.Measurement;
-import net.pernek.jim.exercisedetector.entities.Training;
-import net.pernek.jim.exercisedetector.util.HttpsHelpers;
-import net.pernek.jim.exercisedetector.util.Utils;
+import net.pernek.jim.exercisedetector.R;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -63,6 +58,12 @@ import android.database.Cursor;
 import android.util.Log;
 
 import com.google.gson.Gson;
+import com.trainerjim.android.database.TrainingContentProvider.CompletedTraining;
+import com.trainerjim.android.database.TrainingContentProvider.TrainingPlan;
+import com.trainerjim.android.entities.Measurement;
+import com.trainerjim.android.entities.Training;
+import com.trainerjim.android.util.HttpsHelpers;
+import com.trainerjim.android.util.Utils;
 
 /**
  * This service is the central gateway for all the communication with the remote

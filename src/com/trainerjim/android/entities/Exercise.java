@@ -1,4 +1,4 @@
-package net.pernek.jim.exercisedetector.entities;
+package com.trainerjim.android.entities;
 
 import java.util.ArrayList;
 import java.util.Collections;

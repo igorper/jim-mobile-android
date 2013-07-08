@@ -1,5 +1,6 @@
-package net.pernek.jim.exercisedetector;
+package com.trainerjim.android;
 
+import net.pernek.jim.exercisedetector.R;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;

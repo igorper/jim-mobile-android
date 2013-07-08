@@ -1,4 +1,4 @@
-package net.pernek.jim.exercisedetector.entities;
+package com.trainerjim.android.entities;
 
 import java.io.BufferedOutputStream;
 import java.io.File;

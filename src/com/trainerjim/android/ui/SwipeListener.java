@@ -1,4 +1,4 @@
-package net.pernek.jim.exercisedetector.ui;
+package com.trainerjim.android.ui;
 
 /** Implement this class if you need to listen to {@code SwipeControl} events.
  * @author Igor

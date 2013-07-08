@@ -17,12 +17,12 @@
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
         <provider
-            android:name="net.pernek.jim.exercisedetector.database.TrainingContentProvider"
+            android:name="com.trainerjim.android.database.TrainingContentProvider"
             android:authorities="net.pernek.jim.provider.JimContentProvider"
             android:exported="false" />
 
         <activity
-            android:name="net.pernek.jim.exercisedetector.TrainingActivity"
+            android:name="com.trainerjim.android.TrainingActivity"
             android:label="@string/app_name"
             android:launchMode="singleTop"
             android:screenOrientation="portrait" >
@@ -33,21 +33,21 @@
             </intent-filter>
         </activity>
         <activity
-            android:name="net.pernek.jim.exercisedetector.TrainingManifestActivity"
+            android:name="com.trainerjim.android.TrainingManifestActivity"
             android:label="Expandable LV" >
         </activity>
-        <activity android:name="net.pernek.jim.exercisedetector.TrainingSelectionList" />
+        <activity android:name="com.trainerjim.android.TrainingSelectionList" />
         <activity
-            android:name="net.pernek.jim.exercisedetector.LoginActivity"
+            android:name="com.trainerjim.android.LoginActivity"
             android:excludeFromRecents="true"
             android:label="@string/app_name"
             android:noHistory="true" >
         </activity>
 
-        <service android:name="net.pernek.jim.exercisedetector.DetectorService" />
-        <service android:name="net.pernek.jim.exercisedetector.ServerCommunicationService" />
+        <service android:name="com.trainerjim.android.DetectorService" />
+        <service android:name="com.trainerjim.android.ServerCommunicationService" />
 
-        <activity android:name="net.pernek.jim.exercisedetector.UploadSessionActivity" />
+        <activity android:name="com.trainerjim.android.UploadSessionActivity" />
     </application>
 
 </manifest>

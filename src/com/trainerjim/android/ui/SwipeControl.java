@@ -1,10 +1,11 @@
-package net.pernek.jim.exercisedetector.ui;
+package com.trainerjim.android.ui;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import com.trainerjim.android.util.Utils;
+
 import net.pernek.jim.exercisedetector.R;
-import net.pernek.jim.exercisedetector.util.Utils;
 import android.app.Activity;
 import android.content.Context;
 import android.content.res.TypedArray;
