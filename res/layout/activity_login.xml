@@ -62,10 +62,8 @@
                 android:layout_marginLeft="@dimen/login_element_margin"
                 android:layout_marginRight="@dimen/login_element_margin"
                 android:layout_marginTop="@dimen/login_button_top_margin"
-                android:background="@drawable/standard_button_background_style"
                 android:text="@string/login_button_text"
-                android:textAppearance="?android:attr/textAppearanceLarge"
-                android:textColor="@drawable/standard_button_text_style"
+                style="@style/standard_button"
                 android:onClick="onLoginButtonClick" />
 
             <ImageView
