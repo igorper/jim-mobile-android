@@ -26,6 +26,7 @@ import android.widget.Toast;
 import android.widget.ViewFlipper;
 
 import com.google.gson.Gson;
+import com.trainerjim.android.AccelerationRecorder.AccelerationRecordingTimestamps;
 import com.trainerjim.android.entities.Exercise;
 import com.trainerjim.android.entities.Series;
 import com.trainerjim.android.entities.Training;
@@ -575,7 +576,7 @@ public class TrainingActivity extends Activity implements SwipeListener,
 				// store training to the database
 				ContentValues completedTraining = new ContentValues();
 				completedTraining.put(CompletedTraining.NAME,
-						mCurrentTraining.getName());
+						mCurrentTraining.getTrainingName());
 				completedTraining.put(CompletedTraining.DATA,
 						mGsonInstance.toJson(mCurrentTraining));
 
@@ -600,9 +601,9 @@ public class TrainingActivity extends Activity implements SwipeListener,
 			}
 		} else {
 			// exercise -> rest
-			mCurrentTraining.endExercise();
-
-			mAccelerationRecorder.stopAccelerationSampling();
+			
+			AccelerationRecordingTimestamps timestamps = mAccelerationRecorder.stopAccelerationSampling(); 			
+			mCurrentTraining.endExercise(timestamps);
 
 			if (mRepetitionAnimation.isAnimationRunning()) {
 				mRepetitionAnimation.cancelAnimation();
@@ -777,7 +778,8 @@ public class TrainingActivity extends Activity implements SwipeListener,
 		}
 
 		if (!mCurrentTraining.isCurrentRest()) {
-			mCurrentTraining.endExercise();
+			AccelerationRecordingTimestamps timestamps = mAccelerationRecorder.stopAccelerationSampling(); 			
+			mCurrentTraining.endExercise(timestamps);
 		}
 
 		// disable the get ready timer
@@ -802,7 +804,8 @@ public class TrainingActivity extends Activity implements SwipeListener,
 	@Override
 	public void onSwipeLeft() {
 		if (!mCurrentTraining.isCurrentRest()) {
-			mCurrentTraining.endExercise();
+			AccelerationRecordingTimestamps timestamps = mAccelerationRecorder.stopAccelerationSampling(); 			
+			mCurrentTraining.endExercise(timestamps);
 		}
 
 		// disable the get ready timer

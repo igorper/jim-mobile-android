@@ -14,8 +14,8 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 import com.google.gson.Gson;
+import com.trainerjim.android.AccelerationRecorder.AccelerationRecordingTimestamps;
 import com.trainerjim.android.util.Utils;
-
 
 /**
  * This class holds the Training information and is used for management of all
@@ -191,23 +191,35 @@ public class Training {
 	 * 
 	 * @return
 	 */
-	public void endExercise() {
+	public void endExercise(AccelerationRecordingTimestamps timestamps) {
 		long exerciseEnd = System.nanoTime();
 		Exercise currentExercise = exercises.get(mExercisesToDo.get(0));
 		Series currentSeries = currentExercise.getCurrentSeries();
 
 		// create series execution
-		SeriesExecution currentSeriesExecution = new SeriesExecution();
-		currentSeriesExecution.rest_time = calculateDurationInSeconds(
-				mLastPauseStart, mExerciseStart);
-		currentSeriesExecution.setDuration(calculateDurationInSeconds(
-				mExerciseStart, exerciseEnd));
-		currentSeriesExecution.exercise_type_id = currentExercise
-				.getExerciseType().getId();
-		currentSeriesExecution.num_repetitions = currentSeries
-				.getNumberTotalRepetitions();
-		currentSeriesExecution.weight = currentSeries.getWeight();
-		currentSeriesExecution.rating = mCurrentSeriesExecutionRating;
+		SeriesExecution currentSeriesExecution = null;
+		if (timestamps == null) {
+			currentSeriesExecution = SeriesExecution
+					.create(currentExercise.getExerciseType().getId(),
+							currentSeries.getCurrentRepetition(),
+							currentSeries.getWeight(),
+							calculateDurationInSeconds(mLastPauseStart,
+									mExerciseStart),
+							calculateDurationInSeconds(mExerciseStart,
+									exerciseEnd), mCurrentSeriesExecutionRating);
+
+		} else {
+			currentSeriesExecution = SeriesExecution
+					.create(timestamps.getStartTimestamp(),
+							timestamps.getEndTimestamp(),
+							currentExercise.getExerciseType().getId(),
+							currentSeries.getCurrentRepetition(),
+							currentSeries.getWeight(),
+							calculateDurationInSeconds(mLastPauseStart,
+									mExerciseStart),
+							calculateDurationInSeconds(mExerciseStart,
+									exerciseEnd), mCurrentSeriesExecutionRating);
+		}
 
 		// reset the series execution rating for the next exercise
 		mCurrentSeriesExecutionRating = -1;
@@ -349,6 +361,11 @@ public class Training {
 		return mTrainingComment;
 	}
 
+	/**
+	 * Get the number of expected repetitions for the current series.
+	 * 
+	 * @return
+	 */
 	public int getTotalRepetitions() {
 		return getCurrentExercise().getCurrentSeries()
 				.getNumberTotalRepetitions();
@@ -400,6 +417,11 @@ public class Training {
 		return durationInSec;
 	}
 
+	/**
+	 * Gets the duration of the active time during training.
+	 * 
+	 * @return
+	 */
 	public int getActiveTrainingDuration() {
 		int activeDuration = 0;
 		for (SeriesExecution se : mSeriesExecutions) {
@@ -409,45 +431,81 @@ public class Training {
 		return activeDuration;
 	}
 
-	public String getName() {
+	/**
+	 * Gets the name of the training.
+	 * 
+	 * @return
+	 */
+	public String getTrainingName() {
 		return name;
 	}
 
-	public Measurement extractMeasurement() {
-		Measurement retVal = new Measurement();
-		retVal.comment = mTrainingComment;
-		retVal.end_time = mTrainingEnded;
-		retVal.rating = mTrainingRating;
-		retVal.series_executions = mSeriesExecutions;
-		retVal.start_time = mTrainingStarted;
-		retVal.training_id = id;
+	/**
+	 * Creates the measurement object containing the training information to be
+	 * uploaded to the server.
+	 * 
+	 * @return
+	 */
+	private Measurement extractMeasurement() {
+		Measurement retVal = Measurement.create(mTrainingComment, mTrainingStarted, mTrainingEnded, mTrainingRating, mSeriesExecutions, id);
 
 		return retVal;
 	}
 
+	/**
+	 * Gets the filename of the corresponding zip file containing all the
+	 * tranining data.
+	 * 
+	 * @return
+	 */
 	private String getZipFilename() {
 		return new SimpleDateFormat("yyyyMMddHHmmss").format(mTrainingStarted)
 				+ ".zip";
 	}
 
+	/**
+	 * Gets the filename of the file containing raw accelerometer data.
+	 * 
+	 * @return
+	 */
 	private String getRawFilename() {
 		return new SimpleDateFormat("yyyyMMddHHmmss").format(mTrainingStarted)
 				+ ".csv";
 	}
 
+	/**
+	 * Gets the handle to the zip file containing training information.
+	 * 
+	 * @return
+	 */
 	public File getZipFile() {
 		return new File(Utils.getDataFolderFile(), getZipFilename());
 	}
 
+	/**
+	 * Gets the handle of the file containing raw accelerometer data.
+	 * 
+	 * @return
+	 */
 	public File getRawFile() {
 		String fif = getRawFilename();
 		return new File(Utils.getDataFolderFile(), getRawFilename());
 	}
 
+	/**
+	 * Gets the timestamp of training start.
+	 * 
+	 * @return
+	 */
 	public long getTrainingStartTimestamp() {
 		return mTrainingStartTimestamp;
 	}
 
+	/**
+	 * Set the rating for the current series execution.
+	 * 
+	 * @param rating
+	 */
 	public void setCurrentSeriesExecutionRating(int rating) {
 		mCurrentSeriesExecutionRating = rating;
 	}
@@ -456,8 +514,10 @@ public class Training {
 	 * Writes the training to a zip file. The handle to the output file is
 	 * returned by the getZipFile method.
 	 * 
-	 * @param trainingManifestPartName is the name of the training description part in the zip file
-	 * @param rawDataPartName is the name of the raw acceleration data part in the zip file
+	 * @param trainingManifestPartName
+	 *            is the name of the training description part in the zip file
+	 * @param rawDataPartName
+	 *            is the name of the raw acceleration data part in the zip file
 	 * @return
 	 */
 	public boolean zipToFile(String trainingManifestPartName,

@@ -1,26 +1,39 @@
 package com.trainerjim.android.entities;
 
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
 import java.util.Date;
 import java.util.List;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
 
-import com.google.gson.Gson;
-
+/**
+ * This class contains information about a performed training.
+ * 
+ * @author Igor
+ * 
+ */
 public class Measurement {
 
-	public int training_id;
+	/***********************
+	 * Fields deserialized from server data;
+	 ***********************/
+	private int training_id;
+	private Date start_time;
+	private Date end_time;
+	private int rating;
+	private String comment;
+	private List<SeriesExecution> series_executions;
 
-	public Date start_time;
+	public static Measurement create(String trainingComment,
+			Date trainingStartedTime, Date trainingEndedTime,
+			int trainingRating, List<SeriesExecution> seriesExecutions,
+			int trainingId) {
+		Measurement retVal = new Measurement();
+		retVal.comment = trainingComment;
+		retVal.start_time = trainingStartedTime;
+		retVal.end_time = trainingEndedTime;
+		retVal.rating = trainingRating;
+		retVal.series_executions = seriesExecutions;
+		retVal.training_id = trainingId;
 
-	public Date end_time;
+		return retVal;
 
-	public int rating;
-
-	public String comment;
-
-	public List<SeriesExecution> series_executions;
+	}
 }

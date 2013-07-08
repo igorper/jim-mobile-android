@@ -413,7 +413,7 @@ public class ServerCommunicationService extends IntentService {
 				broadcastIntent.setAction(ACTION_TRAININGS_ITEM_UPLOADED);
 				broadcastIntent.addCategory(Intent.CATEGORY_DEFAULT);
 				broadcastIntent.putExtra(PARAM_UPLOAD_TRAINING_ITEM_NAME,
-						trainingToUpload.getName());
+						trainingToUpload.getTrainingName());
 				broadcastIntent.putExtra(PARAM_UPLOAD_TRAINING_CUR_ITEM_CNT,
 						trainingCounter);
 				broadcastIntent.putExtra(PARAM_UPLOAD_TRAINING_ITEM_STATUS,
