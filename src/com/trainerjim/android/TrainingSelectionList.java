@@ -1,6 +1,6 @@
 package com.trainerjim.android;
 
-import com.trainerjim.android.database.TrainingContentProvider.TrainingPlan;
+import com.trainerjim.android.storage.TrainingContentProvider.TrainingPlan;
 
 import net.pernek.jim.exercisedetector.R;
 import android.app.ListActivity;

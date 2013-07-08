@@ -58,10 +58,10 @@ import android.database.Cursor;
 import android.util.Log;
 
 import com.google.gson.Gson;
-import com.trainerjim.android.database.TrainingContentProvider.CompletedTraining;
-import com.trainerjim.android.database.TrainingContentProvider.TrainingPlan;
 import com.trainerjim.android.entities.Measurement;
 import com.trainerjim.android.entities.Training;
+import com.trainerjim.android.storage.TrainingContentProvider.CompletedTraining;
+import com.trainerjim.android.storage.TrainingContentProvider.TrainingPlan;
 import com.trainerjim.android.util.HttpsHelpers;
 import com.trainerjim.android.util.Utils;
 

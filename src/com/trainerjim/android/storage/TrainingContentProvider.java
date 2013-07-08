@@ -1,4 +1,4 @@
-package com.trainerjim.android.database;
+package com.trainerjim.android.storage;
 
 import java.util.HashMap;
 

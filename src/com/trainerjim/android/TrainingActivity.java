@@ -26,11 +26,12 @@ import android.widget.Toast;
 import android.widget.ViewFlipper;
 
 import com.google.gson.Gson;
-import com.trainerjim.android.database.TrainingContentProvider.CompletedTraining;
-import com.trainerjim.android.database.TrainingContentProvider.TrainingPlan;
 import com.trainerjim.android.entities.Exercise;
 import com.trainerjim.android.entities.Series;
 import com.trainerjim.android.entities.Training;
+import com.trainerjim.android.storage.PermanentSettings;
+import com.trainerjim.android.storage.TrainingContentProvider.CompletedTraining;
+import com.trainerjim.android.storage.TrainingContentProvider.TrainingPlan;
 import com.trainerjim.android.ui.CircularProgressControl;
 import com.trainerjim.android.ui.RepetitionAnimation;
 import com.trainerjim.android.ui.RepetitionAnimationListener;
@@ -56,7 +57,7 @@ public class TrainingActivity extends Activity implements SwipeListener,
 	 */
 	private static final int REST_PROGRESS_UPDATE_RATE = 300;
 
-	private DetectorSettings mSettings;
+	private PermanentSettings mSettings;
 	private ResponseReceiver mBroadcastReceiver;
 
 	/**
@@ -154,7 +155,7 @@ public class TrainingActivity extends Activity implements SwipeListener,
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 
-		mSettings = DetectorSettings.create(PreferenceManager
+		mSettings = PermanentSettings.create(PreferenceManager
 				.getDefaultSharedPreferences(this));
 
 		// if we are not logged in yet show the login activity first

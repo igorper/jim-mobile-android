@@ -1,5 +1,7 @@
 package com.trainerjim.android;
 
+import com.trainerjim.android.storage.PermanentSettings;
+
 import net.pernek.jim.exercisedetector.R;
 import android.app.Activity;
 import android.app.ProgressDialog;
@@ -16,7 +18,7 @@ import android.widget.Toast;
 
 public class LoginActivity extends Activity {
 
-	private DetectorSettings mSettings;
+	private PermanentSettings mSettings;
 
 	private EditText mPasswordEditText;
 	private EditText mUsernameEditText;
@@ -26,7 +28,7 @@ public class LoginActivity extends Activity {
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
-		mSettings = DetectorSettings.create(PreferenceManager
+		mSettings = PermanentSettings.create(PreferenceManager
 				.getDefaultSharedPreferences(this));
 
 		// TODO Auto-generated method stub

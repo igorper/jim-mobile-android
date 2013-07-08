@@ -17,7 +17,7 @@
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
         <provider
-            android:name="com.trainerjim.android.database.TrainingContentProvider"
+            android:name="com.trainerjim.android.storage.TrainingContentProvider"
             android:authorities="net.pernek.jim.provider.JimContentProvider"
             android:exported="false" />
 
