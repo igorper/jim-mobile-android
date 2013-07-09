@@ -196,7 +196,7 @@ public class CircularProgressControl extends View {
 	private int mRestProgressValue;
 
 	/**
-	 * Max value for the training progress bar.
+	 * Max value for the training progress bar (default 100).
 	 */
 	private int mTrainingMaxProgress = 100;
 
