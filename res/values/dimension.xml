@@ -1,11 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+
     <dimen name="standard_button_padding">10dp</dimen>
     <dimen name="training_rating_top_margin">30dp</dimen>
     <dimen name="training_rating_smile_padding">20dp</dimen>
     <dimen name="training_rating_smile_selected_padding">10dp</dimen>
     <dimen name="exercise_rating_smile_padding">20dp</dimen>
     <dimen name="exercise_rating_smile_selected_padding">10dp</dimen>
+    <dimen name="training_rating_title_text_size">30dp</dimen>
     <dimen name="status_rect_height">70dp</dimen>
     <dimen name="status_rect_training_selection_small_font_size">25dp</dimen>
     <dimen name="status_rect_training_selection_font_size">30dp</dimen>
@@ -20,7 +22,7 @@
     <dimen name="info_button_size">60dp</dimen>
     <dimen name="info_button_padding">5dp</dimen>
     <dimen name="swipe_control_text_size">30dp</dimen>
-    
+
     <!-- Start circular progress control -->
     <dimen name="cpc_outer_progress_thickness">10dp</dimen>
     <dimen name="cpc_start_button_outer_border_thickness">3dp</dimen>
@@ -41,6 +43,6 @@
     <dimen name="cpc_total_repetitions_text">60dp</dimen>
     <dimen name="cpc_current_series_text">40dp</dimen>
     <dimen name="cpc_total_series_text">40dp</dimen>
-    
-    <!-- Start circular progress control -->
+    <!-- End circular progress control -->
+
 </resources>

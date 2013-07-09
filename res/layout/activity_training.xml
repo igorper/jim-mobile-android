@@ -255,7 +255,7 @@
                 android:paddingTop="@dimen/standard_button_padding"
                 android:text="@string/rate_training_title_text"
                 android:textColor="@color/rate_training_text"
-                android:textAppearance="?android:attr/textAppearanceLarge" />
+                android:textSize="@dimen/training_rating_title_text_size" />
 
             <LinearLayout
                 android:layout_width="match_parent"
