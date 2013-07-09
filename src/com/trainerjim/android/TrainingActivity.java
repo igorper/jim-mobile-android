@@ -225,10 +225,16 @@ public class TrainingActivity extends Activity implements SwipeListener,
 		}
 	}
 
+	/** Returns <code>true</code> if user is currently logged in, otherwise <code>false</code>.
+	 * @return
+	 */
 	private boolean isUserLoggedIn() {
 		return !mSettings.getUsername().equals("");
 	}
 
+	/**
+	 * Creates a mapping of exercise rating images and exercise rattings. 
+	 */
 	private void initializeExerciseRatings() {
 		mExerciseRatingImages = new ImageView[TRAINING_RATING_IMAGES.length];
 		mExerciseRatingImages[0] = (ImageView) findViewById(R.id.exerciseRating1);
@@ -236,6 +242,9 @@ public class TrainingActivity extends Activity implements SwipeListener,
 		mExerciseRatingImages[2] = (ImageView) findViewById(R.id.exerciseRating3);
 	}
 
+	/** Invoked when a specific exercise rating image is clicked.
+	 * @param v contains the referense to the clicked exercise rating image.
+	 */
 	public void onExerciseRatingSelected(View v) {
 		ImageView trainingRatingSelected = (ImageView) v;
 
@@ -251,6 +260,9 @@ public class TrainingActivity extends Activity implements SwipeListener,
 		}
 	}
 
+	/**
+	 * Initializes a writer for raw acceleration data.
+	 */
 	private void initializeAccelerationWriter() {
 		if (mCurrentTraining != null) {
 			try {
@@ -295,10 +307,15 @@ public class TrainingActivity extends Activity implements SwipeListener,
 		mTrainingRatingImages[0] = (ImageView) findViewById(R.id.trainingRating1);
 		mTrainingRatingImages[1] = (ImageView) findViewById(R.id.trainingRating2);
 		mTrainingRatingImages[2] = (ImageView) findViewById(R.id.trainingRating3);
+		
+		int imagePadding = getResources().getDimensionPixelSize(
+				R.dimen.training_rating_smile_padding);
 
 		for (int i = 0; i < mTrainingRatingImages.length; i++) {
 			mTrainingRatingImages[i]
 					.setImageResource(TRAINING_RATING_IMAGES[i]);
+			mTrainingRatingImages[i].setPadding(imagePadding, imagePadding,
+					imagePadding, imagePadding);
 		}
 	}
 
