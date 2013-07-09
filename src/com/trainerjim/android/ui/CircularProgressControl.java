@@ -38,53 +38,23 @@ public class CircularProgressControl extends View {
 	public enum CircularProgressState {
 		START, REST, EXERCISE, STOP, OVERVIEW
 	}
-
+	
 	private static final String TAG = Utils.getApplicationTag();
-
-	/**
-	 * Thickness of training and exercise progress bars in dp.
-	 */
-	//private static final int PROG_THICK_IN_DIP = 10;
-
-	/**
-	 * Thickness of start button's outer border in dp.
-	 */
-	//private static final int START_PROG_OUT_THICK_IN_DIP = 3;
-
-	/**
-	 * Thickness of start button's middle border in dp.
-	 */
-	//private static final int START_PROG_MID_THICK_IN_DIP = 11;
-
-	/**
-	 * Thickness of start buttons's inner border in dp.
-	 */
-	//private static final int START_PROG_IN_THICK_IN_DIP = 6;
-
-	/**
-	 * Info button large text size in dp.
-	 */
-	//private static final int INFO_BUTTON_LARGE_TEXT_SIZE_IN_DIP = 40;
-
-	/**
-	 * Info button small text size in dp.
-	 */
-	//private static final int INFO_BUTTON_SMALL_TEXT_SIZE_IN_DIP = 20;
 
 	/**
 	 * Start and stop button strong text size in dp.
 	 */
-	private static final int START_STRONG_TEXT_SIZE_IN_DIP = 60;
+//	private static final int START_STRONG_TEXT_SIZE_IN_DIP = 60;
 
 	/**
 	 * Start and stop button thin text size in dp.
 	 */
-	private static final int START_THIN_TEXT_SIZE_IN_DIP = 30;
+	//private static final int START_THIN_TEXT_SIZE_IN_DIP = 30;
 
 	/**
 	 * Overview state "min active/total" text size in dp.
 	 */
-	private static final int OVERVIEW_TEXT_SIZE_IN_DIP = 20;
+	//private static final int OVERVIEW_TEXT_SIZE_IN_DIP = 20;
 
 	/**
 	 * Rest counter text size in dp.
@@ -956,16 +926,12 @@ public class CircularProgressControl extends View {
 
 		mStartButtonStrongTextPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 		mStartButtonStrongTextPaint.setColor(getResources().getColor(R.color.cpc_start_strong_text));
-		mStartButtonStrongTextPaint.setTextSize(TypedValue.applyDimension(
-				TypedValue.COMPLEX_UNIT_DIP, START_STRONG_TEXT_SIZE_IN_DIP,
-				getResources().getDisplayMetrics()));
+		mStartButtonStrongTextPaint.setTextSize(getResources().getDimensionPixelSize(R.dimen.cpc_start_strong_text));
 		mStartButtonStrongTextPaint.setTypeface(mCooperBlackTypeface);
 
 		mStartButtonThinTextPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 		mStartButtonThinTextPaint.setColor(getResources().getColor(R.color.cpc_start_thin_text));
-		mStartButtonThinTextPaint.setTextSize(TypedValue.applyDimension(
-				TypedValue.COMPLEX_UNIT_DIP, START_THIN_TEXT_SIZE_IN_DIP,
-				getResources().getDisplayMetrics()));
+		mStartButtonThinTextPaint.setTextSize(getResources().getDimensionPixelSize(R.dimen.cpc_start_thin_text));
 		mStartButtonThinTextPaint.setTypeface(mHaginCapsThinTypeface);
 
 		mStartOuterThicknessInPx = getResources().getDimensionPixelSize(R.dimen.cpc_start_button_outer_border_thickness);
@@ -990,16 +956,12 @@ public class CircularProgressControl extends View {
 
 		mTextOverviewMinPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 		mTextOverviewMinPaint.setColor(getResources().getColor(R.color.cpc_overiview_units_text));
-		mTextOverviewMinPaint.setTextSize(TypedValue.applyDimension(
-				TypedValue.COMPLEX_UNIT_DIP, OVERVIEW_TEXT_SIZE_IN_DIP,
-				getResources().getDisplayMetrics()));
+		mTextOverviewMinPaint.setTextSize(getResources().getDimensionPixelSize(R.dimen.cpc_overview_text));
 
 		mTextOverviewTotalPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 		mTextOverviewTotalPaint.setColor(getResources().getColor(R.color.cpc_start_strong_text));
 		mTextOverviewTotalPaint.setTypeface(Typeface.DEFAULT_BOLD);
-		mTextOverviewTotalPaint.setTextSize(TypedValue.applyDimension(
-				TypedValue.COMPLEX_UNIT_DIP, OVERVIEW_TEXT_SIZE_IN_DIP,
-				getResources().getDisplayMetrics()));
+		mTextOverviewTotalPaint.setTextSize(getResources().getDimensionPixelSize(R.dimen.cpc_overview_text));
 
 		mTextOverviewNumberPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 		mTextOverviewNumberPaint.setColor(getResources().getColor(R.color.cpc_start_strong_text));
