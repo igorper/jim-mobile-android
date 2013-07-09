@@ -44,32 +44,32 @@ public class CircularProgressControl extends View {
 	/**
 	 * Thickness of training and exercise progress bars in dp.
 	 */
-	private static final int PROG_THICK_IN_DIP = 10;
+	//private static final int PROG_THICK_IN_DIP = 10;
 
 	/**
 	 * Thickness of start button's outer border in dp.
 	 */
-	private static final int START_PROG_OUT_THICK_IN_DIP = 3;
+	//private static final int START_PROG_OUT_THICK_IN_DIP = 3;
 
 	/**
 	 * Thickness of start button's middle border in dp.
 	 */
-	private static final int START_PROG_MID_THICK_IN_DIP = 11;
+	//private static final int START_PROG_MID_THICK_IN_DIP = 11;
 
 	/**
 	 * Thickness of start buttons's inner border in dp.
 	 */
-	private static final int START_PROG_IN_THICK_IN_DIP = 6;
+	//private static final int START_PROG_IN_THICK_IN_DIP = 6;
 
 	/**
 	 * Info button large text size in dp.
 	 */
-	private static final int INFO_BUTTON_LARGE_TEXT_SIZE_IN_DIP = 40;
+	//private static final int INFO_BUTTON_LARGE_TEXT_SIZE_IN_DIP = 40;
 
 	/**
 	 * Info button small text size in dp.
 	 */
-	private static final int INFO_BUTTON_SMALL_TEXT_SIZE_IN_DIP = 20;
+	//private static final int INFO_BUTTON_SMALL_TEXT_SIZE_IN_DIP = 20;
 
 	/**
 	 * Start and stop button strong text size in dp.
@@ -932,9 +932,7 @@ public class CircularProgressControl extends View {
 		mRestProgressClickForegroundPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 		mRestProgressClickForegroundPaint.setColor(getResources().getColor(R.color.cpc_rest_progress_pressed_foreground));
 
-		mProgThicknessInPx = TypedValue.applyDimension(
-				TypedValue.COMPLEX_UNIT_DIP, PROG_THICK_IN_DIP, getResources()
-						.getDisplayMetrics());
+		mProgThicknessInPx = getResources().getDimensionPixelSize(R.dimen.cpc_outer_progress_thickness);
 
 		// start button state variables
 		mStartProgressOuterPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -948,18 +946,12 @@ public class CircularProgressControl extends View {
 
 		mInfoButtonLargeTextPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 		mInfoButtonLargeTextPaint.setColor(getResources().getColor(R.color.cpc_info_button_text));
-		mInfoButtonLargeTextPaint.setTextSize(TypedValue.applyDimension(
-				TypedValue.COMPLEX_UNIT_DIP,
-				INFO_BUTTON_LARGE_TEXT_SIZE_IN_DIP, getResources()
-						.getDisplayMetrics()));
+		mInfoButtonLargeTextPaint.setTextSize(getResources().getDimensionPixelSize(R.dimen.cpc_info_button_large_text));
 		mInfoButtonLargeTextPaint.setTypeface(mOpenSansRegular);
 
 		mInfoButtonSmallTextPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 		mInfoButtonSmallTextPaint.setColor(getResources().getColor(R.color.cpc_info_button_text));
-		mInfoButtonSmallTextPaint.setTextSize(TypedValue.applyDimension(
-				TypedValue.COMPLEX_UNIT_DIP,
-				INFO_BUTTON_SMALL_TEXT_SIZE_IN_DIP, getResources()
-						.getDisplayMetrics()));
+		mInfoButtonSmallTextPaint.setTextSize(getResources().getDimensionPixelSize(R.dimen.cpc_info_button_small_text));
 		mInfoButtonSmallTextPaint.setTypeface(mOpenSansRegular);
 
 		mStartButtonStrongTextPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -976,17 +968,11 @@ public class CircularProgressControl extends View {
 				getResources().getDisplayMetrics()));
 		mStartButtonThinTextPaint.setTypeface(mHaginCapsThinTypeface);
 
-		mStartOuterThicknessInPx = TypedValue.applyDimension(
-				TypedValue.COMPLEX_UNIT_DIP, START_PROG_OUT_THICK_IN_DIP,
-				getResources().getDisplayMetrics());
+		mStartOuterThicknessInPx = getResources().getDimensionPixelSize(R.dimen.cpc_start_button_outer_border_thickness);
 
-		mStartMiddleThicknessInPx = TypedValue.applyDimension(
-				TypedValue.COMPLEX_UNIT_DIP, START_PROG_MID_THICK_IN_DIP,
-				getResources().getDisplayMetrics());
+		mStartMiddleThicknessInPx = getResources().getDimensionPixelSize(R.dimen.cpc_start_button_middle_border_thickness);
 
-		mStartInnerThicknessInPx = TypedValue.applyDimension(
-				TypedValue.COMPLEX_UNIT_DIP, START_PROG_IN_THICK_IN_DIP,
-				getResources().getDisplayMetrics());
+		mStartInnerThicknessInPx = getResources().getDimensionPixelSize(R.dimen.cpc_start_button_inner_border_thickness);
 
 		// overview state variables
 		float dashPartLenInPx = TypedValue.applyDimension(
