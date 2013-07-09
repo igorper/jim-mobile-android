@@ -357,7 +357,7 @@ public class CircularProgressControl extends View {
 
 	private Typeface mCooperBlackTypeface;
 
-	private Typeface mHaginCapsThinTypeface;
+	private Typeface mHaginCapsMediumTypeface;
 
 	private Typeface mFinenessRegularTypeface;
 
@@ -802,8 +802,8 @@ public class CircularProgressControl extends View {
 		// load typefaces
 		mCooperBlackTypeface = Typeface.createFromAsset(getContext()
 				.getAssets(), "fonts/Cooper Black.ttf");
-		mHaginCapsThinTypeface = Typeface.createFromAsset(getContext()
-				.getAssets(), "fonts/Hagin Caps Thin.ttf");
+		mHaginCapsMediumTypeface = Typeface.createFromAsset(getContext()
+				.getAssets(), "fonts/Hagin Caps Medium.otf");
 		mFinenessRegularTypeface = Typeface.createFromAsset(getContext()
 				.getAssets(), "fonts/FinenessRegular.ttf");
 		mOpenSansRegular = Typeface.createFromAsset(getContext().getAssets(),
@@ -867,7 +867,7 @@ public class CircularProgressControl extends View {
 		mStartButtonThinTextPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 		mStartButtonThinTextPaint.setColor(getResources().getColor(R.color.cpc_start_thin_text));
 		mStartButtonThinTextPaint.setTextSize(getResources().getDimensionPixelSize(R.dimen.cpc_start_thin_text));
-		mStartButtonThinTextPaint.setTypeface(mHaginCapsThinTypeface);
+		mStartButtonThinTextPaint.setTypeface(mHaginCapsMediumTypeface);
 
 		mStartOuterThicknessInPx = getResources().getDimensionPixelSize(R.dimen.cpc_start_button_outer_border_thickness);
 

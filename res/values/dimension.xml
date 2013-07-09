@@ -31,7 +31,7 @@
     <dimen name="cpc_info_button_large_text">40dp</dimen>
     <dimen name="cpc_info_button_small_text">20dp</dimen>
     <dimen name="cpc_start_strong_text">60dp</dimen>
-    <dimen name="cpc_start_thin_text">30dp</dimen>
+    <dimen name="cpc_start_thin_text">35dp</dimen>
     <dimen name="cpc_overview_text">20dp</dimen>
     <dimen name="cpc_overview_number_text">65dp</dimen>
     <dimen name="cpc_overview_dash_thickness">3dp</dimen>
