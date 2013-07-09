@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+
     <color name="standard_button_background">#FF0080D0</color>
     <color name="standard_button_pressed">#990080D0</color>
     <color name="standard_button_text">#FFFFFFFF</color>
@@ -15,15 +16,21 @@
     <color name="rate_training_text">#FFE1563E</color>
     <color name="select_training_text">#FFE1563E</color>
     <color name="select_training_title_text">#FF000000</color>
-    <color name="input_login_background">#FFFFFFFF</color> 
+    <color name="input_login_background">#FFFFFFFF</color>
     <color name="status_rect_left_off_text">#FFFFFFFF</color>
     <color name="status_rect_right_off_text">#FFFFFFFF</color>
     <color name="status_rect_center_left_text">#FF000000</color>
     <color name="status_rect_center_right_text">#FFE1563E</color>
     <color name="status_rect_left_swipe_background">#FFE1563E</color>
     <color name="status_rect_right_swipe_background">#ff0080d0</color>
+    <!--
+    for some strange reason specific rgb combinations for this color 
+    make the circular progress outer border flicker (e.g. #00ff00 is fine,
+    but #0080D0 is not). This happens only on some devices (Xperia Active),
+    not on Galaxy 2 Mini.
+    -->
     <color name="repetition_animation_background">#FF0080D0</color>
-    
+
     <!-- Start Ciruclar progress control colors -->
     <color name="cpc_training_progress_background">#FFD1D2D4</color>
     <color name="cpc_training_progress_foreground">#FFEAB130</color>
@@ -49,4 +56,5 @@
     <color name="cpc_current_series_text">#FF55A0C0</color>
     <color name="cpc_total_series_text">#FFFFFFFF</color>
     <!-- End Ciruclar progress control colors -->
+
 </resources>
