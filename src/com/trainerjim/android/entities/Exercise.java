@@ -4,9 +4,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-/** Contains exercise information.
+/**
+ * Contains exercise information.
+ * 
  * @author Igor
- *
+ * 
  */
 public class Exercise {
 
@@ -15,6 +17,7 @@ public class Exercise {
 	 ***********************/
 	private int id;
 	private int order;
+	private String machine_setting;
 	private ExerciseType exercise_type;
 	private List<Series> series;
 
@@ -101,5 +104,15 @@ public class Exercise {
 	 */
 	public int getCurrentSeriesNumber() {
 		return mSeriesToDo.get(0) + 1;
+	}
+
+	/**
+	 * Returns the machine setting for this exercise or <code>null</code> if not
+	 * set.
+	 * 
+	 * @return
+	 */
+	public String getMachineSetting() {
+		return machine_setting;
 	}
 }
