@@ -40,72 +40,7 @@ public class CircularProgressControl extends View {
 	}
 	
 	private static final String TAG = Utils.getApplicationTag();
-
-	/**
-	 * Start and stop button strong text size in dp.
-	 */
-//	private static final int START_STRONG_TEXT_SIZE_IN_DIP = 60;
-
-	/**
-	 * Start and stop button thin text size in dp.
-	 */
-	//private static final int START_THIN_TEXT_SIZE_IN_DIP = 30;
-
-	/**
-	 * Overview state "min active/total" text size in dp.
-	 */
-	//private static final int OVERVIEW_TEXT_SIZE_IN_DIP = 20;
-
-	/**
-	 * Rest counter text size in dp.
-	 */
-	private static final int REST_COUNTER_TEXT_SIZE_IN_DIP = 100;
-
-	/**
-	 * Text size for the timer counter unit.
-	 */
-	private static final int TIMER_COUNTER_UNIT_TEXT_SIZE_IN_DIP = 50;
-
-	/**
-	 * Timer message text size in dp.
-	 */
-	private static final int TIMER_MESSAGE_TEXT_SIZE_IN_DIP = 40;
-
-	/**
-	 * Current repetition text size in dp.
-	 */
-	private static final int CURRENT_REPETITION_TEXT_SIZE_IN_DIP = 130;
-
-	/**
-	 * Total repetitions text size in dp.
-	 */
-	private static final int TOTAL_REPETITIONS_TEXT_SIZE_IN_DIP = 60;
-
-	/**
-	 * Current series text size in dp.
-	 */
-	private static final int CURRENT_SERIES_TEXT_SIZE_IN_DIP = 40;
-
-	/**
-	 * Total series text size in dp.
-	 */
-	private static final int TOTAL_SERIES_TEXT_SIZE_IN_DIP = 40;
-
-	/**
-	 * Overview state big total and active number text size in dp.
-	 */
-	private static final int OVERVIEW_TEXT_NUMBER_SIZE_IN_DIP = 65;
-
-	/**
-	 * Overview state dashed line stroke thickness in dp.
-	 */
-	private static final int OVERVIEW_DASH_THICK_IN_DIP = 3;
-
-	/**
-	 * Overview state dashed line part length in dp.
-	 */
-	private static final int OVERVIEW_DASH_PART_LEN_IN_DIP = 5;
-
+	
 	/**
 	 * Info button background paint.
 	 */
@@ -941,18 +876,14 @@ public class CircularProgressControl extends View {
 		mStartInnerThicknessInPx = getResources().getDimensionPixelSize(R.dimen.cpc_start_button_inner_border_thickness);
 
 		// overview state variables
-		float dashPartLenInPx = TypedValue.applyDimension(
-				TypedValue.COMPLEX_UNIT_DIP, OVERVIEW_DASH_PART_LEN_IN_DIP,
-				getResources().getDisplayMetrics());
+		float dashPartLenInPx = getResources().getDimensionPixelSize(R.dimen.cpc_overview_dash_part_length);
 
 		mOverviewDashPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 		mOverviewDashPaint.setColor(getResources().getColor(R.color.cpc_overview_dash));
 		mOverviewDashPaint.setStyle(Style.STROKE);
 		mOverviewDashPaint.setPathEffect(new DashPathEffect(new float[] {
 				dashPartLenInPx, dashPartLenInPx }, 0));
-		mOverviewDashPaint.setStrokeWidth(TypedValue.applyDimension(
-				TypedValue.COMPLEX_UNIT_DIP, OVERVIEW_DASH_THICK_IN_DIP,
-				getResources().getDisplayMetrics()));
+		mOverviewDashPaint.setStrokeWidth(getResources().getDimensionPixelSize(R.dimen.cpc_overview_dash_thickness));
 
 		mTextOverviewMinPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 		mTextOverviewMinPaint.setColor(getResources().getColor(R.color.cpc_overiview_units_text));
@@ -965,58 +896,40 @@ public class CircularProgressControl extends View {
 
 		mTextOverviewNumberPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 		mTextOverviewNumberPaint.setColor(getResources().getColor(R.color.cpc_start_strong_text));
-		mTextOverviewNumberPaint.setTextSize(TypedValue.applyDimension(
-				TypedValue.COMPLEX_UNIT_DIP, OVERVIEW_TEXT_NUMBER_SIZE_IN_DIP,
-				getResources().getDisplayMetrics()));
+		mTextOverviewNumberPaint.setTextSize(getResources().getDimensionPixelSize(R.dimen.cpc_overview_number_text));
 
 		mTextTimerPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 		mTextTimerPaint.setColor(getResources().getColor(R.color.cpc_timer_counter_text));
-		mTextTimerPaint.setTextSize(TypedValue.applyDimension(
-				TypedValue.COMPLEX_UNIT_DIP, REST_COUNTER_TEXT_SIZE_IN_DIP,
-				getResources().getDisplayMetrics()));
+		mTextTimerPaint.setTextSize(getResources().getDimensionPixelSize(R.dimen.cpc_timer_counter_text));
 		
 		mTextTimerUnitPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 		mTextTimerUnitPaint.setColor(getResources().getColor(R.color.cpc_timer_counter_text));
-		mTextTimerUnitPaint.setTextSize(TypedValue.applyDimension(
-				TypedValue.COMPLEX_UNIT_DIP, TIMER_COUNTER_UNIT_TEXT_SIZE_IN_DIP,
-				getResources().getDisplayMetrics()));
+		mTextTimerUnitPaint.setTextSize(getResources().getDimensionPixelSize(R.dimen.cpc_timer_unit_text));
 
 		mTextTimerMessagePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 		mTextTimerMessagePaint.setColor(getResources().getColor(R.color.cpc_timer_message_text));
-		mTextTimerMessagePaint.setTextSize(TypedValue.applyDimension(
-				TypedValue.COMPLEX_UNIT_DIP, TIMER_MESSAGE_TEXT_SIZE_IN_DIP,
-				getResources().getDisplayMetrics()));
+		mTextTimerMessagePaint.setTextSize(getResources().getDimensionPixelSize(R.dimen.cpc_timer_message_text));
 		mTextTimerMessagePaint.setTypeface(mFinenessRegularTypeface);
 
 		mTextCurrentRepetitionPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 		mTextCurrentRepetitionPaint.setColor(getResources().getColor(R.color.cpc_current_repetition_text));
 		mTextCurrentRepetitionPaint.setTypeface(Typeface.DEFAULT_BOLD);
-		mTextCurrentRepetitionPaint.setTextSize(TypedValue.applyDimension(
-				TypedValue.COMPLEX_UNIT_DIP,
-				CURRENT_REPETITION_TEXT_SIZE_IN_DIP, getResources()
-						.getDisplayMetrics()));
+		mTextCurrentRepetitionPaint.setTextSize(getResources().getDimensionPixelSize(R.dimen.cpc_current_repetition_text));
 		mTextCurrentRepetitionPaint.setTypeface(mFinenessRegularTypeface);
 
 		mTextTotalRepetitionsPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 		mTextTotalRepetitionsPaint.setColor(getResources().getColor(R.color.cpc_total_repetitions_text));
-		mTextTotalRepetitionsPaint.setTextSize(TypedValue.applyDimension(
-				TypedValue.COMPLEX_UNIT_DIP,
-				TOTAL_REPETITIONS_TEXT_SIZE_IN_DIP, getResources()
-						.getDisplayMetrics()));
+		mTextTotalRepetitionsPaint.setTextSize(getResources().getDimensionPixelSize(R.dimen.cpc_total_repetitions_text));
 		mTextTotalRepetitionsPaint.setTypeface(mFinenessRegularTypeface);
 
 		mTextCurrentSeriesPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 		mTextCurrentSeriesPaint.setColor(getResources().getColor(R.color.cpc_current_series_text));
-		mTextCurrentSeriesPaint.setTextSize(TypedValue.applyDimension(
-				TypedValue.COMPLEX_UNIT_DIP, CURRENT_SERIES_TEXT_SIZE_IN_DIP,
-				getResources().getDisplayMetrics()));
+		mTextCurrentSeriesPaint.setTextSize(getResources().getDimensionPixelSize(R.dimen.cpc_current_series_text));
 		mTextCurrentSeriesPaint.setTypeface(mFinenessRegularTypeface);
 
 		mTextTotalSeriesPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 		mTextTotalSeriesPaint.setColor(getResources().getColor(R.color.cpc_total_series_text));
-		mTextTotalSeriesPaint.setTextSize(TypedValue.applyDimension(
-				TypedValue.COMPLEX_UNIT_DIP, TOTAL_SERIES_TEXT_SIZE_IN_DIP,
-				getResources().getDisplayMetrics()));
+		mTextTotalSeriesPaint.setTextSize(getResources().getDimensionPixelSize(R.dimen.cpc_total_series_text));
 		mTextTotalSeriesPaint.setTypeface(mFinenessRegularTypeface);
 
 		// hide the default button background

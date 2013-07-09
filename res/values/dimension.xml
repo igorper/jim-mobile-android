@@ -31,6 +31,16 @@
     <dimen name="cpc_start_strong_text">60dp</dimen>
     <dimen name="cpc_start_thin_text">30dp</dimen>
     <dimen name="cpc_overview_text">20dp</dimen>
+    <dimen name="cpc_overview_number_text">65dp</dimen>
+    <dimen name="cpc_overview_dash_thickness">3dp</dimen>
+    <dimen name="cpc_overview_dash_part_length">5dp</dimen>
+    <dimen name="cpc_timer_counter_text">90dp</dimen>
+    <dimen name="cpc_timer_unit_text">50dp</dimen>
+    <dimen name="cpc_timer_message_text">40dp</dimen>
+    <dimen name="cpc_current_repetition_text">130dp</dimen>
+    <dimen name="cpc_total_repetitions_text">60dp</dimen>
+    <dimen name="cpc_current_series_text">40dp</dimen>
+    <dimen name="cpc_total_series_text">40dp</dimen>
     
     <!-- Start circular progress control -->
 </resources>
