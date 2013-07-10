@@ -38,9 +38,9 @@ public class CircularProgressControl extends View {
 	public enum CircularProgressState {
 		START, REST, EXERCISE, STOP, OVERVIEW
 	}
-	
+
 	private static final String TAG = Utils.getApplicationTag();
-	
+
 	/**
 	 * Info button background paint.
 	 */
@@ -140,7 +140,7 @@ public class CircularProgressControl extends View {
 	 * Paint for the timer text in rest and countdown state.
 	 */
 	private Paint mTextTimerPaint;
-	
+
 	/**
 	 * Paint for the timer unit text in rest and countdown state.
 	 */
@@ -375,11 +375,32 @@ public class CircularProgressControl extends View {
 
 	private String mOverviewTotalText = "total";
 
+	private String mChairText = "Chair";
+
+	private String mChairLevelText = "level: ";
+
+	private String mTapText = "tap to close";
+
+	private String mNoText = "No";
+
+	private String mSettingText = "setting.";
+
 	private int mNumberActive = 70;
 
 	private int mNumberTotal = 120;
 
-	private String mInfoChairLevel = "5";
+	private String mInfoChairLevel = "";
+
+	public void setInfoChairLevel(String value) {
+		if (!mInfoChairLevel.equals(value)) {
+			mInfoChairLevel = value == null ? "" : value;
+			invalidate();
+		}
+	}
+
+	public String getInfoChairLevel() {
+		return mInfoChairLevel;
+	}
 
 	private boolean mIsInfoVisible = false;
 
@@ -811,125 +832,172 @@ public class CircularProgressControl extends View {
 
 		// exercise state variables
 		mInfoButtonBackgroundPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-		mInfoButtonBackgroundPaint.setColor(getResources().getColor(R.color.cpc_info_button_background));
+		mInfoButtonBackgroundPaint.setColor(getResources().getColor(
+				R.color.cpc_info_button_background));
 
 		mTrainingProgressBackgroundPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-		mTrainingProgressBackgroundPaint.setColor(getResources().getColor(R.color.cpc_training_progress_background));
+		mTrainingProgressBackgroundPaint.setColor(getResources().getColor(
+				R.color.cpc_training_progress_background));
 
 		mExerciseProgressBackgroundPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-		mExerciseProgressBackgroundPaint.setColor(getResources().getColor(R.color.cpc_exercise_progress_background));
+		mExerciseProgressBackgroundPaint.setColor(getResources().getColor(
+				R.color.cpc_exercise_progress_background));
 
 		mRestProgressBackgroundPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-		mRestProgressBackgroundPaint.setColor(getResources().getColor(R.color.cpc_rest_progress_background));
+		mRestProgressBackgroundPaint.setColor(getResources().getColor(
+				R.color.cpc_rest_progress_background));
 
 		mTrainingProgressForegroundPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-		mTrainingProgressForegroundPaint.setColor(getResources().getColor(R.color.cpc_training_progress_foreground));
+		mTrainingProgressForegroundPaint.setColor(getResources().getColor(
+				R.color.cpc_training_progress_foreground));
 
 		mExerciseProgressForegroundPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-		mExerciseProgressForegroundPaint.setColor(getResources().getColor(R.color.cpc_exercise_progress_foreground));
+		mExerciseProgressForegroundPaint.setColor(getResources().getColor(
+				R.color.cpc_exercise_progress_foreground));
 
 		mRestProgressForegroundPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-		mRestProgressForegroundPaint.setColor(getResources().getColor(R.color.cpc_rest_progress_foreground));
+		mRestProgressForegroundPaint.setColor(getResources().getColor(
+				R.color.cpc_rest_progress_foreground));
 
 		mRestProgressClickBackgroundPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-		mRestProgressClickBackgroundPaint.setColor(getResources().getColor(R.color.cpc_rest_progress_pressed_background));
+		mRestProgressClickBackgroundPaint.setColor(getResources().getColor(
+				R.color.cpc_rest_progress_pressed_background));
 
 		mRestProgressClickForegroundPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-		mRestProgressClickForegroundPaint.setColor(getResources().getColor(R.color.cpc_rest_progress_pressed_foreground));
+		mRestProgressClickForegroundPaint.setColor(getResources().getColor(
+				R.color.cpc_rest_progress_pressed_foreground));
 
-		mProgThicknessInPx = getResources().getDimensionPixelSize(R.dimen.cpc_outer_progress_thickness);
+		mProgThicknessInPx = getResources().getDimensionPixelSize(
+				R.dimen.cpc_outer_progress_thickness);
 
 		// start button state variables
 		mStartProgressOuterPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-		mStartProgressOuterPaint.setColor(getResources().getColor(R.color.cpc_start_button_outer_border));
+		mStartProgressOuterPaint.setColor(getResources().getColor(
+				R.color.cpc_start_button_outer_border));
 
 		mStartProgressMiddlePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-		mStartProgressMiddlePaint.setColor(getResources().getColor(R.color.cpc_start_button_middle_border));
+		mStartProgressMiddlePaint.setColor(getResources().getColor(
+				R.color.cpc_start_button_middle_border));
 
 		mStartProgressInnerPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-		mStartProgressInnerPaint.setColor(getResources().getColor(R.color.cpc_start_button_inner_border));
+		mStartProgressInnerPaint.setColor(getResources().getColor(
+				R.color.cpc_start_button_inner_border));
 
 		mInfoButtonLargeTextPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-		mInfoButtonLargeTextPaint.setColor(getResources().getColor(R.color.cpc_info_button_text));
-		mInfoButtonLargeTextPaint.setTextSize(getResources().getDimensionPixelSize(R.dimen.cpc_info_button_large_text));
+		mInfoButtonLargeTextPaint.setColor(getResources().getColor(
+				R.color.cpc_info_button_text));
+		mInfoButtonLargeTextPaint.setTextSize(getResources()
+				.getDimensionPixelSize(R.dimen.cpc_info_button_large_text));
 		mInfoButtonLargeTextPaint.setTypeface(mOpenSansRegular);
 
 		mInfoButtonSmallTextPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-		mInfoButtonSmallTextPaint.setColor(getResources().getColor(R.color.cpc_info_button_text));
-		mInfoButtonSmallTextPaint.setTextSize(getResources().getDimensionPixelSize(R.dimen.cpc_info_button_small_text));
+		mInfoButtonSmallTextPaint.setColor(getResources().getColor(
+				R.color.cpc_info_button_text));
+		mInfoButtonSmallTextPaint.setTextSize(getResources()
+				.getDimensionPixelSize(R.dimen.cpc_info_button_small_text));
 		mInfoButtonSmallTextPaint.setTypeface(mOpenSansRegular);
 
 		mStartButtonStrongTextPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-		mStartButtonStrongTextPaint.setColor(getResources().getColor(R.color.cpc_start_strong_text));
-		mStartButtonStrongTextPaint.setTextSize(getResources().getDimensionPixelSize(R.dimen.cpc_start_strong_text));
+		mStartButtonStrongTextPaint.setColor(getResources().getColor(
+				R.color.cpc_start_strong_text));
+		mStartButtonStrongTextPaint.setTextSize(getResources()
+				.getDimensionPixelSize(R.dimen.cpc_start_strong_text));
 		mStartButtonStrongTextPaint.setTypeface(mCooperBlackTypeface);
 
 		mStartButtonThinTextPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-		mStartButtonThinTextPaint.setColor(getResources().getColor(R.color.cpc_start_thin_text));
-		mStartButtonThinTextPaint.setTextSize(getResources().getDimensionPixelSize(R.dimen.cpc_start_thin_text));
+		mStartButtonThinTextPaint.setColor(getResources().getColor(
+				R.color.cpc_start_thin_text));
+		mStartButtonThinTextPaint.setTextSize(getResources()
+				.getDimensionPixelSize(R.dimen.cpc_start_thin_text));
 		mStartButtonThinTextPaint.setTypeface(mHaginCapsMediumTypeface);
 
-		mStartOuterThicknessInPx = getResources().getDimensionPixelSize(R.dimen.cpc_start_button_outer_border_thickness);
+		mStartOuterThicknessInPx = getResources().getDimensionPixelSize(
+				R.dimen.cpc_start_button_outer_border_thickness);
 
-		mStartMiddleThicknessInPx = getResources().getDimensionPixelSize(R.dimen.cpc_start_button_middle_border_thickness);
+		mStartMiddleThicknessInPx = getResources().getDimensionPixelSize(
+				R.dimen.cpc_start_button_middle_border_thickness);
 
-		mStartInnerThicknessInPx = getResources().getDimensionPixelSize(R.dimen.cpc_start_button_inner_border_thickness);
+		mStartInnerThicknessInPx = getResources().getDimensionPixelSize(
+				R.dimen.cpc_start_button_inner_border_thickness);
 
 		// overview state variables
-		float dashPartLenInPx = getResources().getDimensionPixelSize(R.dimen.cpc_overview_dash_part_length);
+		float dashPartLenInPx = getResources().getDimensionPixelSize(
+				R.dimen.cpc_overview_dash_part_length);
 
 		mOverviewDashPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-		mOverviewDashPaint.setColor(getResources().getColor(R.color.cpc_overview_dash));
+		mOverviewDashPaint.setColor(getResources().getColor(
+				R.color.cpc_overview_dash));
 		mOverviewDashPaint.setStyle(Style.STROKE);
 		mOverviewDashPaint.setPathEffect(new DashPathEffect(new float[] {
 				dashPartLenInPx, dashPartLenInPx }, 0));
-		mOverviewDashPaint.setStrokeWidth(getResources().getDimensionPixelSize(R.dimen.cpc_overview_dash_thickness));
+		mOverviewDashPaint.setStrokeWidth(getResources().getDimensionPixelSize(
+				R.dimen.cpc_overview_dash_thickness));
 
 		mTextOverviewMinPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-		mTextOverviewMinPaint.setColor(getResources().getColor(R.color.cpc_overiview_units_text));
-		mTextOverviewMinPaint.setTextSize(getResources().getDimensionPixelSize(R.dimen.cpc_overview_text));
+		mTextOverviewMinPaint.setColor(getResources().getColor(
+				R.color.cpc_overiview_units_text));
+		mTextOverviewMinPaint.setTextSize(getResources().getDimensionPixelSize(
+				R.dimen.cpc_overview_text));
 
 		mTextOverviewTotalPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-		mTextOverviewTotalPaint.setColor(getResources().getColor(R.color.cpc_start_strong_text));
+		mTextOverviewTotalPaint.setColor(getResources().getColor(
+				R.color.cpc_start_strong_text));
 		mTextOverviewTotalPaint.setTypeface(Typeface.DEFAULT_BOLD);
-		mTextOverviewTotalPaint.setTextSize(getResources().getDimensionPixelSize(R.dimen.cpc_overview_text));
+		mTextOverviewTotalPaint.setTextSize(getResources()
+				.getDimensionPixelSize(R.dimen.cpc_overview_text));
 
 		mTextOverviewNumberPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-		mTextOverviewNumberPaint.setColor(getResources().getColor(R.color.cpc_start_strong_text));
-		mTextOverviewNumberPaint.setTextSize(getResources().getDimensionPixelSize(R.dimen.cpc_overview_number_text));
+		mTextOverviewNumberPaint.setColor(getResources().getColor(
+				R.color.cpc_start_strong_text));
+		mTextOverviewNumberPaint.setTextSize(getResources()
+				.getDimensionPixelSize(R.dimen.cpc_overview_number_text));
 
 		mTextTimerPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-		mTextTimerPaint.setColor(getResources().getColor(R.color.cpc_timer_counter_text));
-		mTextTimerPaint.setTextSize(getResources().getDimensionPixelSize(R.dimen.cpc_timer_counter_text));
-		
+		mTextTimerPaint.setColor(getResources().getColor(
+				R.color.cpc_timer_counter_text));
+		mTextTimerPaint.setTextSize(getResources().getDimensionPixelSize(
+				R.dimen.cpc_timer_counter_text));
+
 		mTextTimerUnitPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-		mTextTimerUnitPaint.setColor(getResources().getColor(R.color.cpc_timer_counter_text));
-		mTextTimerUnitPaint.setTextSize(getResources().getDimensionPixelSize(R.dimen.cpc_timer_unit_text));
+		mTextTimerUnitPaint.setColor(getResources().getColor(
+				R.color.cpc_timer_counter_text));
+		mTextTimerUnitPaint.setTextSize(getResources().getDimensionPixelSize(
+				R.dimen.cpc_timer_unit_text));
 
 		mTextTimerMessagePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-		mTextTimerMessagePaint.setColor(getResources().getColor(R.color.cpc_timer_message_text));
-		mTextTimerMessagePaint.setTextSize(getResources().getDimensionPixelSize(R.dimen.cpc_timer_message_text));
+		mTextTimerMessagePaint.setColor(getResources().getColor(
+				R.color.cpc_timer_message_text));
+		mTextTimerMessagePaint.setTextSize(getResources()
+				.getDimensionPixelSize(R.dimen.cpc_timer_message_text));
 		mTextTimerMessagePaint.setTypeface(mFinenessRegularTypeface);
 
 		mTextCurrentRepetitionPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-		mTextCurrentRepetitionPaint.setColor(getResources().getColor(R.color.cpc_current_repetition_text));
+		mTextCurrentRepetitionPaint.setColor(getResources().getColor(
+				R.color.cpc_current_repetition_text));
 		mTextCurrentRepetitionPaint.setTypeface(Typeface.DEFAULT_BOLD);
-		mTextCurrentRepetitionPaint.setTextSize(getResources().getDimensionPixelSize(R.dimen.cpc_current_repetition_text));
+		mTextCurrentRepetitionPaint.setTextSize(getResources()
+				.getDimensionPixelSize(R.dimen.cpc_current_repetition_text));
 		mTextCurrentRepetitionPaint.setTypeface(mFinenessRegularTypeface);
 
 		mTextTotalRepetitionsPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-		mTextTotalRepetitionsPaint.setColor(getResources().getColor(R.color.cpc_total_repetitions_text));
-		mTextTotalRepetitionsPaint.setTextSize(getResources().getDimensionPixelSize(R.dimen.cpc_total_repetitions_text));
+		mTextTotalRepetitionsPaint.setColor(getResources().getColor(
+				R.color.cpc_total_repetitions_text));
+		mTextTotalRepetitionsPaint.setTextSize(getResources()
+				.getDimensionPixelSize(R.dimen.cpc_total_repetitions_text));
 		mTextTotalRepetitionsPaint.setTypeface(mFinenessRegularTypeface);
 
 		mTextCurrentSeriesPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-		mTextCurrentSeriesPaint.setColor(getResources().getColor(R.color.cpc_current_series_text));
-		mTextCurrentSeriesPaint.setTextSize(getResources().getDimensionPixelSize(R.dimen.cpc_current_series_text));
+		mTextCurrentSeriesPaint.setColor(getResources().getColor(
+				R.color.cpc_current_series_text));
+		mTextCurrentSeriesPaint.setTextSize(getResources()
+				.getDimensionPixelSize(R.dimen.cpc_current_series_text));
 		mTextCurrentSeriesPaint.setTypeface(mFinenessRegularTypeface);
 
 		mTextTotalSeriesPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-		mTextTotalSeriesPaint.setColor(getResources().getColor(R.color.cpc_total_series_text));
-		mTextTotalSeriesPaint.setTextSize(getResources().getDimensionPixelSize(R.dimen.cpc_total_series_text));
+		mTextTotalSeriesPaint.setColor(getResources().getColor(
+				R.color.cpc_total_series_text));
+		mTextTotalSeriesPaint.setTextSize(getResources().getDimensionPixelSize(
+				R.dimen.cpc_total_series_text));
 		mTextTotalSeriesPaint.setTypeface(mFinenessRegularTypeface);
 
 		// hide the default button background
@@ -985,13 +1053,18 @@ public class CircularProgressControl extends View {
 	 * number is low enough it's simply output, otherwise, we convert it to the
 	 * appropriate unit. The unit is returned through the input parameter unit.
 	 * 
-	 * @param timeInSec input time in seconds
-	 * @param unit output unit for the calculated time
-	 * @param shortForm <code>true</code> if unit should be ouput in short form, otherwise <code>false</code>.
+	 * @param timeInSec
+	 *            input time in seconds
+	 * @param unit
+	 *            output unit for the calculated time
+	 * @param shortForm
+	 *            <code>true</code> if unit should be ouput in short form,
+	 *            otherwise <code>false</code>.
 	 * @return time in unit specified in @param unit
 	 */
 
-	private static String getFormatedTime(int timeInSec, StringBuilder unit, boolean shortForm) {
+	private static String getFormatedTime(int timeInSec, StringBuilder unit,
+			boolean shortForm) {
 		if (timeInSec < 120) {
 			// seconds
 			unit.append(shortForm ? "s" : "sec");
@@ -1002,7 +1075,7 @@ public class CircularProgressControl extends View {
 
 			if (timeInMin < 60) {
 				// minutes
-				unit.append(shortForm ? "m": "min");
+				unit.append(shortForm ? "m" : "min");
 				return textTimeInMin;
 			} else {
 				// hours
@@ -1091,18 +1164,19 @@ public class CircularProgressControl extends View {
 				float dashedLineLength = mCenterX / 2f;
 				canvas.drawLine(dashedLineLength, mCenterX,
 						3 * dashedLineLength, mCenterX, mOverviewDashPaint);
-				
+
 				StringBuilder unit = new StringBuilder();
-				String activeTimerText = getFormatedTime(mNumberActive, unit, false);
-				String activeUnit = String.format("%s ", unit.toString()); 
+				String activeTimerText = getFormatedTime(mNumberActive, unit,
+						false);
+				String activeUnit = String.format("%s ", unit.toString());
 
 				// position the ("min active") text in the center of the button
 				float unitActiveLength = mTextOverviewMinPaint
 						.measureText(activeUnit);
 				float activeLength = mTextOverviewTotalPaint
 						.measureText(mOverviewActiveText);
-				float minActiveStartX = mCenterX - (unitActiveLength + activeLength)
-						/ 2;
+				float minActiveStartX = mCenterX
+						- (unitActiveLength + activeLength) / 2;
 
 				// measure the height of the text for vertical placement
 				float textDescent = mTextOverviewTotalPaint.descent();
@@ -1120,10 +1194,10 @@ public class CircularProgressControl extends View {
 				float activeNumberLength = mTextOverviewNumberPaint
 						.measureText(activeTimerText);
 
-				canvas.drawText(activeTimerText, mCenterX
-						- activeNumberLength / 2, mCenterY - 3 * textDescent
-						+ textAscent, mTextOverviewNumberPaint);
-				
+				canvas.drawText(activeTimerText, mCenterX - activeNumberLength
+						/ 2, mCenterY - 3 * textDescent + textAscent,
+						mTextOverviewNumberPaint);
+
 				unit = new StringBuilder();
 				activeTimerText = getFormatedTime(mNumberTotal, unit, false);
 				String totalUnit = String.format("%s ", unit.toString());
@@ -1135,22 +1209,24 @@ public class CircularProgressControl extends View {
 						.measureText(activeTimerText);
 
 				float numberTextAscent = mTextOverviewNumberPaint.ascent();
-				canvas.drawText(activeTimerText, mCenterX
-						- totalNumberLength / 2, mCenterY + textDescent
-						- numberTextAscent, mTextOverviewNumberPaint);
+				canvas.drawText(activeTimerText, mCenterX - totalNumberLength
+						/ 2, mCenterY + textDescent - numberTextAscent,
+						mTextOverviewNumberPaint);
 
 				// center and draw the "min total" text
 				float totalLength = mTextOverviewTotalPaint
 						.measureText(mOverviewTotalText);
-				float minTotalStartX = mCenterX - (unitTotalLength + totalLength) / 2;
+				float minTotalStartX = mCenterX
+						- (unitTotalLength + totalLength) / 2;
 
 				canvas.drawText(totalUnit, minTotalStartX, mCenterY + 2
 						* textDescent - numberTextAscent - textAscent,
 						mTextOverviewMinPaint);
 
-				canvas.drawText(mOverviewTotalText, minTotalStartX + unitTotalLength,
-						mCenterY + 2 * textDescent - numberTextAscent
-								- textAscent, mTextOverviewTotalPaint);
+				canvas.drawText(mOverviewTotalText, minTotalStartX
+						+ unitTotalLength, mCenterY + 2 * textDescent
+						- numberTextAscent - textAscent,
+						mTextOverviewTotalPaint);
 			}
 			break;
 		}
@@ -1182,13 +1258,14 @@ public class CircularProgressControl extends View {
 				StringBuilder unit = new StringBuilder();
 				String timerText = getFormatedTime(mTimer, unit, true);
 				float timerLength = mTextTimerPaint.measureText(timerText);
-				float unitLength = mTextTimerUnitPaint.measureText(unit.toString()); 
-				
+				float unitLength = mTextTimerUnitPaint.measureText(unit
+						.toString());
+
 				float textStart = mCenterX - (timerLength + unitLength) / 2;
-				
+
 				float timerTextDescent = mTextTimerPaint.descent();
-				canvas.drawText(timerText, textStart,
-						mCenterY + timerTextDescent, mTextTimerPaint);
+				canvas.drawText(timerText, textStart, mCenterY
+						+ timerTextDescent, mTextTimerPaint);
 				canvas.drawText(unit.toString(), textStart + timerLength,
 						mCenterY + timerTextDescent, mTextTimerUnitPaint);
 
@@ -1243,29 +1320,31 @@ public class CircularProgressControl extends View {
 			canvas.drawCircle(mCenterX, mCenterY, mTrainingCircleRadius,
 					mInfoButtonBackgroundPaint);
 
-			String staticChairText = "Chair";
-			String staticChairLevel = "level: ";
-			String staticTap = "tap to close";
+			float line1Length = mInfoButtonLargeTextPaint
+					.measureText(mInfoChairLevel.equals("") ? mNoText
+							: mChairText);
 
-			float chairLength = mInfoButtonLargeTextPaint
-					.measureText(staticChairText);
-
-			canvas.drawText(staticChairText, mCenterX - chairLength / 2,
-					mChairTextY, mInfoButtonLargeTextPaint);
+			canvas.drawText(mInfoChairLevel.equals("") ? mNoText : mChairText,
+					mCenterX - line1Length / 2, mChairTextY,
+					mInfoButtonLargeTextPaint);
 
 			float chairLevelY = mChairTextY
 					- mInfoButtonLargeTextPaint.ascent()
 					+ mInfoButtonLargeTextPaint.descent();
 
 			float chairLevelX = mCenterX
-					- (mInfoButtonLargeTextPaint.measureText(staticChairLevel) + mInfoButtonLargeTextPaint
-							.measureText(mInfoChairLevel)) / 2;
+					- (mInfoChairLevel.equals("") ? mInfoButtonLargeTextPaint
+							.measureText(mSettingText) / 2
+							: (mInfoButtonLargeTextPaint
+									.measureText(mChairLevelText) + mInfoButtonLargeTextPaint
+									.measureText(mInfoChairLevel)) / 2);
 
-			canvas.drawText(staticChairLevel + mInfoChairLevel, chairLevelX,
+			canvas.drawText(mInfoChairLevel.equals("") ? mSettingText
+					: mChairLevelText + mInfoChairLevel, chairLevelX,
 					chairLevelY, mInfoButtonLargeTextPaint);
 
-			float tapLength = mInfoButtonSmallTextPaint.measureText(staticTap);
-			canvas.drawText(staticTap, mCenterX - tapLength / 2, mChairTapY,
+			float tapLength = mInfoButtonSmallTextPaint.measureText(mTapText);
+			canvas.drawText(mTapText, mCenterX - tapLength / 2, mChairTapY,
 					mInfoButtonSmallTextPaint);
 		}
 	}

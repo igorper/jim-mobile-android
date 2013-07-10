@@ -690,6 +690,8 @@ public class TrainingActivity extends Activity implements SwipeListener,
 			Exercise curExercise = mCurrentTraining.getCurrentExercise();
 			// there are still some exercises to be performed
 			if (mCurrentTraining.isCurrentRest()) {
+				mCircularProgress.setInfoChairLevel(mCurrentTraining.getCurrentExercise().getMachineSetting());
+				
 				// first remove all existing callbacks
 				mUiHandler.removeCallbacks(mUpdateRestTimer);
 				mUiHandler.removeCallbacks(mGetReadyTimer);
