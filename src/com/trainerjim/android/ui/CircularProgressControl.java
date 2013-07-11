@@ -666,7 +666,7 @@ public class CircularProgressControl extends View {
 
 			invalidate();
 
-			Log.d(TAG, Integer.toString(mTrainingProgressValue));
+			//Log.d(TAG, Integer.toString(mTrainingProgressValue));
 		}
 	}
 
@@ -1100,7 +1100,7 @@ public class CircularProgressControl extends View {
 			return;
 		}
 
-		Log.d(TAG, Boolean.toString(mIsPressedState));
+		//Log.d(TAG, Boolean.toString(mIsPressedState));
 
 		switch (mCurrentState) {
 		case START: {

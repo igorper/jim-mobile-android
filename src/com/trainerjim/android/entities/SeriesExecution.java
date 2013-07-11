@@ -21,6 +21,7 @@ public class SeriesExecution {
 	public int rest_time;
 	private int duration;
 	public int rating;
+	private String guidance_type;
 
 	private SeriesExecution() {
 
@@ -36,13 +37,14 @@ public class SeriesExecution {
 	 * @param restTime
 	 * @param duration
 	 * @param rating
+	 * @param guidanceType
 	 * @return
 	 */
 	public static SeriesExecution create(int exerciseTypeId,
 			int numRepetitions, int weight, int restTime, int duration,
-			int rating) {
+			int rating, String guidanceType) {
 		return SeriesExecution.create(-1, -1, exerciseTypeId, numRepetitions,
-				weight, restTime, duration, rating);
+				weight, restTime, duration, rating, guidanceType);
 	}
 
 	/**
@@ -57,11 +59,12 @@ public class SeriesExecution {
 	 * @param restTime
 	 * @param duration
 	 * @param rating
+	 * @param guidanceType
 	 * @return
 	 */
 	public static SeriesExecution create(long startTimestamp,
 			long endTimestamp, int exerciseTypeId, int numRepetitions,
-			int weight, int restTime, int duration, int rating) {
+			int weight, int restTime, int duration, int rating, String guidanceType) {
 		SeriesExecution retVal = new SeriesExecution();
 		retVal.start_timestamp = startTimestamp;
 		retVal.end_timestamp = endTimestamp;
@@ -71,6 +74,7 @@ public class SeriesExecution {
 		retVal.rest_time = restTime;
 		retVal.duration = duration;
 		retVal.rating = rating;
+		retVal.guidance_type = guidanceType;
 
 		return retVal;
 	}

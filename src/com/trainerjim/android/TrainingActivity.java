@@ -200,8 +200,6 @@ public class TrainingActivity extends Activity implements SwipeListener,
 		mAccelerationRecorder = AccelerationRecorder
 				.create(getApplicationContext());
 
-		initializeAccelerationWriter();
-
 		// TODO: We could create a class called JimActivity which could handle
 		// all the
 		// communication logic (ResponseReciver for different intents) and
@@ -225,7 +223,10 @@ public class TrainingActivity extends Activity implements SwipeListener,
 		}
 	}
 
-	/** Returns <code>true</code> if user is currently logged in, otherwise <code>false</code>.
+	/**
+	 * Returns <code>true</code> if user is currently logged in, otherwise
+	 * <code>false</code>.
+	 * 
 	 * @return
 	 */
 	private boolean isUserLoggedIn() {
@@ -233,7 +234,7 @@ public class TrainingActivity extends Activity implements SwipeListener,
 	}
 
 	/**
-	 * Creates a mapping of exercise rating images and exercise rattings. 
+	 * Creates a mapping of exercise rating images and exercise rattings.
 	 */
 	private void initializeExerciseRatings() {
 		mExerciseRatingImages = new ImageView[TRAINING_RATING_IMAGES.length];
@@ -242,8 +243,11 @@ public class TrainingActivity extends Activity implements SwipeListener,
 		mExerciseRatingImages[2] = (ImageView) findViewById(R.id.exerciseRating3);
 	}
 
-	/** Invoked when a specific exercise rating image is clicked.
-	 * @param v contains the referense to the clicked exercise rating image.
+	/**
+	 * Invoked when a specific exercise rating image is clicked.
+	 * 
+	 * @param v
+	 *            contains the referense to the clicked exercise rating image.
 	 */
 	public void onExerciseRatingSelected(View v) {
 		ImageView trainingRatingSelected = (ImageView) v;
@@ -260,22 +264,6 @@ public class TrainingActivity extends Activity implements SwipeListener,
 		}
 	}
 
-	/**
-	 * Initializes a writer for raw acceleration data.
-	 */
-	private void initializeAccelerationWriter() {
-		if (mCurrentTraining != null) {
-			try {
-				mAccelerationRecorder.openOutput(mCurrentTraining.getRawFile());
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				Toast.makeText(getApplicationContext(),
-						"Unable to open file for raw data", Toast.LENGTH_SHORT)
-						.show();
-			}
-		}
-	}
-
 	/*
 	 * TODO: Check if stuff in onCreate and onDestroy should be moved to more
 	 * appropriate lifecycle methods.
@@ -287,7 +275,6 @@ public class TrainingActivity extends Activity implements SwipeListener,
 		unregisterReceiver(mBroadcastReceiver);
 		mSwipeControl.removeSwipeListener(this);
 		mRepetitionAnimation.removeRepetitionAnimationListener(this);
-		mAccelerationRecorder.closeOutput();
 
 		// remove all periodical tasks
 		mUiHandler.removeCallbacks(mUpdateRestTimer);
@@ -307,7 +294,7 @@ public class TrainingActivity extends Activity implements SwipeListener,
 		mTrainingRatingImages[0] = (ImageView) findViewById(R.id.trainingRating1);
 		mTrainingRatingImages[1] = (ImageView) findViewById(R.id.trainingRating2);
 		mTrainingRatingImages[2] = (ImageView) findViewById(R.id.trainingRating3);
-		
+
 		int imagePadding = getResources().getDimensionPixelSize(
 				R.dimen.training_rating_smile_padding);
 
@@ -580,8 +567,6 @@ public class TrainingActivity extends Activity implements SwipeListener,
 				mCurrentTraining = mGsonInstance.fromJson(jsonEncodedTraining,
 						Training.class);
 				mCurrentTraining.startTraining();
-
-				initializeAccelerationWriter();
 			}
 		} else if (mCurrentTraining.getCurrentExercise() == null) {
 			if (!mCurrentTraining.isTrainingEnded()) {
@@ -618,13 +603,17 @@ public class TrainingActivity extends Activity implements SwipeListener,
 			}
 		} else {
 			// exercise -> rest
-			
-			AccelerationRecordingTimestamps timestamps = mAccelerationRecorder.stopAccelerationSampling(); 			
+
+			AccelerationRecordingTimestamps timestamps = mAccelerationRecorder
+					.stopAccelerationSampling();
 			mCurrentTraining.endExercise(timestamps);
 
 			if (mRepetitionAnimation.isAnimationRunning()) {
 				mRepetitionAnimation.cancelAnimation();
 			}
+
+			// TODO: user should rate the series on canceled (maybe the series
+			// was canceled becuase it was too hard)
 
 			// advance to the next activity
 			mCurrentTraining.nextActivity();
@@ -690,8 +679,9 @@ public class TrainingActivity extends Activity implements SwipeListener,
 			Exercise curExercise = mCurrentTraining.getCurrentExercise();
 			// there are still some exercises to be performed
 			if (mCurrentTraining.isCurrentRest()) {
-				mCircularProgress.setInfoChairLevel(mCurrentTraining.getCurrentExercise().getMachineSetting());
-				
+				mCircularProgress.setInfoChairLevel(mCurrentTraining
+						.getCurrentExercise().getMachineSetting());
+
 				// first remove all existing callbacks
 				mUiHandler.removeCallbacks(mUpdateRestTimer);
 				mUiHandler.removeCallbacks(mGetReadyTimer);
@@ -797,8 +787,12 @@ public class TrainingActivity extends Activity implements SwipeListener,
 		}
 
 		if (!mCurrentTraining.isCurrentRest()) {
-			AccelerationRecordingTimestamps timestamps = mAccelerationRecorder.stopAccelerationSampling(); 			
+			AccelerationRecordingTimestamps timestamps = mAccelerationRecorder
+					.stopAccelerationSampling();
 			mCurrentTraining.endExercise(timestamps);
+
+			// TODO: user should optionally rate the exercise here (scheduling
+			// the exercise for later because it was too hard)
 		}
 
 		// disable the get ready timer
@@ -823,7 +817,8 @@ public class TrainingActivity extends Activity implements SwipeListener,
 	@Override
 	public void onSwipeLeft() {
 		if (!mCurrentTraining.isCurrentRest()) {
-			AccelerationRecordingTimestamps timestamps = mAccelerationRecorder.stopAccelerationSampling(); 			
+			AccelerationRecordingTimestamps timestamps = mAccelerationRecorder
+					.stopAccelerationSampling();
 			mCurrentTraining.endExercise(timestamps);
 		}
 
@@ -834,6 +829,9 @@ public class TrainingActivity extends Activity implements SwipeListener,
 		if (mRepetitionAnimation.isAnimationRunning()) {
 			mRepetitionAnimation.cancelAnimation();
 		}
+
+		// TODO: user should optionally rate the exercise here (e.g. skipping in
+		// the middle of the series because it was maybe to hard)
 
 		mCurrentTraining.nextExercise();
 		saveCurrentTraining();
@@ -899,17 +897,20 @@ public class TrainingActivity extends Activity implements SwipeListener,
 
 				// time is up, start the exercise animation
 				mCurrentTraining.startExercise();
+
 				// TODO: here we could decide to either show the count down,
 				// repetition animation or just an empty exercise screen
 				// this is a temporal solution for demonstration purposes
-				if (mCurrentTraining.getCurrentSeriesNumber() % 2 == 0) {
-					// TODO: change repetition duration with actual number once
-					// stored
-					// in the training plan
-					// start animation
+				Series curSeries = mCurrentTraining.getCurrentExercise()
+						.getCurrentSeries();
+				if (curSeries.hasRepetitionDuration()) {
 					mRepetitionAnimation.startAnimation(
-							mViewFlipper.getMeasuredHeight(), 1000, 400, 500,
-							2000, mCurrentTraining.getTotalRepetitions());
+							mViewFlipper.getMeasuredHeight(),
+							curSeries.getRepetitionDurationUp(),
+							curSeries.getRepetitionDurationDown(),
+							curSeries.getRepetitionDurationMiddle(),
+							curSeries.getRepetitionDurationAfter(),
+							mCurrentTraining.getTotalRepetitions());
 				} else {
 					mViewRateExercise.setVisibility(View.VISIBLE);
 					mIconWeight.setVisibility(View.VISIBLE);
@@ -918,9 +919,13 @@ public class TrainingActivity extends Activity implements SwipeListener,
 				}
 
 				// do acceleration sampling
-				mAccelerationRecorder
-						.startAccelerationSampling(mCurrentTraining
-								.getTrainingStartTimestamp());
+				try {
+					mAccelerationRecorder
+							.startAccelerationSampling(mCurrentTraining
+									.getTrainingStartTimestamp(), mCurrentTraining.getRawFile());
+				} catch (IOException e) {
+					Log.e(TAG, "Unable to start acceleration sampling: " + e.getMessage());
+				}
 
 				updateScreen();
 			}

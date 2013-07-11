@@ -318,8 +318,8 @@ public class SwipeControl extends HorizontalScrollView {
 			}, SWIPE_LEFT, SystemClock.uptimeMillis());
 		}
 
-		Log.d(TAG,
-				"Scroll: " + Integer.toString(l) + ", full "
-						+ Integer.toString(getScreenWidth(getContext())));
+//		Log.d(TAG,
+//				"Scroll: " + Integer.toString(l) + ", full "
+//						+ Integer.toString(getScreenWidth(getContext())));
 	}
 }

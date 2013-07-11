@@ -15,6 +15,7 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Handler;
 import android.os.HandlerThread;
+import android.util.Log;
 
 public class AccelerationRecorder implements SensorEventListener {
 	private static final String TAG = Utils.getApplicationTag();
@@ -72,19 +73,11 @@ public class AccelerationRecorder implements SensorEventListener {
 		return retVal;
 	}
 
-	public void openOutput(File outputFile) throws IOException {
+	public void startAccelerationSampling(long sessionStart, File outputFile) throws IOException {
+		mSessionStart = sessionStart;
+		
 		mAccelerationWritter = new PrintWriter(new BufferedWriter(
 				new FileWriter(outputFile, true)));
-	}
-
-	public void closeOutput() {
-		if (mAccelerationWritter != null) {
-			mAccelerationWritter.close();
-		}
-	}
-
-	public void startAccelerationSampling(long sessionStart) {
-		mSessionStart = sessionStart;
 
 		mSensorManager.registerListener(this, mSensor,
 				SensorManager.SENSOR_DELAY_FASTEST, mThreadHandler);
@@ -93,6 +86,14 @@ public class AccelerationRecorder implements SensorEventListener {
 	public AccelerationRecordingTimestamps stopAccelerationSampling() {
 		mSensorManager.unregisterListener(this);
 		mProcessThread.quit();
+		// it might happend that the end timestamp won't be the timestamp of the the
+		// last acceleration sample, as sampling runs on another thread
+		// (however, that's not a problem so not thread synchronization is
+		// performed)
+		
+		if (mAccelerationWritter != null) {
+			mAccelerationWritter.close();
+		}
 
 		if (mSeriesStartTimestamp == -1) {
 			// no acceleration sampling was performed

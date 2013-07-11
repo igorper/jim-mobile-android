@@ -13,6 +13,8 @@ import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+import android.util.Log;
+
 import com.google.gson.Gson;
 import com.trainerjim.android.AccelerationRecorder.AccelerationRecordingTimestamps;
 import com.trainerjim.android.util.Utils;
@@ -25,6 +27,8 @@ import com.trainerjim.android.util.Utils;
  * 
  */
 public class Training {
+
+	private static final String TAG = Utils.getApplicationTag();
 
 	/**
 	 * Size of the buffer used for copying data between streams.
@@ -206,7 +210,9 @@ public class Training {
 							calculateDurationInSeconds(mLastPauseStart,
 									mExerciseStart),
 							calculateDurationInSeconds(mExerciseStart,
-									exerciseEnd), mCurrentSeriesExecutionRating);
+									exerciseEnd),
+							mCurrentSeriesExecutionRating, currentSeries
+									.getGuidanceType());
 
 		} else {
 			currentSeriesExecution = SeriesExecution
@@ -218,7 +224,9 @@ public class Training {
 							calculateDurationInSeconds(mLastPauseStart,
 									mExerciseStart),
 							calculateDurationInSeconds(mExerciseStart,
-									exerciseEnd), mCurrentSeriesExecutionRating);
+									exerciseEnd),
+							mCurrentSeriesExecutionRating, currentSeries
+									.getGuidanceType());
 		}
 
 		// reset the series execution rating for the next exercise
@@ -447,7 +455,9 @@ public class Training {
 	 * @return
 	 */
 	private Measurement extractMeasurement() {
-		Measurement retVal = Measurement.create(mTrainingComment, mTrainingStarted, mTrainingEnded, mTrainingRating, mSeriesExecutions, id);
+		Measurement retVal = Measurement.create(mTrainingComment,
+				mTrainingStarted, mTrainingEnded, mTrainingRating,
+				mSeriesExecutions, id);
 
 		return retVal;
 	}
@@ -538,11 +548,14 @@ public class Training {
 
 			BufferedInputStream rawData = new BufferedInputStream(
 					new FileInputStream(getRawFile()));
+			// FileInputStream rawData = new FileInputStream(getRawFile());
 			byte[] data = new byte[COPY_BUFFER];
 
+			Log.d(TAG, "Getting ready to copy raw data to zip!");
 			int count;
 			while ((count = rawData.read(data, 0, COPY_BUFFER)) != -1) {
 				out.write(data, 0, count);
+				Log.d(TAG, String.format("Written %d bytes to raw zip", count));
 			}
 
 			rawData.close();
@@ -550,6 +563,7 @@ public class Training {
 
 			return true;
 		} catch (Exception e) {
+			Log.e(TAG, "Error zipping training: " + e.getMessage());
 			e.printStackTrace();
 			return false;
 		}
