@@ -49,7 +49,6 @@ public class TrainingActivity extends Activity implements SwipeListener,
 	private final static int MENU_SYNC = Menu.FIRST;
 	private final static int MENU_UPLOAD = Menu.FIRST + 1;
 	private final static int MENU_LOGOUT = Menu.FIRST + 2;
-	private final static int MENU_FULL_RATE_TOGGLE = Menu.FIRST + 3;
 
 	private static final int ACTIVITY_REQUEST_TRAININGS_LIST = 0;
 
@@ -78,7 +77,6 @@ public class TrainingActivity extends Activity implements SwipeListener,
 	private LinearLayout mAnimationRectangle;
 	private ImageView mImageArrowSeriesInfo;
 	private LinearLayout mViewRateExercise;
-	private ImageView mIconWeight;
 
 	private AccelerationRecorder mAccelerationRecorder;
 
@@ -181,7 +179,6 @@ public class TrainingActivity extends Activity implements SwipeListener,
 		mAnimationRectangle = (LinearLayout) findViewById(R.id.animationRectangle);
 		mImageArrowSeriesInfo = (ImageView) findViewById(R.id.imageArrowSeriesInfo);
 		mViewRateExercise = (LinearLayout) findViewById(R.id.viewRateExercise);
-		mIconWeight = (ImageView) findViewById(R.id.iconWeight);
 
 		updateTrainingSelector(-1);
 		initializeTrainingRatings();
@@ -258,7 +255,18 @@ public class TrainingActivity extends Activity implements SwipeListener,
 			if (mExerciseRatingImages[i] == trainingRatingSelected) {
 				mCurrentTraining.setCurrentSeriesExecutionRating(i);
 				mViewRateExercise.setVisibility(View.GONE);
-				changeTrainingPlanState();
+				
+				AccelerationRecordingTimestamps timestamps = mAccelerationRecorder
+						.stopAccelerationSampling();
+				mCurrentTraining.endExercise(timestamps);
+
+				// advance to the next activity
+				mCurrentTraining.nextActivity();
+				
+				saveCurrentTraining();
+				
+				updateScreen();
+				
 				break;
 			}
 		}
@@ -450,7 +458,6 @@ public class TrainingActivity extends Activity implements SwipeListener,
 			menu.add(1, MENU_SYNC, 1, "Sync");
 			menu.add(1, MENU_UPLOAD, 1, "Upload");
 		}
-		menu.add(1, MENU_FULL_RATE_TOGGLE, 1, "Rate full");
 		menu.add(1, MENU_LOGOUT, 3, "Logout");
 		return true;
 	};
@@ -478,25 +485,6 @@ public class TrainingActivity extends Activity implements SwipeListener,
 			// TODO: should also delete everything from the local database
 
 			finish();
-
-			break;
-		}
-		case MENU_FULL_RATE_TOGGLE: {
-			if (menuToggle % 3 == 1) {
-				// show full screen
-				mViewRateExercise.setVisibility(View.VISIBLE);
-				mIconWeight.setVisibility(View.VISIBLE);
-				mViewRateExercise.setBackgroundColor(getResources().getColor(
-						R.color.rate_exercise_background));
-			} else if (menuToggle % 3 == 2) {
-				mViewRateExercise.setVisibility(View.VISIBLE);
-				mIconWeight.setVisibility(View.INVISIBLE);
-				mViewRateExercise.setBackgroundColor(0x00000000);
-			} else if (menuToggle % 3 == 0) {
-				mViewRateExercise.setVisibility(View.GONE);
-			}
-
-			menuToggle++;
 
 			break;
 		}
@@ -594,26 +582,14 @@ public class TrainingActivity extends Activity implements SwipeListener,
 			} else {
 				// or cancel it
 				mGetReadyStartTimestamp = -1;
-
-				// stop acceleration sampling
-				mAccelerationRecorder.stopAccelerationSampling();
 			}
 		} else {
 			// exercise -> rest
-
-			AccelerationRecordingTimestamps timestamps = mAccelerationRecorder
-					.stopAccelerationSampling();
-			mCurrentTraining.endExercise(timestamps);
-
+			
 			if (mRepetitionAnimation.isAnimationRunning()) {
 				mRepetitionAnimation.cancelAnimation();
+				showExerciseRateView();
 			}
-
-			// TODO: user should rate the series on canceled (maybe the series
-			// was canceled becuase it was too hard)
-
-			// advance to the next activity
-			mCurrentTraining.nextActivity();
 		}
 
 		saveCurrentTraining();
@@ -845,10 +821,11 @@ public class TrainingActivity extends Activity implements SwipeListener,
 	 */
 	@Override
 	public void onAnimationEnded() {
+		showExerciseRateView();
+	}
+	
+	private void showExerciseRateView(){
 		mViewRateExercise.setVisibility(View.VISIBLE);
-		mIconWeight.setVisibility(View.INVISIBLE);
-		mViewRateExercise.setBackgroundColor(0x00000000);
-		// changeTrainingPlanState();
 	}
 
 	/*
@@ -897,28 +874,33 @@ public class TrainingActivity extends Activity implements SwipeListener,
 
 				// TODO: support duration timer as well
 				Exercise curExercise = mCurrentTraining.getCurrentExercise();
-				if (curExercise.getGuidanceType().equals(Exercise.GUIDANCE_TYPE_TEMPO)) {
-					mRepetitionAnimation.startAnimation(
-							mViewFlipper.getMeasuredHeight(),
-							(int)(curExercise.getRepetitionDurationUp() * 1000),
-							(int)(curExercise.getRepetitionDurationDown() * 1000),
-							(int)(curExercise.getRepetitionDurationMiddle() * 1000),
-							(int)(curExercise.getRepetitionDurationAfter() * 1000),
-							mCurrentTraining.getTotalRepetitions());
+				if (curExercise.getGuidanceType().equals(
+						Exercise.GUIDANCE_TYPE_TEMPO)) {
+					mRepetitionAnimation
+							.startAnimation(
+									mViewFlipper.getMeasuredHeight(),
+									(int) (curExercise
+											.getRepetitionDurationUp() * 1000),
+									(int) (curExercise
+											.getRepetitionDurationDown() * 1000),
+									(int) (curExercise
+											.getRepetitionDurationMiddle() * 1000),
+									(int) (curExercise
+											.getRepetitionDurationAfter() * 1000),
+									mCurrentTraining.getTotalRepetitions());
 				} else {
-					mViewRateExercise.setVisibility(View.VISIBLE);
-					mIconWeight.setVisibility(View.VISIBLE);
-					mViewRateExercise.setBackgroundColor(getResources()
-							.getColor(R.color.rate_exercise_background));
+					showExerciseRateView();
 				}
 
 				// do acceleration sampling
 				try {
-					mAccelerationRecorder
-							.startAccelerationSampling(mCurrentTraining
-									.getTrainingStartTimestamp(), mCurrentTraining.getRawFile());
+					mAccelerationRecorder.startAccelerationSampling(
+							mCurrentTraining.getTrainingStartTimestamp(),
+							mCurrentTraining.getRawFile());
 				} catch (IOException e) {
-					Log.e(TAG, "Unable to start acceleration sampling: " + e.getMessage());
+					Log.e(TAG,
+							"Unable to start acceleration sampling: "
+									+ e.getMessage());
 				}
 
 				updateScreen();
