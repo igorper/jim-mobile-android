@@ -8,10 +8,6 @@ package com.trainerjim.android.entities;
  */
 public class Series {
 	
-	public static final String GUIDANCE_TYPE_DURATION = "duration";
-	public static final String GUIDANCE_TYPE_TEMPO = "tempo";
-	public static final String GUIDANCE_TYPE_MANUAL = "manual";
-
 	/***********************
 	 * Fields deserialized from server data;
 	 ***********************/
@@ -19,10 +15,6 @@ public class Series {
 	private int repeat_count;
 	private int rest_time;
 	private int weight;
-	private int duration_after_repetition;
-	private int duration_up_repetition;
-	private int duration_middle_repetition;
-	private int duration_down_repetition;
 
 	/***********************
 	 * Fields deserialized from local data;
@@ -77,54 +69,5 @@ public class Series {
 	 */
 	public void initialize() {
 		mCurrentRepetition = 1;
-	}
-
-	/**
-	 * Returns <code>true</code> if repetition duration is specified, otherwise
-	 * <code>false</code>. Repetition duration is specified when both repetition
-	 * duration up and repetition duration are set (not 0). Repetition duration
-	 * after and middle are optional and thus irrelevant for repetition duration
-	 * specification status.
-	 * 
-	 * @return
-	 */
-	public boolean hasRepetitionDuration() {
-		return duration_up_repetition != 0 && duration_down_repetition != 0;
-	}
-	
-	/** Returns repetition up duration in ms or <code>0</code> if no duration up was set. 
-	 * @return
-	 */
-	public int getRepetitionDurationUp(){
-		return duration_up_repetition;
-	}
-	
-	/** Returns repetition down duration in ms or <code>0</code> if no duration down was set.
-	 * @return
-	 */
-	public int getRepetitionDurationDown(){
-		return duration_down_repetition;
-	}
-	
-	/** Returns ms duration after the repetition (between two successive repeititons).
-	 * @return
-	 */
-	public int getRepetitionDurationAfter(){
-		return duration_after_repetition;
-	}
-	
-	/** Returns ms duration between up and down repetition duration.
-	 * @return
-	 */
-	public int getRepetitionDurationMiddle(){
-		return duration_middle_repetition;
-	}
-	
-	/** Returns guidance type for this series.
-	 * @return
-	 */
-	public String getGuidanceType(){
-		// TODO: Add guidance type duration.
-		return hasRepetitionDuration() ? GUIDANCE_TYPE_TEMPO : GUIDANCE_TYPE_MANUAL;
 	}
 }

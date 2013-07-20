@@ -297,46 +297,47 @@ public class ServerCommunicationService extends IntentService {
 				broadcastIntent.putExtra(PARAM_FETCH_TRAINNGS_NUM_ALL_ITEMS,
 						jaTrainingsPlans.length());
 				sendBroadcast(broadcastIntent);
-			}
 
-			// download each training and save the information for later
-			// database storage
-			List<Integer> trainingIds = new ArrayList<Integer>();
-			List<String> trainingNames = new ArrayList<String>();
-			List<String> fetchedTrainings = new ArrayList<String>();
+				// download each training and save the information for later
+				// database storage
+				List<Integer> trainingIds = new ArrayList<Integer>();
+				List<String> trainingNames = new ArrayList<String>();
+				List<String> fetchedTrainings = new ArrayList<String>();
 
-			for (int i = 0; i < jaTrainingsPlans.length(); i++) {
-				JSONObject joTrainingPlan = (JSONObject) jaTrainingsPlans
-						.get(i);
+				for (int i = 0; i < jaTrainingsPlans.length(); i++) {
+					JSONObject joTrainingPlan = (JSONObject) jaTrainingsPlans
+							.get(i);
 
-				int trainingId = joTrainingPlan.getInt("id");
-				String trainingName = joTrainingPlan.getString("name");
+					int trainingId = joTrainingPlan.getInt("id");
+					String trainingName = joTrainingPlan.getString("name");
 
-				// notify that we are fetching a specific training
-				Intent broadcastIntent = new Intent();
-				broadcastIntent.setAction(ACTION_FETCH_TRAINNG_ITEM_COMPLETED);
-				broadcastIntent.addCategory(Intent.CATEGORY_DEFAULT);
-				broadcastIntent.putExtra(PARAM_FETCH_TRAINNGS_CUR_ITEM_NAME,
-						trainingName);
-				broadcastIntent.putExtra(PARAM_FETCH_TRAINNGS_CUR_ITEM_CNT, i);
-				broadcastIntent.putExtra(PARAM_FETCH_TRAINNGS_NUM_ALL_ITEMS,
-						jaTrainingsPlans.length());
-				sendBroadcast(broadcastIntent);
+					// notify that we are fetching a specific training
+					broadcastIntent = new Intent();
+					broadcastIntent
+							.setAction(ACTION_FETCH_TRAINNG_ITEM_COMPLETED);
+					broadcastIntent.addCategory(Intent.CATEGORY_DEFAULT);
+					broadcastIntent.putExtra(
+							PARAM_FETCH_TRAINNGS_CUR_ITEM_NAME, trainingName);
+					broadcastIntent.putExtra(PARAM_FETCH_TRAINNGS_CUR_ITEM_CNT,
+							i);
+					broadcastIntent.putExtra(
+							PARAM_FETCH_TRAINNGS_NUM_ALL_ITEMS,
+							jaTrainingsPlans.length());
+					sendBroadcast(broadcastIntent);
 
-				// break on error (get all or nothing)
-				String jsonTraining = getTraining(trainingId, username,
-						password);
-				if (jsonTraining == null) {
-					wasSucessful = false;
-					break;
+					// break on error (get all or nothing)
+					String jsonTraining = getTraining(trainingId, username,
+							password);
+					if (jsonTraining == null) {
+						wasSucessful = false;
+						break;
+					}
+
+					trainingIds.add(trainingId);
+					trainingNames.add(trainingName);
+					fetchedTrainings.add(jsonTraining);
 				}
 
-				trainingIds.add(trainingId);
-				trainingNames.add(trainingName);
-				fetchedTrainings.add(jsonTraining);
-			}
-
-			if (wasSucessful) {
 				// clear the database
 				getContentResolver().delete(TrainingPlan.CONTENT_URI, null,
 						null);
@@ -357,7 +358,7 @@ public class ServerCommunicationService extends IntentService {
 		} catch (Exception e) {
 			wasSucessful = false;
 			e.printStackTrace();
-			Log.e(TAG, "Get training list json exeception");
+			Log.e(TAG, e.getMessage());
 		}
 		return wasSucessful;
 	}

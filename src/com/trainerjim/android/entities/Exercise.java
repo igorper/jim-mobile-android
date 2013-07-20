@@ -11,6 +11,10 @@ import java.util.List;
  * 
  */
 public class Exercise {
+	
+	public static final String GUIDANCE_TYPE_DURATION = "duration";
+	public static final String GUIDANCE_TYPE_TEMPO = "tempo";
+	public static final String GUIDANCE_TYPE_MANUAL = "manual";
 
 	/***********************
 	 * Fields deserialized from server data;
@@ -20,6 +24,11 @@ public class Exercise {
 	private String machine_setting;
 	private ExerciseType exercise_type;
 	private List<Series> series;
+	private float duration_after_repetition;
+	private float duration_up_repetition;
+	private float duration_middle_repetition;
+	private float duration_down_repetition;
+	private String guidance_type;
 
 	/***********************
 	 * Fields deserialized from local data;
@@ -114,5 +123,40 @@ public class Exercise {
 	 */
 	public String getMachineSetting() {
 		return machine_setting;
+	}
+	
+	/** Returns repetition up duration in seconds or <code>0</code> if no duration up was set. 
+	 * @return
+	 */
+	public float getRepetitionDurationUp(){
+		return duration_up_repetition;
+	}
+	
+	/** Returns repetition down duration in seconds or <code>0</code> if no duration down was set.
+	 * @return
+	 */
+	public float getRepetitionDurationDown(){
+		return duration_down_repetition;
+	}
+	
+	/** Returns duration after the repetition in seconds (between two successive repetitions).
+	 * @return
+	 */
+	public float getRepetitionDurationAfter(){
+		return duration_after_repetition;
+	}
+	
+	/** Returns duration between up and down repetition in seconds.
+	 * @return
+	 */
+	public float getRepetitionDurationMiddle(){
+		return duration_middle_repetition;
+	}
+	
+	/** Returns guidance type for this series.
+	 * @return
+	 */
+	public String getGuidanceType(){
+		return guidance_type;
 	}
 }

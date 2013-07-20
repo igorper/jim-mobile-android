@@ -211,7 +211,7 @@ public class Training {
 									mExerciseStart),
 							calculateDurationInSeconds(mExerciseStart,
 									exerciseEnd),
-							mCurrentSeriesExecutionRating, currentSeries
+							mCurrentSeriesExecutionRating, currentExercise
 									.getGuidanceType());
 
 		} else {
@@ -225,7 +225,7 @@ public class Training {
 									mExerciseStart),
 							calculateDurationInSeconds(mExerciseStart,
 									exerciseEnd),
-							mCurrentSeriesExecutionRating, currentSeries
+							mCurrentSeriesExecutionRating, currentExercise
 									.getGuidanceType());
 		}
 

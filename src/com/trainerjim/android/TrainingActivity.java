@@ -333,11 +333,8 @@ public class TrainingActivity extends Activity implements SwipeListener,
 
 	private boolean areTrainingsAvailable() {
 		String[] projection = { TrainingPlan._ID };
-		String selection = null;
 		Cursor trainings = managedQuery(TrainingPlan.CONTENT_URI, projection,
-				selection, null, null);
-
-		boolean av = trainings.moveToNext();
+				null, null, null);
 
 		return trainings.moveToNext();
 
@@ -898,18 +895,15 @@ public class TrainingActivity extends Activity implements SwipeListener,
 				// time is up, start the exercise animation
 				mCurrentTraining.startExercise();
 
-				// TODO: here we could decide to either show the count down,
-				// repetition animation or just an empty exercise screen
-				// this is a temporal solution for demonstration purposes
-				Series curSeries = mCurrentTraining.getCurrentExercise()
-						.getCurrentSeries();
-				if (curSeries.hasRepetitionDuration()) {
+				// TODO: support duration timer as well
+				Exercise curExercise = mCurrentTraining.getCurrentExercise();
+				if (curExercise.getGuidanceType().equals(Exercise.GUIDANCE_TYPE_TEMPO)) {
 					mRepetitionAnimation.startAnimation(
 							mViewFlipper.getMeasuredHeight(),
-							curSeries.getRepetitionDurationUp(),
-							curSeries.getRepetitionDurationDown(),
-							curSeries.getRepetitionDurationMiddle(),
-							curSeries.getRepetitionDurationAfter(),
+							(int)(curExercise.getRepetitionDurationUp() * 1000),
+							(int)(curExercise.getRepetitionDurationDown() * 1000),
+							(int)(curExercise.getRepetitionDurationMiddle() * 1000),
+							(int)(curExercise.getRepetitionDurationAfter() * 1000),
 							mCurrentTraining.getTotalRepetitions());
 				} else {
 					mViewRateExercise.setVisibility(View.VISIBLE);
