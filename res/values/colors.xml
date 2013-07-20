@@ -23,6 +23,7 @@
     <color name="status_rect_center_right_text">#FFE1563E</color>
     <color name="status_rect_left_swipe_background">#FFE1563E</color>
     <color name="status_rect_right_swipe_background">#ff0080d0</color>
+    <color name="edit_details_text">#FF0080D0</color>
     <!--
     for some strange reason specific rgb combinations for this color 
     make the circular progress outer border flicker (e.g. #00ff00 is fine,

@@ -17,7 +17,10 @@ import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
+import android.widget.CheckBox;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
@@ -29,6 +32,7 @@ import com.google.gson.Gson;
 import com.trainerjim.android.AccelerationRecorder.AccelerationRecordingTimestamps;
 import com.trainerjim.android.entities.Exercise;
 import com.trainerjim.android.entities.Series;
+import com.trainerjim.android.entities.SeriesExecution;
 import com.trainerjim.android.entities.Training;
 import com.trainerjim.android.storage.PermanentSettings;
 import com.trainerjim.android.storage.TrainingContentProvider.CompletedTraining;
@@ -77,6 +81,11 @@ public class TrainingActivity extends Activity implements SwipeListener,
 	private LinearLayout mAnimationRectangle;
 	private ImageView mImageArrowSeriesInfo;
 	private LinearLayout mViewRateExercise;
+	private CheckBox mEditDetailsCheckbox;
+	private RelativeLayout mEditDetailsView;
+	private EditText mEditRepetitionsValue;
+	private EditText mEditWeightValue;
+	private EditText mEditCommentValue;
 
 	private AccelerationRecorder mAccelerationRecorder;
 
@@ -179,6 +188,11 @@ public class TrainingActivity extends Activity implements SwipeListener,
 		mAnimationRectangle = (LinearLayout) findViewById(R.id.animationRectangle);
 		mImageArrowSeriesInfo = (ImageView) findViewById(R.id.imageArrowSeriesInfo);
 		mViewRateExercise = (LinearLayout) findViewById(R.id.viewRateExercise);
+		mEditDetailsCheckbox = (CheckBox) findViewById(R.id.checkbox_edit_details);
+		mEditDetailsView = (RelativeLayout)findViewById(R.id.editDetailsView);
+		mEditRepetitionsValue = (EditText)findViewById(R.id.editRepetitionsValue);
+		mEditWeightValue  =(EditText)findViewById(R.id.editWeightValue);
+		mEditCommentValue  =(EditText)findViewById(R.id.editCommentValue);
 
 		updateTrainingSelector(-1);
 		initializeTrainingRatings();
@@ -186,6 +200,16 @@ public class TrainingActivity extends Activity implements SwipeListener,
 		loadCurrentTraining();
 		updateScreen();
 
+		mEditDetailsView.setOnTouchListener(new View.OnTouchListener() {
+			
+			@Override
+			public boolean onTouch(View v, MotionEvent event) {
+				// only used to handle all the clicks while the edit details
+				// view is visible
+				return true;
+			}
+		});
+		
 		mCircularProgress.setOnClickListener(mCircularButtonClick);
 
 		mSwipeControl.addSwipeListener(this);
@@ -255,18 +279,18 @@ public class TrainingActivity extends Activity implements SwipeListener,
 			if (mExerciseRatingImages[i] == trainingRatingSelected) {
 				mCurrentTraining.setCurrentSeriesExecutionRating(i);
 				mViewRateExercise.setVisibility(View.GONE);
-				
+
 				AccelerationRecordingTimestamps timestamps = mAccelerationRecorder
 						.stopAccelerationSampling();
 				mCurrentTraining.endExercise(timestamps);
 
 				// advance to the next activity
 				mCurrentTraining.nextActivity();
-				
+
 				saveCurrentTraining();
-				
+
 				updateScreen();
-				
+
 				break;
 			}
 		}
@@ -585,7 +609,7 @@ public class TrainingActivity extends Activity implements SwipeListener,
 			}
 		} else {
 			// exercise -> rest
-			
+
 			if (mRepetitionAnimation.isAnimationRunning()) {
 				mRepetitionAnimation.cancelAnimation();
 				showExerciseRateView();
@@ -615,6 +639,8 @@ public class TrainingActivity extends Activity implements SwipeListener,
 			mSwipeControl.setVisibility(View.INVISIBLE);
 		} else if (mCurrentTraining.getCurrentExercise() == null) {
 			if (!mCurrentTraining.isTrainingEnded()) {
+				showEditDetailsViewIfDemanded();
+
 				// no more exercises, show the done button
 				mCircularProgress.setCurrentState(CircularProgressState.STOP);
 				mSeriesInfoText.setText("tap to finish");
@@ -654,6 +680,8 @@ public class TrainingActivity extends Activity implements SwipeListener,
 			if (mCurrentTraining.isCurrentRest()) {
 				mCircularProgress.setInfoChairLevel(mCurrentTraining
 						.getCurrentExercise().getMachineSetting());
+
+				showEditDetailsViewIfDemanded();
 
 				// first remove all existing callbacks
 				mUiHandler.removeCallbacks(mUpdateRestTimer);
@@ -733,6 +761,32 @@ public class TrainingActivity extends Activity implements SwipeListener,
 			mSwipeControl.setSwipeEnabled(true);
 			mImageArrowSeriesInfo.setVisibility(View.VISIBLE);
 		}
+	}
+
+	private void showEditDetailsViewIfDemanded() {
+		SeriesExecution lastSe = mCurrentTraining.getLastSeriesExecution();
+		if (mEditDetailsCheckbox.isChecked() && lastSe != null) {
+			mEditRepetitionsValue.setText(Integer.toString(lastSe.getRepetitions()));
+			mEditWeightValue.setText(Integer.toString(lastSe.getWeight()));
+
+			mEditDetailsView.setVisibility(View.VISIBLE);
+		}
+	}
+	
+	/** Save the (edited) series execution values and hides the edit details view.
+	 * @param v
+	 */
+	public void onEditDetailsDoneClick(View v){
+		// this is possible (however not very secure) as we are not creating a
+		// defensive copy of the series execution in training
+		SeriesExecution lastSe = mCurrentTraining.getLastSeriesExecution();
+		if(lastSe != null){
+			lastSe.setWeight(Integer.parseInt(mEditWeightValue.getText().toString()));
+			lastSe.setRepetitions(Integer.parseInt(mEditRepetitionsValue.getText().toString()));
+		}
+		
+		mEditDetailsCheckbox.setChecked(false);
+		mEditDetailsView.setVisibility(View.GONE);
 	}
 
 	/**
@@ -823,8 +877,8 @@ public class TrainingActivity extends Activity implements SwipeListener,
 	public void onAnimationEnded() {
 		showExerciseRateView();
 	}
-	
-	private void showExerciseRateView(){
+
+	private void showExerciseRateView() {
 		mViewRateExercise.setVisibility(View.VISIBLE);
 	}
 

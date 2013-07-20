@@ -567,6 +567,17 @@ public class Training {
 			e.printStackTrace();
 			return false;
 		}
+	}
 
+	/** Returns the last series execution object if available.
+	 * @return
+	 */
+	public SeriesExecution getLastSeriesExecution() {
+		if(mSeriesExecutions == null){
+			return null;
+		}
+		
+		int sizeSe = mSeriesExecutions.size();
+		return sizeSe == 0 ? null : mSeriesExecutions.get(sizeSe - 1);
 	}
 }

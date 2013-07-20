@@ -10,6 +10,8 @@
     <string name="input_comment_hint_text">comment &#8230;</string>
     <string name="button_rate_text">Rate</string>
     <string name="rate_training_title_text">How was it?</string>
+    <string name="rate_exercise_title_text">Rate to end!</string>
+    <string name="checkbox_edit_details_text">Check to edit details</string>
 
 
 

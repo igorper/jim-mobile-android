@@ -157,6 +157,96 @@
                 </LinearLayout>
             </LinearLayout>
 
+            <RelativeLayout
+                android:id="@+id/editDetailsView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="#00ffffff"
+                android:visibility="gone" >
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentBottom="true"
+                    android:layout_margin="20dp"
+                    android:background="@drawable/rounded_shape"
+                    android:orientation="vertical"
+                    android:visibility="visible" >
+
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content" >
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentLeft="true"
+                            android:layout_centerVertical="true"
+                            android:text="Repetitions:"
+                            android:textSize="@dimen/edit_details_popup_label_text_size" />
+
+                        <EditText
+                            android:id="@+id/editRepetitionsValue"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentRight="true"
+                            android:layout_centerVertical="true"
+                            android:layout_margin="5dp"
+                            android:background="@color/input_login_background"
+                            android:text="10"
+                            android:textColor="@color/input_text"
+                            android:textSize="@dimen/edit_details_popup_label_text_size" />
+                    </RelativeLayout>
+
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content" >
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentLeft="true"
+                            android:layout_centerVertical="true"
+                            android:text="Weight:"
+                            android:textSize="@dimen/edit_details_popup_label_text_size" />
+
+                        <EditText
+                            android:id="@+id/editWeightValue"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentRight="true"
+                            android:layout_centerVertical="true"
+                            android:layout_margin="5dp"
+                            android:background="@color/input_login_background"
+                            android:text="10"
+                            android:textColor="@color/input_text"
+                            android:textSize="@dimen/edit_details_popup_label_text_size" />
+
+                    </RelativeLayout>
+
+                    <EditText
+                        android:id="@+id/editCommentValue"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="@color/input_login_background"
+                        android:gravity="top"
+                        android:hint="enter comment ..."
+                        android:inputType="textMultiLine"
+                        android:lines="3"
+                        android:scrollHorizontally="false"
+                        android:textAppearance="?android:attr/textAppearanceLarge"
+                        android:textColor="@color/input_text" />
+
+                    <Button
+                        style="@style/standard_button"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:text="Done"
+                        android:onClick="onEditDetailsDoneClick" />
+                </LinearLayout>
+            </RelativeLayout>
+
             <LinearLayout
                 android:id="@+id/animationRectangle"
                 android:layout_width="match_parent"
@@ -171,8 +261,8 @@
                 android:id="@+id/viewRateExercise"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:orientation="vertical"
                 android:background="@color/rate_exercise_background"
+                android:orientation="vertical"
                 android:visibility="gone" >
 
                 <LinearLayout
@@ -185,20 +275,20 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:gravity="center"
-                        android:text="Rate to proceed!"
+                        android:text="@string/rate_exercise_title_text"
                         android:textColor="@color/rate_exercise_text"
-                        android:textAppearance="?android:attr/textAppearanceLarge" />
+                        android:textSize="@dimen/rate_exercise_text_size" />
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="0dp"
                         android:layout_weight="1"
-                        android:orientation="horizontal" >
+                        android:orientation="vertical" >
 
                         <ImageView
                             android:id="@+id/exerciseRating1"
-                            android:layout_width="0dp"
-                            android:layout_height="match_parent"
+                            android:layout_width="match_parent"
+                            android:layout_height="0dp"
                             android:layout_weight="1"
                             android:clickable="true"
                             android:onClick="onExerciseRatingSelected"
@@ -207,8 +297,8 @@
 
                         <ImageView
                             android:id="@+id/exerciseRating2"
-                            android:layout_width="0dp"
-                            android:layout_height="match_parent"
+                            android:layout_width="match_parent"
+                            android:layout_height="0dp"
                             android:layout_weight="1"
                             android:clickable="true"
                             android:onClick="onExerciseRatingSelected"
@@ -217,13 +307,23 @@
 
                         <ImageView
                             android:id="@+id/exerciseRating3"
-                            android:layout_width="0dp"
-                            android:layout_height="match_parent"
+                            android:layout_width="match_parent"
+                            android:layout_height="0dp"
                             android:layout_weight="1"
                             android:clickable="true"
                             android:onClick="onExerciseRatingSelected"
                             android:padding="@dimen/exercise_rating_smile_padding"
                             android:src="@drawable/rating3" />
+
+                        <CheckBox
+                            android:id="@+id/checkbox_edit_details"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
+                            android:checked="false"
+                            android:text="@string/checkbox_edit_details_text"
+                            android:textColor="@color/edit_details_text"
+                            android:textSize="@dimen/checkbox_edit_details_text_size" />
                     </LinearLayout>
                 </LinearLayout>
             </LinearLayout>
@@ -277,7 +377,6 @@
                     android:layout_weight="1"
                     android:onClick="onTrainingRatingSelected"
                     android:padding="@dimen/training_rating_smile_padding" />
-
             </LinearLayout>
 
             <EditText
@@ -295,10 +394,10 @@
                 android:textColor="@color/input_text" />
 
             <Button
+                style="@style/standard_button"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:onClick="onFinishClick"
-                style="@style/standard_button"
                 android:text="@string/button_rate_text" />
         </LinearLayout>
     </ViewFlipper>

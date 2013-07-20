@@ -87,4 +87,20 @@ public class SeriesExecution {
 	public int getDuration() {
 		return duration;
 	}
+	
+	public void setWeight(int weight){
+		this.weight = weight;
+	}
+	
+	public int getWeight(){
+		return weight;
+	}
+	
+	public void setRepetitions(int repetitions){
+		this.num_repetitions = repetitions;
+	}
+	
+	public int getRepetitions(){
+		return num_repetitions;
+	}
 }
