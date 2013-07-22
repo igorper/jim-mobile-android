@@ -73,8 +73,11 @@ public class AccelerationRecorder implements SensorEventListener {
 		return retVal;
 	}
 
-	public void startAccelerationSampling(long sessionStart, File outputFile) throws IOException {
-		mSessionStart = sessionStart;
+	public void startAccelerationSampling(long trainingStartTimestamp, File outputFile) throws IOException {
+		mSessionStart = trainingStartTimestamp;
+
+		mSeriesStartTimestamp = -1;
+		mSeriesEndTimestamp = -1;
 		
 		mAccelerationWritter = new PrintWriter(new BufferedWriter(
 				new FileWriter(outputFile, true)));
@@ -86,6 +89,7 @@ public class AccelerationRecorder implements SensorEventListener {
 	public AccelerationRecordingTimestamps stopAccelerationSampling() {
 		mSensorManager.unregisterListener(this);
 		mProcessThread.quit();
+		
 		// it might happend that the end timestamp won't be the timestamp of the the
 		// last acceleration sample, as sampling runs on another thread
 		// (however, that's not a problem so not thread synchronization is
@@ -101,9 +105,6 @@ public class AccelerationRecorder implements SensorEventListener {
 		} else {
 			AccelerationRecordingTimestamps retVal = new AccelerationRecordingTimestamps(
 					mSeriesStartTimestamp, mSeriesEndTimestamp);
-
-			mSeriesStartTimestamp = -1;
-			mSeriesEndTimestamp = -1;
 
 			return retVal;
 		}

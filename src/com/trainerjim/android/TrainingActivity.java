@@ -602,7 +602,7 @@ public class TrainingActivity extends Activity implements SwipeListener,
 			// rest -> exrcise
 			if (mGetReadyStartTimestamp == -1) {
 				// initiate the get ready timer
-				mGetReadyStartTimestamp = System.nanoTime();
+				mGetReadyStartTimestamp = System.currentTimeMillis();
 			} else {
 				// or cancel it
 				mGetReadyStartTimestamp = -1;
@@ -911,8 +911,8 @@ public class TrainingActivity extends Activity implements SwipeListener,
 		@Override
 		public void run() {
 			int secLeft = Math.round(mGetReadyInterval
-					- (float) (System.nanoTime() - mGetReadyStartTimestamp)
-					/ 1000000000);
+					- (float) (System.currentTimeMillis() - mGetReadyStartTimestamp)
+					/ 1000);
 
 			if (secLeft > 0) {
 				mCircularProgress.setRestProgressValue(secLeft);
