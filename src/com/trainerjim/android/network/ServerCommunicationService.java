@@ -1,4 +1,4 @@
-package com.trainerjim.android;
+package com.trainerjim.android.network;
 
 import java.io.BufferedReader;
 import java.io.File;

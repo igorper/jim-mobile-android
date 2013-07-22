@@ -1,5 +1,6 @@
 package com.trainerjim.android;
 
+import com.trainerjim.android.network.ServerCommunicationService;
 import com.trainerjim.android.storage.PermanentSettings;
 
 import net.pernek.jim.exercisedetector.R;

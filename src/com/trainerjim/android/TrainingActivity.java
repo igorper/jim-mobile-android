@@ -34,6 +34,7 @@ import com.trainerjim.android.entities.Exercise;
 import com.trainerjim.android.entities.Series;
 import com.trainerjim.android.entities.SeriesExecution;
 import com.trainerjim.android.entities.Training;
+import com.trainerjim.android.network.ServerCommunicationService;
 import com.trainerjim.android.storage.PermanentSettings;
 import com.trainerjim.android.storage.TrainingContentProvider.CompletedTraining;
 import com.trainerjim.android.storage.TrainingContentProvider.TrainingPlan;

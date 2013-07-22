@@ -45,7 +45,7 @@
         </activity>
 
         <service android:name="com.trainerjim.android.DetectorService" />
-        <service android:name="com.trainerjim.android.ServerCommunicationService" />
+        <service android:name="com.trainerjim.android.network.ServerCommunicationService" />
 
         <activity android:name="com.trainerjim.android.UploadSessionActivity" />
     </application>
