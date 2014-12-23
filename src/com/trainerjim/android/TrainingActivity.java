@@ -138,6 +138,12 @@ public class TrainingActivity extends Activity implements SwipeListener,
 	 */
 	private long mGetReadyStartTimestamp = -1;
 
+    /**
+     * Controls the visibility of the edit series details view. If true, edit
+     * series view will be shown to the users.
+     */
+    private Boolean mEditSeriesDetails = false;
+
 	/**
 	 * Contains IDs of training rating images in non-selected (non-clicked)
 	 * state.
@@ -189,7 +195,7 @@ public class TrainingActivity extends Activity implements SwipeListener,
 		mAnimationRectangle = (LinearLayout) findViewById(R.id.animationRectangle);
 		mImageArrowSeriesInfo = (ImageView) findViewById(R.id.imageArrowSeriesInfo);
 		mViewRateExercise = (LinearLayout) findViewById(R.id.viewRateExercise);
-		mEditDetailsCheckbox = (CheckBox) findViewById(R.id.checkbox_edit_details);
+//		mEditDetailsCheckbox = (CheckBox) findViewById(R.id.checkbox_edit_details);
 		mEditDetailsView = (RelativeLayout)findViewById(R.id.editDetailsView);
 		mEditRepetitionsValue = (EditText)findViewById(R.id.editRepetitionsValue);
 		mEditWeightValue  =(EditText)findViewById(R.id.editWeightValue);
@@ -260,16 +266,16 @@ public class TrainingActivity extends Activity implements SwipeListener,
 	 */
 	private void initializeExerciseRatings() {
 		mExerciseRatingImages = new ImageView[TRAINING_RATING_IMAGES.length];
-		mExerciseRatingImages[0] = (ImageView) findViewById(R.id.exerciseRating1);
-		mExerciseRatingImages[1] = (ImageView) findViewById(R.id.exerciseRating2);
-		mExerciseRatingImages[2] = (ImageView) findViewById(R.id.exerciseRating3);
+//		mExerciseRatingImages[0] = (ImageView) findViewById(R.id.exerciseRating1);
+//		mExerciseRatingImages[1] = (ImageView) findViewById(R.id.exerciseRating2);
+//		mExerciseRatingImages[2] = (ImageView) findViewById(R.id.exerciseRating3);
 	}
 
 	/**
 	 * Invoked when a specific exercise rating image is clicked.
 	 * 
 	 * @param v
-	 *            contains the referense to the clicked exercise rating image.
+	 *            contains the reference to the clicked exercise rating image.
 	 */
 	public void onExerciseRatingSelected(View v) {
 		ImageView trainingRatingSelected = (ImageView) v;
@@ -296,6 +302,47 @@ public class TrainingActivity extends Activity implements SwipeListener,
 			}
 		}
 	}
+
+    private void finishSeries(int rating){
+        mCurrentTraining.setCurrentSeriesExecutionRating(rating);
+        mViewRateExercise.setVisibility(View.GONE);
+
+        AccelerationRecordingTimestamps timestamps = mAccelerationRecorder
+                .stopAccelerationSampling();
+        mCurrentTraining.endExercise(timestamps);
+
+        // advance to the next activity
+        mCurrentTraining.nextActivity();
+
+        saveCurrentTraining();
+
+        updateScreen();
+    }
+
+    /**
+     * Invoked when the user is done with a series.
+     *
+     * @param v
+     *            contains the reference to the clicked imageview
+     */
+    public void onSeriesDoneClick(View v) {
+        ImageView trainingRatingSelected = (ImageView) v;
+
+        finishSeries(1);
+    }
+
+    /**
+     * Invoked when the user wants to edit series details.
+     *
+     * @param v
+     *            contains the reference to the clicked imageview
+     */
+    public void onSeriesDetailsClick(View v) {
+        ImageView trainingRatingSelected = (ImageView) v;
+
+        mEditSeriesDetails = true;
+        finishSeries(0);
+    }
 
 	/*
 	 * TODO: Check if stuff in onCreate and onDestroy should be moved to more
@@ -766,11 +813,12 @@ public class TrainingActivity extends Activity implements SwipeListener,
 
 	private void showEditDetailsViewIfDemanded() {
 		SeriesExecution lastSe = mCurrentTraining.getLastSeriesExecution();
-		if (mEditDetailsCheckbox.isChecked() && lastSe != null) {
+		if (mEditSeriesDetails && lastSe != null) {
 			mEditRepetitionsValue.setText(Integer.toString(lastSe.getRepetitions()));
 			mEditWeightValue.setText(Integer.toString(lastSe.getWeight()));
 
 			mEditDetailsView.setVisibility(View.VISIBLE);
+            mEditSeriesDetails = false;
 		}
 	}
 	
@@ -785,8 +833,7 @@ public class TrainingActivity extends Activity implements SwipeListener,
 			lastSe.setWeight(Integer.parseInt(mEditWeightValue.getText().toString()));
 			lastSe.setRepetitions(Integer.parseInt(mEditRepetitionsValue.getText().toString()));
 		}
-		
-		mEditDetailsCheckbox.setChecked(false);
+
 		mEditDetailsView.setVisibility(View.GONE);
 	}
 

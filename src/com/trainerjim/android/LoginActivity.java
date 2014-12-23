@@ -66,7 +66,7 @@ public class LoginActivity extends Activity {
 	}
 
 	public void onLoginButtonClick(View source) {
-		Intent intent = new Intent(this, ServerCommunicationService.class);
+		/*Intent intent = new Intent(this, ServerCommunicationService.class);
 		intent.putExtra(ServerCommunicationService.INTENT_KEY_ACTION,
 				ServerCommunicationService.ACTION_CHECK_CREDENTIALS);
 		intent.putExtra(ServerCommunicationService.INTENT_KEY_USERNAME,
@@ -78,7 +78,10 @@ public class LoginActivity extends Activity {
 		mLoginProgress = new ProgressDialog(this);
 		mLoginProgress.setIndeterminate(true);
 		mLoginProgress.setMessage("Checking credentials ...");
-		mLoginProgress.show();
+		mLoginProgress.show();*/
+        startActivity(new Intent(LoginActivity.this,
+                TrainingActivity.class));
+        finish();
 	}
 
 	private class ResponseReceiver extends BroadcastReceiver {

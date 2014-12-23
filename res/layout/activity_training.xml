@@ -99,7 +99,7 @@
                                             android:gravity="top"
                                             android:includeFontPadding="false"
                                             android:textColor="@color/select_training_text"
-                                            android:textSize="@dimen/status_rect_training_selection_font_size" />
+                                            android:textSize="@dimen/select_training_text_size" />
 
                                         <ImageView
                                             android:layout_width="wrap_content"
@@ -264,6 +264,38 @@
                 android:background="@color/rate_exercise_background"
                 android:orientation="vertical"
                 android:visibility="gone" >
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@color/rate_exercise_background"
+                    android:visibility="visible" >
+                    <ImageView
+                        android:id="@+id/trainingWeight"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:clickable="true"
+                        android:onClick="onSeriesDoneClick"
+                        android:padding="@dimen/exercise_rating_smile_padding"
+                        android:src="@drawable/weight" />
+                    <ImageView
+                        android:layout_width="@dimen/edit_series_info_image_size"
+                        android:layout_height="@dimen/edit_series_info_image_size"
+                        android:clickable="true"
+                        android:onClick="onSeriesDetailsClick"
+                        android:padding="@dimen/exercise_rating_smile_padding"
+                        android:layout_alignBottom="@id/trainingWeight"
+                        android:layout_alignRight="@id/trainingWeight"
+                        android:src="@drawable/ic_edit" />
+                </RelativeLayout>
+            </LinearLayout>
+
+            <!--<LinearLayout
+                android:id="@+id/viewRateExercise"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@color/rate_exercise_background"
+                android:orientation="vertical"
+                android:visibility="gone" >
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -326,7 +358,7 @@
                             android:textSize="@dimen/checkbox_edit_details_text_size" />
                     </LinearLayout>
                 </LinearLayout>
-            </LinearLayout>
+            </LinearLayout>-->
         </RelativeLayout>
 
         <!-- RATE TRAINING SCREEN -->
