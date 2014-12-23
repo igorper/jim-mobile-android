@@ -103,4 +103,8 @@ public class SeriesExecution {
 	public int getRepetitions(){
 		return num_repetitions;
 	}
+
+    public void setRating(int rating){
+        this.rating = rating;
+    }
 }

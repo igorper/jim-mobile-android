@@ -117,6 +117,12 @@ public class TrainingActivity extends Activity implements SwipeListener,
 	 */
 	private int mTrainingRatingSelectedID = -1;
 
+    /**
+     * Holds the ID of the currently selected exercise rating (or -1 if no
+     * rating was yet selected).
+     */
+    private int mExerciseRatingSelectedID = -1;
+
 	/**
 	 * Holds ID of the training plan currently selected in the training
 	 * selector.
@@ -266,9 +272,9 @@ public class TrainingActivity extends Activity implements SwipeListener,
 	 */
 	private void initializeExerciseRatings() {
 		mExerciseRatingImages = new ImageView[TRAINING_RATING_IMAGES.length];
-//		mExerciseRatingImages[0] = (ImageView) findViewById(R.id.exerciseRating1);
-//		mExerciseRatingImages[1] = (ImageView) findViewById(R.id.exerciseRating2);
-//		mExerciseRatingImages[2] = (ImageView) findViewById(R.id.exerciseRating3);
+		mExerciseRatingImages[0] = (ImageView) findViewById(R.id.exerciseRating1);
+		mExerciseRatingImages[1] = (ImageView) findViewById(R.id.exerciseRating2);
+		mExerciseRatingImages[2] = (ImageView) findViewById(R.id.exerciseRating3);
 	}
 
 	/**
@@ -280,30 +286,59 @@ public class TrainingActivity extends Activity implements SwipeListener,
 	public void onExerciseRatingSelected(View v) {
 		ImageView trainingRatingSelected = (ImageView) v;
 
-		// loop through training ratings image views and set the appropriate
-		// image
-		for (int i = 0; i < mTrainingRatingImages.length; i++) {
-			if (mExerciseRatingImages[i] == trainingRatingSelected) {
-				mCurrentTraining.setCurrentSeriesExecutionRating(i);
-				mViewRateExercise.setVisibility(View.GONE);
+        int imageSelectedPadding = getResources().getDimensionPixelSize(
+                R.dimen.training_rating_smile_selected_padding);
+        int imagePadding = getResources().getDimensionPixelSize(
+                R.dimen.training_rating_smile_padding);
 
-				AccelerationRecordingTimestamps timestamps = mAccelerationRecorder
-						.stopAccelerationSampling();
-				mCurrentTraining.endExercise(timestamps);
-
-				// advance to the next activity
-				mCurrentTraining.nextActivity();
-
-				saveCurrentTraining();
-
-				updateScreen();
-
-				break;
-			}
-		}
+        // loop through training ratings image views and set the appropriate
+        // image
+        for (int i = 0; i < mExerciseRatingImages.length; i++) {
+            if (mExerciseRatingImages[i] == trainingRatingSelected) {
+                mExerciseRatingImages[i]
+                        .setImageResource(TRAINING_RATING_SELECTED_IMAGES[i]);
+                mExerciseRatingImages[i].setPadding(imageSelectedPadding,
+                        imageSelectedPadding, imageSelectedPadding,
+                        imageSelectedPadding);
+                mExerciseRatingSelectedID = i;
+            } else {
+                mExerciseRatingImages[i]
+                        .setImageResource(TRAINING_RATING_IMAGES[i]);
+                mExerciseRatingImages[i].setPadding(imagePadding, imagePadding,
+                        imagePadding, imagePadding);
+            }
+        }
 	}
 
+    private void selectSeriesRatingIcon(ImageView ratingImageSelected){
+        int imageSelectedPadding = getResources().getDimensionPixelSize(
+                R.dimen.training_rating_smile_selected_padding);
+        int imagePadding = getResources().getDimensionPixelSize(
+                R.dimen.training_rating_smile_padding);
+
+        // loop through training ratings image views and set the appropriate
+        // image
+        for (int i = 0; i < mExerciseRatingImages.length; i++) {
+            if (mExerciseRatingImages[i] == ratingImageSelected) {
+                mExerciseRatingImages[i]
+                        .setImageResource(TRAINING_RATING_SELECTED_IMAGES[i]);
+                mExerciseRatingImages[i].setPadding(imageSelectedPadding,
+                        imageSelectedPadding, imageSelectedPadding,
+                        imageSelectedPadding);
+                mExerciseRatingSelectedID = i;
+            } else {
+                mExerciseRatingImages[i]
+                        .setImageResource(TRAINING_RATING_IMAGES[i]);
+                mExerciseRatingImages[i].setPadding(imagePadding, imagePadding,
+                        imagePadding, imagePadding);
+            }
+        }
+    }
+
     private void finishSeries(int rating){
+        // select the default rating
+        selectSeriesRatingIcon(mExerciseRatingImages[1]);
+
         mCurrentTraining.setCurrentSeriesExecutionRating(rating);
         mViewRateExercise.setVisibility(View.GONE);
 
@@ -341,7 +376,7 @@ public class TrainingActivity extends Activity implements SwipeListener,
         ImageView trainingRatingSelected = (ImageView) v;
 
         mEditSeriesDetails = true;
-        finishSeries(0);
+        finishSeries(1);
     }
 
 	/*
@@ -830,6 +865,7 @@ public class TrainingActivity extends Activity implements SwipeListener,
 		// defensive copy of the series execution in training
 		SeriesExecution lastSe = mCurrentTraining.getLastSeriesExecution();
 		if(lastSe != null){
+            lastSe.setRating(mExerciseRatingSelectedID);
 			lastSe.setWeight(Integer.parseInt(mEditWeightValue.getText().toString()));
 			lastSe.setRepetitions(Integer.parseInt(mEditRepetitionsValue.getText().toString()));
 		}
