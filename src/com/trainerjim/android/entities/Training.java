@@ -33,7 +33,7 @@ public class Training {
 	/**
 	 * Size of the buffer used for copying data between streams.
 	 */
-	private static final int COPY_BUFFER = 2048;
+	private static final int COPY_BUFFER = 512000;
 
 	/***********************
 	 * Fields deserialized from server data;
@@ -542,11 +542,14 @@ public class Training {
 			byte[] data = new byte[COPY_BUFFER];
 
 			Log.d(TAG, "Getting ready to copy raw data to zip!");
+            int totalBytes = 0;
 			int count;
 			while ((count = rawData.read(data, 0, COPY_BUFFER)) != -1) {
 				out.write(data, 0, count);
-				Log.d(TAG, String.format("Written %d bytes to raw zip", count));
+                totalBytes += count;
 			}
+
+            Log.d(TAG, String.format("Written %d bytes to raw zip", totalBytes));
 
 			rawData.close();
 			out.close();

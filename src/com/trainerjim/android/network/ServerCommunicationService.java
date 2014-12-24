@@ -47,6 +47,7 @@ import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpParams;
 import org.apache.http.params.HttpProtocolParams;
 import org.apache.http.protocol.HTTP;
+import org.apache.http.util.EntityUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -477,6 +478,10 @@ public class ServerCommunicationService extends IntentService {
 			HttpResponse response = mHttpClient.execute(httppost);
 			int status = response.getStatusLine().getStatusCode();
 
+            if(response.getEntity() != null){
+                response.getEntity().consumeContent();
+            }
+
 			if (status == HttpStatus.SC_OK) {
 				// if upload was successful delete training from the local
 				// database
@@ -492,7 +497,9 @@ public class ServerCommunicationService extends IntentService {
 					// keep the zip file in research mode, otherwise delete it
 					training.getZipFile().delete();
 				}
-			}
+			} else {
+                return false;
+            }
 
 			return true;
 		} catch (Exception e) {
