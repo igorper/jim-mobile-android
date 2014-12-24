@@ -342,8 +342,9 @@ public class TrainingActivity extends Activity implements SwipeListener,
         mCurrentTraining.setCurrentSeriesExecutionRating(rating);
         mViewRateExercise.setVisibility(View.GONE);
 
-        AccelerationRecordingTimestamps timestamps = mAccelerationRecorder
-                .stopAccelerationSampling();
+        // get acceleration timestamps only if acceleration sampling is enabled
+        AccelerationRecordingTimestamps timestamps = getResources().getBoolean(R.bool.sample_acceleration) ? mAccelerationRecorder
+                .stopAccelerationSampling() : null;
         mCurrentTraining.endExercise(timestamps);
 
         // advance to the next activity
@@ -1030,16 +1031,18 @@ public class TrainingActivity extends Activity implements SwipeListener,
 					showExerciseRateView();
 				}
 
-				// do acceleration sampling
-				try {
-					mAccelerationRecorder.startAccelerationSampling(
-							mCurrentTraining.getTrainingStartTimestamp(),
-							mCurrentTraining.getRawFile());
-				} catch (IOException e) {
-					Log.e(TAG,
-							"Unable to start acceleration sampling: "
-									+ e.getMessage());
-				}
+                if(getResources().getBoolean(R.bool.sample_acceleration)) {
+                    // do acceleration sampling
+                    try {
+                        mAccelerationRecorder.startAccelerationSampling(
+                                mCurrentTraining.getTrainingStartTimestamp(),
+                                mCurrentTraining.getRawFile());
+                    } catch (IOException e) {
+                        Log.e(TAG,
+                                "Unable to start acceleration sampling: "
+                                        + e.getMessage());
+                    }
+                }
 
 				updateScreen();
 			}

@@ -520,7 +520,7 @@ public class Training {
 	 * @return
 	 */
 	public boolean zipToFile(String trainingManifestPartName,
-			String rawDataPartName) {
+			String rawDataPartName, boolean sampleAcceleration) {
 		try {
 			ZipOutputStream out = new ZipOutputStream(new BufferedOutputStream(
 					new FileOutputStream(getZipFile())));
@@ -536,22 +536,28 @@ public class Training {
 			entry = new ZipEntry(rawDataPartName);
 			out.putNextEntry(entry);
 
-			BufferedInputStream rawData = new BufferedInputStream(
-					new FileInputStream(getRawFile()));
-			// FileInputStream rawData = new FileInputStream(getRawFile());
-			byte[] data = new byte[COPY_BUFFER];
+            // copy file with acceleration values to zip if acceleration sampling is enabled
+            // (otherwise, raw data part will simply be empty)
+            // TODO: think about totaly removing the raw data part if no acceleration sampling
+            // is enabled
+            if(sampleAcceleration) {
+                BufferedInputStream rawData = new BufferedInputStream(
+                        new FileInputStream(getRawFile()));
+                // FileInputStream rawData = new FileInputStream(getRawFile());
+                byte[] data = new byte[COPY_BUFFER];
 
-			Log.d(TAG, "Getting ready to copy raw data to zip!");
-            int totalBytes = 0;
-			int count;
-			while ((count = rawData.read(data, 0, COPY_BUFFER)) != -1) {
-				out.write(data, 0, count);
-                totalBytes += count;
-			}
+                Log.d(TAG, "Getting ready to copy raw data to zip!");
+                int totalBytes = 0;
+                int count;
+                while ((count = rawData.read(data, 0, COPY_BUFFER)) != -1) {
+                    out.write(data, 0, count);
+                    totalBytes += count;
+                }
 
-            Log.d(TAG, String.format("Written %d bytes to raw zip", totalBytes));
+                Log.d(TAG, String.format("Written %d bytes to raw zip", totalBytes));
 
-			rawData.close();
+                rawData.close();
+            }
 			out.close();
 
 			return true;

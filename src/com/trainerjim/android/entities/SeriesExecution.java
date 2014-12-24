@@ -12,8 +12,8 @@ public class SeriesExecution {
 	/**
 	 * Those two mark the bounding timestamps of the acceleration signal.
 	 */
-	private long start_timestamp;
-	private long end_timestamp;
+	private Long start_timestamp;
+	private Long end_timestamp;
 
 	public int exercise_type_id;
 	public int num_repetitions;
@@ -43,7 +43,7 @@ public class SeriesExecution {
 	public static SeriesExecution create(int exerciseTypeId,
 			int numRepetitions, int weight, int restTime, int duration,
 			int rating, String guidanceType) {
-		return SeriesExecution.create(-1, -1, exerciseTypeId, numRepetitions,
+		return SeriesExecution.create(null, null, exerciseTypeId, numRepetitions,
 				weight, restTime, duration, rating, guidanceType);
 	}
 
@@ -62,8 +62,8 @@ public class SeriesExecution {
 	 * @param guidanceType
 	 * @return
 	 */
-	public static SeriesExecution create(long startTimestamp,
-			long endTimestamp, int exerciseTypeId, int numRepetitions,
+	public static SeriesExecution create(Long startTimestamp,
+			Long endTimestamp, int exerciseTypeId, int numRepetitions,
 			int weight, int restTime, int duration, int rating, String guidanceType) {
 		SeriesExecution retVal = new SeriesExecution();
 		retVal.start_timestamp = startTimestamp;

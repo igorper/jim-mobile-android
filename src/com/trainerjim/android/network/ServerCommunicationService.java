@@ -450,7 +450,8 @@ public class ServerCommunicationService extends IntentService {
 		File trainingZip = training.getZipFile();
 		training.zipToFile(
 				getResources().getString(R.string.training_mainfest_name),
-				getResources().getString(R.string.raw_data_name));
+				getResources().getString(R.string.raw_data_name),
+                getResources().getBoolean(R.bool.sample_acceleration));
 
 		try {
 			String url = String.format("%s%s",
