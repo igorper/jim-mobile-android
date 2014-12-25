@@ -25,6 +25,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content" >
 
+                    <!-- CIRCULAR PROGRESS CONTROL -->
                     <com.trainerjim.android.ui.CircularProgressControl
                         android:id="@+id/circularProgress"
                         android:layout_width="match_parent"
@@ -34,6 +35,7 @@
                         android:paddingRight="@dimen/circular_button_side_padding"
                         android:paddingTop="@dimen/circular_button_top_padding" />
 
+                    <!-- INFO BUTTON -->
                     <ImageView
                         android:id="@+id/info_button"
                         android:layout_width="@dimen/info_button_size"
@@ -42,6 +44,18 @@
                         android:onClick="onInfoButtonClick"
                         android:padding="@dimen/info_button_padding"
                         android:src="@drawable/chair_ico"
+                        android:visibility="invisible" />
+
+                    <!-- SKIP BUTTON -->
+                    <ImageView
+                        android:id="@+id/skip_button"
+                        android:layout_width="@dimen/info_button_size"
+                        android:layout_height="@dimen/info_button_size"
+                        android:layout_alignBottom="@id/circularProgress"
+                        android:layout_alignParentRight="true"
+                        android:onClick="onSkipButtonClick"
+                        android:padding="@dimen/info_button_padding"
+                        android:src="@drawable/ic_skip_next"
                         android:visibility="invisible" />
                 </RelativeLayout>
 

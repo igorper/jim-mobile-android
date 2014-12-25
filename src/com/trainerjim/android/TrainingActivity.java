@@ -86,6 +86,7 @@ public class TrainingActivity extends Activity implements SwipeListener,
 	private TextView mTrainingSelectorText;
 	private RelativeLayout mBottomContainer;
 	private ImageView mInfoButton;
+    private ImageView mSkipButton;
 	private LinearLayout mSeriesInformation;
 	private TextView mSeriesInfoText;
 	private TextView mTrainingCommentText;
@@ -205,6 +206,7 @@ public class TrainingActivity extends Activity implements SwipeListener,
 		mTrainingSelectorText = (TextView) findViewById(R.id.trainingSelectorText);
 		mBottomContainer = (RelativeLayout) findViewById(R.id.bottomContainer);
 		mInfoButton = (ImageView) findViewById(R.id.info_button);
+        mSkipButton = (ImageView) findViewById(R.id.skip_button);
 		mSeriesInformation = (LinearLayout) findViewById(R.id.seriesInformation);
 		mSeriesInfoText = (TextView) findViewById(R.id.nextSeriesText);
 		mTrainingCommentText = (TextView) findViewById(R.id.textTrainingComment);
@@ -232,6 +234,16 @@ public class TrainingActivity extends Activity implements SwipeListener,
 				return true;
 			}
 		});
+
+        // add a long click action to skip exercise button (so the user won't
+        // activate this by mistake)
+        mSkipButton.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                skipExercise();
+                return true;
+            }
+        });
 		
 		mCircularProgress.setOnClickListener(mCircularButtonClick);
 
@@ -511,6 +523,20 @@ public class TrainingActivity extends Activity implements SwipeListener,
 		toggleInfoButtonVisible(!mCircularProgress.isInfoVisible());
 	}
 
+    /**
+     * Triggered on skip button click.
+     * @param v
+     */
+    public void onSkipButtonClick(View v){
+        // TODO: Show help popup
+        /*
+        Help popup could be show inside the circular button (in another color). It
+        should just outline the action results and explain that the action can be used
+        by long click.
+        The same help popup could be used for other cases.
+         */
+    }
+
 	/**
 	 * Triggered on finish button click in the training rating screen.
 	 * 
@@ -723,6 +749,7 @@ public class TrainingActivity extends Activity implements SwipeListener,
 			mCircularProgress.setCurrentState(CircularProgressState.START);
 
 			mInfoButton.setVisibility(View.INVISIBLE);
+            mSkipButton.setVisibility(View.INVISIBLE);
 
 			mBottomContainer.setVisibility(View.VISIBLE);
 			mSeriesInformation.setVisibility(View.INVISIBLE);
@@ -759,6 +786,7 @@ public class TrainingActivity extends Activity implements SwipeListener,
 			}
 
 			mInfoButton.setVisibility(View.INVISIBLE);
+            mSkipButton.setVisibility(View.INVISIBLE);
 			mSeriesInformation.setVisibility(View.VISIBLE);
 			mSwipeControl.setSwipeEnabled(false);
 			mImageArrowSeriesInfo.setVisibility(View.GONE);
@@ -845,6 +873,7 @@ public class TrainingActivity extends Activity implements SwipeListener,
 					.getAllSeriesCount() - curExercise.getSeriesLeftCount());
 
 			mInfoButton.setVisibility(View.VISIBLE);
+            mSkipButton.setVisibility(View.VISIBLE);
 			mBottomContainer.setVisibility(View.VISIBLE);
 			mSeriesInformation.setVisibility(View.VISIBLE);
 			mTrainingSelector.setVisibility(View.INVISIBLE);
@@ -935,28 +964,36 @@ public class TrainingActivity extends Activity implements SwipeListener,
 	 */
 	@Override
 	public void onSwipeLeft() {
-		if (!mCurrentTraining.isCurrentRest()) {
-			AccelerationRecordingTimestamps timestamps = mAccelerationRecorder
-					.stopAccelerationSampling();
-			mCurrentTraining.endExercise(timestamps);
-		}
-
-		// disable the get ready timer
-		mGetReadyStartTimestamp = -1;
-
-		// cancel the repetition animation if running
-		if (mRepetitionAnimation.isAnimationRunning()) {
-			mRepetitionAnimation.cancelAnimation();
-		}
-
-		// TODO: user should optionally rate the exercise here (e.g. skipping in
-		// the middle of the series because it was maybe to hard)
-
-		mCurrentTraining.nextExercise();
-		saveCurrentTraining();
-		toggleInfoButtonVisible(false);
-		updateScreen();
+		skipExercise();
 	}
+
+    /**
+     * Skips the current exercise. All planned executions of this exercise are removed
+     * from the training plan.
+     */
+    private void skipExercise(){
+        if (!mCurrentTraining.isCurrentRest()) {
+            AccelerationRecordingTimestamps timestamps = mAccelerationRecorder
+                    .stopAccelerationSampling();
+            mCurrentTraining.endExercise(timestamps);
+        }
+
+        // disable the get ready timer
+        mGetReadyStartTimestamp = -1;
+
+        // cancel the repetition animation if running
+        if (mRepetitionAnimation.isAnimationRunning()) {
+            mRepetitionAnimation.cancelAnimation();
+        }
+
+        // TODO: user should optionally rate the exercise here (e.g. skipping in
+        // the middle of the series because it was maybe to hard)
+
+        mCurrentTraining.nextExercise();
+        saveCurrentTraining();
+        toggleInfoButtonVisible(false);
+        updateScreen();
+    }
 
 	/*
 	 * Repetition animation has legally ended so we should advance the training
