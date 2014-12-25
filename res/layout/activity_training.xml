@@ -77,6 +77,15 @@
                             android:layout_gravity="center"
                             android:background="@color/status_rect_background" >
 
+                            <ImageView
+                                android:id="@+id/prev_button"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_alignParentLeft="true"
+                                android:adjustViewBounds="true"
+                                android:visibility="invisible"
+                                android:src="@drawable/ic_before" />
+
                             <LinearLayout
                                 android:id="@+id/trainingSelector"
                                 android:layout_width="match_parent"
@@ -126,6 +135,15 @@
                                     </LinearLayout>
                                 </RelativeLayout>
                             </LinearLayout>
+
+                            <ImageView
+                                android:id="@+id/next_button"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_alignParentRight="true"
+                                android:adjustViewBounds="true"
+                                android:visibility="invisible"
+                                android:src="@drawable/ic_next" />
 
                             <com.trainerjim.android.ui.SwipeControl
                                 android:id="@+id/swipeControl"

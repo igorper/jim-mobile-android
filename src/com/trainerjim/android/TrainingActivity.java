@@ -87,6 +87,8 @@ public class TrainingActivity extends Activity implements SwipeListener,
 	private RelativeLayout mBottomContainer;
 	private ImageView mInfoButton;
     private ImageView mSkipButton;
+    private ImageView mNextButton;
+    private ImageView mPrevButton;
 	private LinearLayout mSeriesInformation;
 	private TextView mSeriesInfoText;
 	private TextView mTrainingCommentText;
@@ -207,6 +209,8 @@ public class TrainingActivity extends Activity implements SwipeListener,
 		mBottomContainer = (RelativeLayout) findViewById(R.id.bottomContainer);
 		mInfoButton = (ImageView) findViewById(R.id.info_button);
         mSkipButton = (ImageView) findViewById(R.id.skip_button);
+        mNextButton = (ImageView) findViewById(R.id.next_button);
+        mPrevButton = (ImageView) findViewById(R.id.prev_button);
 		mSeriesInformation = (LinearLayout) findViewById(R.id.seriesInformation);
 		mSeriesInfoText = (TextView) findViewById(R.id.nextSeriesText);
 		mTrainingCommentText = (TextView) findViewById(R.id.textTrainingComment);
@@ -755,11 +759,13 @@ public class TrainingActivity extends Activity implements SwipeListener,
 			mSeriesInformation.setVisibility(View.INVISIBLE);
 			mTrainingSelector.setVisibility(View.VISIBLE);
 			mSwipeControl.setVisibility(View.INVISIBLE);
+            mNextButton.setVisibility(View.INVISIBLE);
+            mPrevButton.setVisibility(View.INVISIBLE);
 		} else if (mCurrentTraining.getCurrentExercise() == null) {
 			if (!mCurrentTraining.isTrainingEnded()) {
+                // no more exercises, show the done button
 				showEditDetailsViewIfDemanded();
 
-				// no more exercises, show the done button
 				mCircularProgress.setCurrentState(CircularProgressState.STOP);
 				mSeriesInfoText.setText("tap to finish");
 				mBottomContainer.setVisibility(View.INVISIBLE);
@@ -781,6 +787,8 @@ public class TrainingActivity extends Activity implements SwipeListener,
 				mSeriesInfoText.setText("tap to close");
 				mBottomContainer.setVisibility(View.VISIBLE);
 				mSwipeControl.setVisibility(View.VISIBLE);
+                mNextButton.setVisibility(View.INVISIBLE);
+                mPrevButton.setVisibility(View.INVISIBLE);
 				mTrainingSelector.setVisibility(View.INVISIBLE);
 				mSwipeControl.setCenterText("", "GREAT JOB!");
 			}
@@ -878,6 +886,8 @@ public class TrainingActivity extends Activity implements SwipeListener,
 			mSeriesInformation.setVisibility(View.VISIBLE);
 			mTrainingSelector.setVisibility(View.INVISIBLE);
 			mSwipeControl.setVisibility(View.VISIBLE);
+            mNextButton.setVisibility(View.VISIBLE);
+            mPrevButton.setVisibility(View.VISIBLE);
 			mSwipeControl.setSwipeEnabled(true);
 			mImageArrowSeriesInfo.setVisibility(View.VISIBLE);
 		}
