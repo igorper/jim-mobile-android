@@ -62,6 +62,16 @@ public class TrainingActivity extends Activity implements SwipeListener,
 	 */
 	private static final int REST_PROGRESS_UPDATE_RATE = 300;
 
+    /**
+     * Default series rating used when the user quickly finishes the series (doesn't
+     * edit series details information). Additionally as a default selection in
+     * edit series details view.
+     *
+     * Note: Numbers correspond to TRAINING_RATING_IMAGES and TRAINING_RATING_SELECTED_IMAGES
+     * arrays.
+     */
+    private static final int DEFAULT_SERIES_RATING = 1;
+
 	private PermanentSettings mSettings;
 	private ResponseReceiver mBroadcastReceiver;
 
@@ -81,7 +91,7 @@ public class TrainingActivity extends Activity implements SwipeListener,
 	private TextView mTrainingCommentText;
 	private LinearLayout mAnimationRectangle;
 	private ImageView mImageArrowSeriesInfo;
-	private LinearLayout mViewRateExercise;
+	private LinearLayout mViewDuringExercise;
 	private CheckBox mEditDetailsCheckbox;
 	private RelativeLayout mEditDetailsView;
 	private EditText mEditRepetitionsValue;
@@ -200,7 +210,7 @@ public class TrainingActivity extends Activity implements SwipeListener,
 		mTrainingCommentText = (TextView) findViewById(R.id.textTrainingComment);
 		mAnimationRectangle = (LinearLayout) findViewById(R.id.animationRectangle);
 		mImageArrowSeriesInfo = (ImageView) findViewById(R.id.imageArrowSeriesInfo);
-		mViewRateExercise = (LinearLayout) findViewById(R.id.viewRateExercise);
+		mViewDuringExercise = (LinearLayout) findViewById(R.id.viewDuringExercise);
 //		mEditDetailsCheckbox = (CheckBox) findViewById(R.id.checkbox_edit_details);
 		mEditDetailsView = (RelativeLayout)findViewById(R.id.editDetailsView);
 		mEditRepetitionsValue = (EditText)findViewById(R.id.editRepetitionsValue);
@@ -284,33 +294,18 @@ public class TrainingActivity extends Activity implements SwipeListener,
 	 *            contains the reference to the clicked exercise rating image.
 	 */
 	public void onExerciseRatingSelected(View v) {
-		ImageView trainingRatingSelected = (ImageView) v;
+		ImageView exerciseRatingImage = (ImageView) v;
 
-        int imageSelectedPadding = getResources().getDimensionPixelSize(
-                R.dimen.training_rating_smile_selected_padding);
-        int imagePadding = getResources().getDimensionPixelSize(
-                R.dimen.training_rating_smile_padding);
-
-        // loop through training ratings image views and set the appropriate
-        // image
-        for (int i = 0; i < mExerciseRatingImages.length; i++) {
-            if (mExerciseRatingImages[i] == trainingRatingSelected) {
-                mExerciseRatingImages[i]
-                        .setImageResource(TRAINING_RATING_SELECTED_IMAGES[i]);
-                mExerciseRatingImages[i].setPadding(imageSelectedPadding,
-                        imageSelectedPadding, imageSelectedPadding,
-                        imageSelectedPadding);
-                mExerciseRatingSelectedID = i;
-            } else {
-                mExerciseRatingImages[i]
-                        .setImageResource(TRAINING_RATING_IMAGES[i]);
-                mExerciseRatingImages[i].setPadding(imagePadding, imagePadding,
-                        imagePadding, imagePadding);
-            }
-        }
+        selectSeriesRatingIcon(exerciseRatingImage);
 	}
 
+    /**
+     * Manages series rating image views (smile icons).
+     * Selects the input imageView and deselect all the other rating image views.
+     * @param ratingImageSelected is the selected imageView
+     */
     private void selectSeriesRatingIcon(ImageView ratingImageSelected){
+        // different padding as we make the selected image a bit larger
         int imageSelectedPadding = getResources().getDimensionPixelSize(
                 R.dimen.training_rating_smile_selected_padding);
         int imagePadding = getResources().getDimensionPixelSize(
@@ -325,6 +320,8 @@ public class TrainingActivity extends Activity implements SwipeListener,
                 mExerciseRatingImages[i].setPadding(imageSelectedPadding,
                         imageSelectedPadding, imageSelectedPadding,
                         imageSelectedPadding);
+                // set global information about the selected rating (this will also be used
+                // to store the rating to the corresponding SeriesExecution)
                 mExerciseRatingSelectedID = i;
             } else {
                 mExerciseRatingImages[i]
@@ -335,16 +332,22 @@ public class TrainingActivity extends Activity implements SwipeListener,
         }
     }
 
-    private void finishSeries(int rating){
-        // select the default rating
-        selectSeriesRatingIcon(mExerciseRatingImages[1]);
+    /**
+     * Finish series and set the input rating.
+     */
+    private void finishSeries(){
+        // store the default series rating (for quick entry). In case of edit series details
+        // the rating can be changed later on (in edit series details view).
+        mCurrentTraining.setCurrentSeriesExecutionRating(DEFAULT_SERIES_RATING);
 
-        mCurrentTraining.setCurrentSeriesExecutionRating(rating);
-        mViewRateExercise.setVisibility(View.GONE);
+        // hide the screen that is shown during exercising
+        mViewDuringExercise.setVisibility(View.GONE);
 
-        // get acceleration timestamps only if acceleration sampling is enabled
+        // stop acceleration sampling and get acceleration timestamps only if acceleration sampling is enabled
         AccelerationRecordingTimestamps timestamps = getResources().getBoolean(R.bool.sample_acceleration) ? mAccelerationRecorder
                 .stopAccelerationSampling() : null;
+
+        // end this exercise (series)
         mCurrentTraining.endExercise(timestamps);
 
         // advance to the next activity
@@ -364,7 +367,7 @@ public class TrainingActivity extends Activity implements SwipeListener,
     public void onSeriesDoneClick(View v) {
         ImageView trainingRatingSelected = (ImageView) v;
 
-        finishSeries(1);
+        finishSeries();
     }
 
     /**
@@ -374,10 +377,14 @@ public class TrainingActivity extends Activity implements SwipeListener,
      *            contains the reference to the clicked imageview
      */
     public void onSeriesDetailsClick(View v) {
-        ImageView trainingRatingSelected = (ImageView) v;
+        // select default rating icon on screen
+        selectSeriesRatingIcon(mExerciseRatingImages[DEFAULT_SERIES_RATING]);
 
+        // we will want to show the view for editing this series
         mEditSeriesDetails = true;
-        finishSeries(1);
+
+        // finish series with the default series rating
+        finishSeries();
     }
 
 	/*
@@ -638,7 +645,7 @@ public class TrainingActivity extends Activity implements SwipeListener,
 	}
 
 	private void changeTrainingPlanState() {
-		if (mViewRateExercise.getVisibility() == View.VISIBLE) {
+		if (mViewDuringExercise.getVisibility() == View.VISIBLE) {
 			// exercise has to be rated before doing anything else
 
 		} else if (mCircularProgress.isInfoVisible()) {
@@ -964,7 +971,7 @@ public class TrainingActivity extends Activity implements SwipeListener,
 	}
 
 	private void showExerciseRateView() {
-		mViewRateExercise.setVisibility(View.VISIBLE);
+		mViewDuringExercise.setVisibility(View.VISIBLE);
 	}
 
 	/*

@@ -157,6 +157,7 @@
                 </LinearLayout>
             </LinearLayout>
 
+            <!-- START: EDIT SERIES DETAILS VIEW -->
             <RelativeLayout
                 android:id="@+id/editDetailsView"
                 android:layout_width="match_parent"
@@ -173,6 +174,7 @@
                     android:orientation="vertical"
                     android:visibility="visible" >
 
+                    <!-- TITLE -->
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -185,43 +187,45 @@
                         android:textColor="@color/rate_training_text"
                         android:textSize="@dimen/training_rating_title_text_size" />
 
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:visibility="visible" >
+                    <!-- SMILE RATINGS -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:visibility="visible" >
 
-                    <ImageView
-                        android:id="@+id/exerciseRating1"
-                        android:layout_width="0dp"
-                        android:layout_height="100dp"
-                        android:layout_weight="1"
-                        android:clickable="true"
-                        android:onClick="onExerciseRatingSelected"
-                        android:padding="@dimen/exercise_rating_smile_padding"
-                        android:src="@drawable/rating1" />
+                        <ImageView
+                            android:id="@+id/exerciseRating1"
+                            android:layout_width="0dp"
+                            android:layout_height="100dp"
+                            android:layout_weight="1"
+                            android:clickable="true"
+                            android:onClick="onExerciseRatingSelected"
+                            android:padding="@dimen/exercise_rating_smile_padding"
+                            android:src="@drawable/rating1" />
 
-                    <ImageView
-                        android:id="@+id/exerciseRating2"
-                        android:layout_width="0dp"
-                        android:layout_height="match_parent"
-                        android:layout_weight="1"
-                        android:clickable="true"
-                        android:onClick="onExerciseRatingSelected"
-                        android:padding="@dimen/exercise_rating_smile_padding"
-                        android:src="@drawable/rating2" />
+                        <ImageView
+                            android:id="@+id/exerciseRating2"
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:clickable="true"
+                            android:onClick="onExerciseRatingSelected"
+                            android:padding="@dimen/exercise_rating_smile_padding"
+                            android:src="@drawable/rating2" />
 
-                    <ImageView
-                        android:id="@+id/exerciseRating3"
-                        android:layout_width="0dp"
-                        android:layout_height="match_parent"
-                        android:layout_weight="1"
-                        android:clickable="true"
-                        android:onClick="onExerciseRatingSelected"
-                        android:padding="@dimen/exercise_rating_smile_padding"
-                        android:src="@drawable/rating3" />
+                        <ImageView
+                            android:id="@+id/exerciseRating3"
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:clickable="true"
+                            android:onClick="onExerciseRatingSelected"
+                            android:padding="@dimen/exercise_rating_smile_padding"
+                            android:src="@drawable/rating3" />
                     </LinearLayout>
 
+                    <!-- EDIT REPETITIONS -->
                     <RelativeLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content" >
@@ -247,6 +251,7 @@
                             android:textSize="@dimen/edit_details_popup_label_text_size" />
                     </RelativeLayout>
 
+                    <!-- EDIT WEIGHT -->
                     <RelativeLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content" >
@@ -270,9 +275,9 @@
                             android:text="10"
                             android:textColor="@color/input_text"
                             android:textSize="@dimen/edit_details_popup_label_text_size" />
-
                     </RelativeLayout>
 
+                    <!-- COMMENT -->
                     <EditText
                         android:id="@+id/editCommentValue"
                         android:layout_width="match_parent"
@@ -286,6 +291,7 @@
                         android:textAppearance="?android:attr/textAppearanceLarge"
                         android:textColor="@color/input_text" />
 
+                    <!-- SAVE/DONE BUTTON -->
                     <Button
                         style="@style/standard_button"
                         android:layout_width="match_parent"
@@ -296,6 +302,7 @@
                 </LinearLayout>
             </RelativeLayout>
 
+            <!-- START: TEMPO ANIMATION VIEW -->
             <LinearLayout
                 android:id="@+id/animationRectangle"
                 android:layout_width="match_parent"
@@ -305,9 +312,11 @@
                 android:orientation="horizontal"
                 android:visibility="gone" >
             </LinearLayout>
+            <!-- END -->
 
+            <!-- START: THE VIEW SHOWN DURING THE EXERCISE -->
             <LinearLayout
-                android:id="@+id/viewRateExercise"
+                android:id="@+id/viewDuringExercise"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:background="@color/rate_exercise_background"
@@ -337,6 +346,7 @@
                         android:src="@drawable/ic_edit" />
                 </RelativeLayout>
             </LinearLayout>
+            <!-- END -->
 
         </RelativeLayout>
 
