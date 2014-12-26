@@ -826,6 +826,8 @@ public class TrainingActivity extends Activity implements SwipeListener,
 						curSeries.getWeight()));
 				mSeriesInformation.setVisibility(View.VISIBLE);
 
+                mCircularProgress.setTimerMessage("RESTING");
+
 				// get ready timer was not started yet so show the rest timer
 				if (mGetReadyStartTimestamp == -1) {
 					int currentRest = curSeries.getRestTime();
@@ -837,7 +839,7 @@ public class TrainingActivity extends Activity implements SwipeListener,
 				} else {
 					mCircularProgress.setRestMaxProgress(mGetReadyInterval);
 					mCircularProgress.setRestMinProgress(0);
-					mCircularProgress.setTimerMessage("Get ready!");
+					mCircularProgress.setTimerMessage("GET READY");
 
 					mUiHandler.postDelayed(mGetReadyTimer, 0);
 				}
