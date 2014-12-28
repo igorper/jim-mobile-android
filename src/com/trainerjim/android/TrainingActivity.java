@@ -506,7 +506,13 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
 			String trainingName = trainings.getString(trainings
 					.getColumnIndex(TrainingPlan.NAME));
 			mTrainingSelectorText.setText(trainingName);
-		}
+            mTrainingSelector.setVisibility(View.VISIBLE);
+            mTextRectOneLine.setVisibility(View.GONE);
+		} else {
+            mTrainingSelector.setVisibility(View.GONE);
+            mTextRectOneLine.setText("NO TRAININGS.");
+            mTextRectOneLine.setVisibility(View.VISIBLE);
+        }
 	}
 
 	/**
@@ -783,6 +789,7 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
 				mViewFlipper.showNext();
 			} else {
 				// show overview
+                mTextRectOneLine.setText("GREAT JOB!");
 
 				mCircularProgress.setNumberTotal(mCurrentTraining
 						.getTotalTrainingDuration());
