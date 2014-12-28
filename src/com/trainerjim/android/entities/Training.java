@@ -190,12 +190,19 @@ public class Training {
 		Exercise currentExercise = exercises.get(mExercisesToDo.get(0));
 		Series currentSeries = currentExercise.getCurrentSeries();
 
+        // if the exercise was tempo guided, count the number of completed tempo guidance
+        // repetitions, otherwise use the number of planned repetitions
+        int executedRepetitions = currentExercise.getGuidanceType().equals(
+                Exercise.GUIDANCE_TYPE_TEMPO) ?
+                currentSeries.getCurrentRepetition() :
+                currentSeries.getNumberTotalRepetitions();
+
 		// create series execution
 		SeriesExecution currentSeriesExecution = null;
 		if (timestamps == null) {
 			currentSeriesExecution = SeriesExecution
 					.create(currentExercise.getExerciseType().getId(),
-							currentSeries.getCurrentRepetition(),
+                            executedRepetitions,
 							currentSeries.getWeight(),
 							calculateDurationInSeconds(mLastPauseStart,
 									mExerciseStart),
@@ -209,7 +216,7 @@ public class Training {
 					.create(timestamps.getStartTimestamp(),
 							timestamps.getEndTimestamp(),
 							currentExercise.getExerciseType().getId(),
-							currentSeries.getCurrentRepetition(),
+                            executedRepetitions,
 							currentSeries.getWeight(),
 							calculateDurationInSeconds(mLastPauseStart,
 									mExerciseStart),
