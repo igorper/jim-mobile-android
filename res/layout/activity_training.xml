@@ -184,18 +184,6 @@
                                 android:alpha="0.5"
                                 android:onClick="onNextExerciseClick"
                                 android:src="@drawable/ic_next" />
-
-                            <com.trainerjim.android.ui.SwipeControl
-                                android:id="@+id/swipeControl"
-                                android:layout_width="match_parent"
-                                android:layout_height="match_parent"
-                                android:fadingEdge="none"
-                                android:fillViewport="true"
-                                android:scrollbars="none"
-                                android:visibility="gone"
-                                jim:textLeftOff="Later"
-                                jim:textRightOff="Skip"
-                                jim:typefacePathAssets="fonts/OpenSans-Regular.ttf" />
                         </RelativeLayout>
 
                         <LinearLayout

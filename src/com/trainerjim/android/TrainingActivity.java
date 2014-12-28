@@ -41,15 +41,12 @@ import com.trainerjim.android.storage.TrainingContentProvider.TrainingPlan;
 import com.trainerjim.android.ui.CircularProgressControl;
 import com.trainerjim.android.ui.RepetitionAnimation;
 import com.trainerjim.android.ui.RepetitionAnimationListener;
-import com.trainerjim.android.ui.SwipeControl;
-import com.trainerjim.android.ui.SwipeListener;
 import com.trainerjim.android.ui.CircularProgressControl.CircularProgressState;
 import com.trainerjim.android.util.Utils;
 
 import org.w3c.dom.Text;
 
-public class TrainingActivity extends Activity implements SwipeListener,
-		RepetitionAnimationListener {
+public class TrainingActivity extends Activity implements RepetitionAnimationListener {
 
 	private static final String TAG = Utils.getApplicationTag();
 
@@ -82,7 +79,6 @@ public class TrainingActivity extends Activity implements SwipeListener,
 	 */
 	private CircularProgressControl mCircularProgress;
 	private ViewFlipper mViewFlipper;
-	private SwipeControl mSwipeControl;
 	private LinearLayout mTrainingSelector;
     private LinearLayout mLayoutRectTrainingSelector;
     private LinearLayout mLayoutRectLowerLine;
@@ -210,7 +206,6 @@ public class TrainingActivity extends Activity implements SwipeListener,
 
 		mCircularProgress = (CircularProgressControl) findViewById(R.id.circularProgress);
 		mViewFlipper = (ViewFlipper) findViewById(R.id.viewFlipper);
-		mSwipeControl = (SwipeControl) findViewById(R.id.swipeControl);
 		mTrainingSelector = (LinearLayout) findViewById(R.id.trainingSelector);
         mLayoutRectTrainingSelector = (LinearLayout) findViewById(R.id.layout_rect_training_selector);
         mLayoutRectLowerLine = (LinearLayout)findViewById(R.id.layout_rect_lower_line);
@@ -262,8 +257,6 @@ public class TrainingActivity extends Activity implements SwipeListener,
         });
 		
 		mCircularProgress.setOnClickListener(mCircularButtonClick);
-
-		mSwipeControl.addSwipeListener(this);
 
 		mRepetitionAnimation = new RepetitionAnimation(mAnimationRectangle,
 				mUiHandler);
@@ -424,7 +417,6 @@ public class TrainingActivity extends Activity implements SwipeListener,
 	@Override
 	protected void onDestroy() {
 		unregisterReceiver(mBroadcastReceiver);
-		mSwipeControl.removeSwipeListener(this);
 		mRepetitionAnimation.removeRepetitionAnimationListener(this);
 
 		// remove all periodical tasks
@@ -772,7 +764,6 @@ public class TrainingActivity extends Activity implements SwipeListener,
 			mBottomContainer.setVisibility(View.VISIBLE);
 			mSeriesInformation.setVisibility(View.INVISIBLE);
 			mTrainingSelector.setVisibility(View.VISIBLE);
-			mSwipeControl.setVisibility(View.INVISIBLE);
             mTextRectOneLine.setVisibility(View.INVISIBLE);
             mLayoutRectTrainingSelector.setVisibility(View.VISIBLE);
             mLayoutRectLowerLine.setVisibility(View.GONE);
@@ -807,14 +798,12 @@ public class TrainingActivity extends Activity implements SwipeListener,
                 mNextButton.setVisibility(View.INVISIBLE);
                 mPrevButton.setVisibility(View.INVISIBLE);
 				mTrainingSelector.setVisibility(View.INVISIBLE);
-				mSwipeControl.setCenterText("", "GREAT JOB!");
                 mTextRectOneLine.setVisibility(View.VISIBLE);
 			}
 
 			mInfoButton.setVisibility(View.INVISIBLE);
             mSkipButton.setVisibility(View.INVISIBLE);
 			mSeriesInformation.setVisibility(View.VISIBLE);
-			mSwipeControl.setSwipeEnabled(false);
 			mImageArrowSeriesInfo.setVisibility(View.GONE);
 		} else {
 			// in general, show no timer message
@@ -835,8 +824,6 @@ public class TrainingActivity extends Activity implements SwipeListener,
 				// now show all the common information
 				Series curSeries = curExercise.getCurrentSeries();
 				mCircularProgress.setCurrentState(CircularProgressState.REST);
-				mSwipeControl.setCenterText("Next: ", curExercise
-						.getExerciseType().getName());
 
                 mTextRectUpperLine.setText("NEXT");
                 mTextRectLowerLine.setText(curExercise
@@ -879,13 +866,6 @@ public class TrainingActivity extends Activity implements SwipeListener,
 						.getTotalSeriesForCurrentExercise());
 				mCircularProgress
 						.setCurrentState(CircularProgressState.EXERCISE);
-				mSwipeControl.setCenterText(
-						"",
-						String.format("%s %d", mCurrentTraining
-								.getCurrentExercise().getExerciseType()
-								.getName(), mCurrentTraining
-								.getCurrentExercise().getCurrentSeries()
-								.getWeight()));
 
 				mSeriesInformation.setVisibility(View.INVISIBLE);
 
@@ -914,7 +894,6 @@ public class TrainingActivity extends Activity implements SwipeListener,
 			// TODO: mSwipeControl.setVisibility(View.VISIBLE);
             mNextButton.setVisibility(View.VISIBLE);
             mPrevButton.setVisibility(View.VISIBLE);
-			mSwipeControl.setSwipeEnabled(true);
 			mImageArrowSeriesInfo.setVisibility(View.VISIBLE);
 		}
 	}
@@ -997,52 +976,6 @@ public class TrainingActivity extends Activity implements SwipeListener,
 		Intent intent = new Intent(TrainingActivity.this,
 				TrainingSelectionList.class);
 		startActivityForResult(intent, ACTIVITY_REQUEST_TRAININGS_LIST);
-	}
-
-	/*
-	 * Schedule exercise later. Ends the current exercise if in the middle of
-	 * exercising.
-	 * 
-	 * @see net.pernek.jim.exercisedetector.ui.SwipeListener#onSwipeRight()
-	 */
-	@Override
-	public void onSwipeRight() {
-		// don't do anything if exercise can not be scheduled for later
-		if (!mCurrentTraining.canScheduleLater()) {
-			return;
-		}
-
-		if (!mCurrentTraining.isCurrentRest()) {
-			AccelerationRecordingTimestamps timestamps = mAccelerationRecorder
-					.stopAccelerationSampling();
-			mCurrentTraining.endExercise(timestamps);
-
-			// TODO: user should optionally rate the exercise here (scheduling
-			// the exercise for later because it was too hard)
-		}
-
-		// disable the get ready timer
-		mGetReadyStartTimestamp = -1;
-
-		// cancel the repetition animation if running
-		if (mRepetitionAnimation.isAnimationRunning()) {
-			mRepetitionAnimation.cancelAnimation();
-		}
-
-		mCurrentTraining.scheduleExerciseLater();
-		saveCurrentTraining();
-		toggleInfoButtonVisible(false);
-		updateScreen();
-	}
-
-	/*
-	 * Skip exercise. Ends the current exercise if in the middle of exercising.
-	 * 
-	 * @see net.pernek.jim.exercisedetector.ui.SwipeListener#onSwipeLeft()
-	 */
-	@Override
-	public void onSwipeLeft() {
-		skipExercise();
 	}
 
     /**
