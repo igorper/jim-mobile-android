@@ -77,15 +77,6 @@
                             android:layout_gravity="center"
                             android:background="@color/status_rect_background" >
 
-                            <ImageView
-                                android:id="@+id/prev_button"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_alignParentLeft="true"
-                                android:adjustViewBounds="true"
-                                android:visibility="invisible"
-                                android:src="@drawable/ic_before" />
-
                             <LinearLayout
                                 android:id="@+id/trainingSelector"
                                 android:layout_width="match_parent"
@@ -94,6 +85,7 @@
                                 android:orientation="vertical" >
 
                                 <TextView
+                                    android:id="@+id/text_rect_upper_line"
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
                                     android:gravity="center"
@@ -109,10 +101,12 @@
                                     <!-- It's really hard to pick the optimal triangle size and align it with the text (this should be done from scratch with low level drawing in the future -->
 
                                     <LinearLayout
+                                        android:id="@+id/layout_rect_training_selector"
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
                                         android:layout_alignParentTop="true"
-                                        android:layout_centerHorizontal="true" >
+                                        android:layout_centerHorizontal="true"
+                                        android:visibility="gone">
 
                                         <TextView
                                             android:id="@+id/trainingSelectorText"
@@ -125,6 +119,7 @@
                                             android:textSize="@dimen/select_training_text_size" />
 
                                         <ImageView
+                                            android:id="@+id/arrow_rect_lower_line"
                                             android:layout_width="wrap_content"
                                             android:layout_height="wrap_content"
                                             android:layout_gravity="top|left"
@@ -133,8 +128,51 @@
                                             android:scaleType="fitCenter"
                                             android:src="@drawable/arrow_red_down" />
                                     </LinearLayout>
+
+                                    <LinearLayout
+                                        android:id="@+id/layout_rect_lower_line"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:layout_alignParentTop="true"
+                                        android:layout_centerHorizontal="true"
+                                        android:visibility="gone">
+
+                                        <TextView
+                                            android:id="@+id/text_rect_lower_line"
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:layout_gravity="center_vertical"
+                                            android:gravity="top"
+                                            android:includeFontPadding="false"
+                                            android:textColor="@color/select_training_text"
+                                            android:textSize="@dimen/select_training_text_size"
+                                            android:text="Triceps"/>
+                                    </LinearLayout>
                                 </RelativeLayout>
                             </LinearLayout>
+
+                            <TextView
+                                android:id="@+id/text_rect_one_line"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:layout_gravity="center_vertical"
+                                android:gravity="center"
+                                android:textAlignment="center"
+                                android:text="GREAT JOB"
+                                android:textColor="@color/cpc_overview_dash"
+                                android:visibility="invisible"
+                                android:textSize="40dp" />
+
+                            <ImageView
+                                android:id="@+id/prev_button"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_alignParentLeft="true"
+                                android:adjustViewBounds="true"
+                                android:visibility="invisible"
+                                android:alpha="0.5"
+                                android:onClick="onPrevExerciseClick"
+                                android:src="@drawable/ic_before" />
 
                             <ImageView
                                 android:id="@+id/next_button"
@@ -143,6 +181,8 @@
                                 android:layout_alignParentRight="true"
                                 android:adjustViewBounds="true"
                                 android:visibility="invisible"
+                                android:alpha="0.5"
+                                android:onClick="onNextExerciseClick"
                                 android:src="@drawable/ic_next" />
 
                             <com.trainerjim.android.ui.SwipeControl
@@ -152,7 +192,7 @@
                                 android:fadingEdge="none"
                                 android:fillViewport="true"
                                 android:scrollbars="none"
-                                android:visibility="invisible"
+                                android:visibility="gone"
                                 jim:textLeftOff="Later"
                                 jim:textRightOff="Skip"
                                 jim:typefacePathAssets="fonts/OpenSans-Regular.ttf" />

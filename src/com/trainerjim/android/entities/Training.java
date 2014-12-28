@@ -255,6 +255,14 @@ public class Training {
 		}
 	}
 
+    public void moveToPreviousExercise(){
+        if(mExercisesToDo.size() > 1){
+            int prevExercise = mExercisesToDo.get(mExercisesToDo.size() - 1);
+            mExercisesToDo.remove(mExercisesToDo.size() - 1);
+            mExercisesToDo.add(0, prevExercise);
+        }
+    }
+
 	/**
 	 * @return <code>true</code> if the exercise can be scheduled for later,
 	 *         otherwise <code>false</code>.
