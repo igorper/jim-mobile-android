@@ -2,7 +2,6 @@ package com.trainerjim.android;
 
 import java.io.IOException;
 
-import net.pernek.jim.exercisedetector.R;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
@@ -1017,7 +1016,7 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
 	 * Repetition animation has legally ended so we should advance the training
 	 * plan.
 	 * 
-	 * @see net.pernek.jim.exercisedetector.ui.RepetitionAnimationListener#
+	 * @see com.trainerjim.android.ui.RepetitionAnimationListener#
 	 * onAnimationEnded()
 	 */
 	@Override
@@ -1031,8 +1030,8 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
 
 	/*
 	 * Triggered after each individual repetition is executed.
-	 * 
-	 * @see net.pernek.jim.exercisedetector.ui.RepetitionAnimationListener#
+	 *
+	 * @see com.trainerjim.android.ui.RepetitionAnimationListener#
 	 * onRepetitionCompleted()
 	 */
 	@Override

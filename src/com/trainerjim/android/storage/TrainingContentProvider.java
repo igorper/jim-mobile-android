@@ -23,7 +23,7 @@ public class TrainingContentProvider extends ContentProvider {
 
 	private static final String TAG = Utils.getApplicationTag();
 
-	public static final String AUTHORITY = "net.pernek.jim.provider.JimContentProvider";
+	public static final String AUTHORITY = "com.trainerjim.android.storage.TrainingContentProvider";
 
 	private static final String DATABASE_NAME = "jim.db";
 	private static final int DATABASE_VERSION = 1;

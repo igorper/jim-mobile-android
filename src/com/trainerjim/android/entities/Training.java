@@ -201,29 +201,27 @@ public class Training {
 		SeriesExecution currentSeriesExecution = null;
 		if (timestamps == null) {
 			currentSeriesExecution = SeriesExecution
-					.create(currentExercise.getExerciseType().getId(),
+					.create(currentSeries.getId(),
                             executedRepetitions,
 							currentSeries.getWeight(),
 							calculateDurationInSeconds(mLastPauseStart,
 									mExerciseStart),
 							calculateDurationInSeconds(mExerciseStart,
 									exerciseEnd),
-							mCurrentSeriesExecutionRating, currentExercise
-									.getGuidanceType());
+							mCurrentSeriesExecutionRating);
 
 		} else {
 			currentSeriesExecution = SeriesExecution
 					.create(timestamps.getStartTimestamp(),
 							timestamps.getEndTimestamp(),
-							currentExercise.getExerciseType().getId(),
+							currentSeries.getId(),
                             executedRepetitions,
 							currentSeries.getWeight(),
 							calculateDurationInSeconds(mLastPauseStart,
 									mExerciseStart),
 							calculateDurationInSeconds(mExerciseStart,
 									exerciseEnd),
-							mCurrentSeriesExecutionRating, currentExercise
-									.getGuidanceType());
+							mCurrentSeriesExecutionRating);
 		}
 
 		// reset the series execution rating for the next exercise

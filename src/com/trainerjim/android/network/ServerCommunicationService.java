@@ -19,8 +19,6 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
-import net.pernek.jim.exercisedetector.R;
-
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -59,6 +57,7 @@ import android.database.Cursor;
 import android.util.Log;
 
 import com.google.gson.Gson;
+import com.trainerjim.android.R;
 import com.trainerjim.android.entities.Measurement;
 import com.trainerjim.android.entities.Training;
 import com.trainerjim.android.storage.TrainingContentProvider.CompletedTraining;
