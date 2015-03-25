@@ -3,7 +3,6 @@ package com.trainerjim.android;
 import com.trainerjim.android.network.ServerCommunicationService;
 import com.trainerjim.android.storage.PermanentSettings;
 
-import net.pernek.jim.exercisedetector.R;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;

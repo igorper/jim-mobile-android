@@ -12,16 +12,15 @@ public class SeriesExecution {
 	/**
 	 * Those two mark the bounding timestamps of the acceleration signal.
 	 */
-	private long start_timestamp;
-	private long end_timestamp;
+	private Long start_timestamp;
+	private Long end_timestamp;
 
-	public int exercise_type_id;
+	public int series_id;
 	public int num_repetitions;
 	public int weight;
 	public int rest_time;
 	private int duration;
 	public int rating;
-	private String guidance_type;
 
 	private SeriesExecution() {
 
@@ -31,20 +30,19 @@ public class SeriesExecution {
 	 * Creates the series execution object with no timestamps information
 	 * available (this means no acceleration sampling was performed).
 	 * 
-	 * @param exerciseTypeId
+	 * @param seriesId
 	 * @param numRepetitions
 	 * @param weight
 	 * @param restTime
 	 * @param duration
 	 * @param rating
-	 * @param guidanceType
 	 * @return
 	 */
-	public static SeriesExecution create(int exerciseTypeId,
+	public static SeriesExecution create(int seriesId,
 			int numRepetitions, int weight, int restTime, int duration,
-			int rating, String guidanceType) {
-		return SeriesExecution.create(-1, -1, exerciseTypeId, numRepetitions,
-				weight, restTime, duration, rating, guidanceType);
+			int rating) {
+		return SeriesExecution.create(null, null, seriesId, numRepetitions,
+				weight, restTime, duration, rating);
 	}
 
 	/**
@@ -53,28 +51,26 @@ public class SeriesExecution {
 	 * 
 	 * @param startTimestamp
 	 * @param endTimestamp
-	 * @param exerciseTypeId
+	 * @param seriesId
 	 * @param numRepetitions
 	 * @param weight
 	 * @param restTime
 	 * @param duration
 	 * @param rating
-	 * @param guidanceType
 	 * @return
 	 */
-	public static SeriesExecution create(long startTimestamp,
-			long endTimestamp, int exerciseTypeId, int numRepetitions,
-			int weight, int restTime, int duration, int rating, String guidanceType) {
+	public static SeriesExecution create(Long startTimestamp,
+			Long endTimestamp, int seriesId, int numRepetitions,
+			int weight, int restTime, int duration, int rating) {
 		SeriesExecution retVal = new SeriesExecution();
 		retVal.start_timestamp = startTimestamp;
 		retVal.end_timestamp = endTimestamp;
-		retVal.exercise_type_id = exerciseTypeId;
+		retVal.series_id = seriesId;
 		retVal.num_repetitions = numRepetitions;
 		retVal.weight = weight;
 		retVal.rest_time = restTime;
 		retVal.duration = duration;
 		retVal.rating = rating;
-		retVal.guidance_type = guidanceType;
 
 		return retVal;
 	}
@@ -103,4 +99,8 @@ public class SeriesExecution {
 	public int getRepetitions(){
 		return num_repetitions;
 	}
+
+    public void setRating(int rating){
+        this.rating = rating;
+    }
 }

@@ -21,6 +21,14 @@ public class Series {
 	 ***********************/
 	private int mCurrentRepetition;
 
+    /**
+     * Gets the unique id of the series.
+     * @return
+     */
+    public int getId(){
+        return id;
+    }
+
 	/**
 	 * Gets the planned number of repetitions for this series.
 	 * 

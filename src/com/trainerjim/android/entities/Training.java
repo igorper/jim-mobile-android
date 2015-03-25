@@ -33,7 +33,7 @@ public class Training {
 	/**
 	 * Size of the buffer used for copying data between streams.
 	 */
-	private static final int COPY_BUFFER = 2048;
+	private static final int COPY_BUFFER = 512000;
 
 	/***********************
 	 * Fields deserialized from server data;
@@ -190,33 +190,38 @@ public class Training {
 		Exercise currentExercise = exercises.get(mExercisesToDo.get(0));
 		Series currentSeries = currentExercise.getCurrentSeries();
 
+        // if the exercise was tempo guided, count the number of completed tempo guidance
+        // repetitions, otherwise use the number of planned repetitions
+        int executedRepetitions = currentExercise.getGuidanceType().equals(
+                Exercise.GUIDANCE_TYPE_TEMPO) ?
+                currentSeries.getCurrentRepetition() :
+                currentSeries.getNumberTotalRepetitions();
+
 		// create series execution
 		SeriesExecution currentSeriesExecution = null;
 		if (timestamps == null) {
 			currentSeriesExecution = SeriesExecution
-					.create(currentExercise.getExerciseType().getId(),
-							currentSeries.getCurrentRepetition(),
+					.create(currentSeries.getId(),
+                            executedRepetitions,
 							currentSeries.getWeight(),
 							calculateDurationInSeconds(mLastPauseStart,
 									mExerciseStart),
 							calculateDurationInSeconds(mExerciseStart,
 									exerciseEnd),
-							mCurrentSeriesExecutionRating, currentExercise
-									.getGuidanceType());
+							mCurrentSeriesExecutionRating);
 
 		} else {
 			currentSeriesExecution = SeriesExecution
 					.create(timestamps.getStartTimestamp(),
 							timestamps.getEndTimestamp(),
-							currentExercise.getExerciseType().getId(),
-							currentSeries.getCurrentRepetition(),
+							currentSeries.getId(),
+                            executedRepetitions,
 							currentSeries.getWeight(),
 							calculateDurationInSeconds(mLastPauseStart,
 									mExerciseStart),
 							calculateDurationInSeconds(mExerciseStart,
 									exerciseEnd),
-							mCurrentSeriesExecutionRating, currentExercise
-									.getGuidanceType());
+							mCurrentSeriesExecutionRating);
 		}
 
 		// reset the series execution rating for the next exercise
@@ -254,6 +259,14 @@ public class Training {
 			mExercisesToDo.add(newLastExercise);
 		}
 	}
+
+    public void moveToPreviousExercise(){
+        if(mExercisesToDo.size() > 1){
+            int prevExercise = mExercisesToDo.get(mExercisesToDo.size() - 1);
+            mExercisesToDo.remove(mExercisesToDo.size() - 1);
+            mExercisesToDo.add(0, prevExercise);
+        }
+    }
 
 	/**
 	 * @return <code>true</code> if the exercise can be scheduled for later,
@@ -520,7 +533,7 @@ public class Training {
 	 * @return
 	 */
 	public boolean zipToFile(String trainingManifestPartName,
-			String rawDataPartName) {
+			String rawDataPartName, boolean sampleAcceleration) {
 		try {
 			ZipOutputStream out = new ZipOutputStream(new BufferedOutputStream(
 					new FileOutputStream(getZipFile())));
@@ -536,19 +549,28 @@ public class Training {
 			entry = new ZipEntry(rawDataPartName);
 			out.putNextEntry(entry);
 
-			BufferedInputStream rawData = new BufferedInputStream(
-					new FileInputStream(getRawFile()));
-			// FileInputStream rawData = new FileInputStream(getRawFile());
-			byte[] data = new byte[COPY_BUFFER];
+            // copy file with acceleration values to zip if acceleration sampling is enabled
+            // (otherwise, raw data part will simply be empty)
+            // TODO: think about totaly removing the raw data part if no acceleration sampling
+            // is enabled
+            if(sampleAcceleration) {
+                BufferedInputStream rawData = new BufferedInputStream(
+                        new FileInputStream(getRawFile()));
+                // FileInputStream rawData = new FileInputStream(getRawFile());
+                byte[] data = new byte[COPY_BUFFER];
 
-			Log.d(TAG, "Getting ready to copy raw data to zip!");
-			int count;
-			while ((count = rawData.read(data, 0, COPY_BUFFER)) != -1) {
-				out.write(data, 0, count);
-				Log.d(TAG, String.format("Written %d bytes to raw zip", count));
-			}
+                Log.d(TAG, "Getting ready to copy raw data to zip!");
+                int totalBytes = 0;
+                int count;
+                while ((count = rawData.read(data, 0, COPY_BUFFER)) != -1) {
+                    out.write(data, 0, count);
+                    totalBytes += count;
+                }
 
-			rawData.close();
+                Log.d(TAG, String.format("Written %d bytes to raw zip", totalBytes));
+
+                rawData.close();
+            }
 			out.close();
 
 			return true;

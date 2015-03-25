@@ -2,7 +2,6 @@ package com.trainerjim.android;
 
 import java.io.IOException;
 
-import net.pernek.jim.exercisedetector.R;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
@@ -41,13 +40,12 @@ import com.trainerjim.android.storage.TrainingContentProvider.TrainingPlan;
 import com.trainerjim.android.ui.CircularProgressControl;
 import com.trainerjim.android.ui.RepetitionAnimation;
 import com.trainerjim.android.ui.RepetitionAnimationListener;
-import com.trainerjim.android.ui.SwipeControl;
-import com.trainerjim.android.ui.SwipeListener;
 import com.trainerjim.android.ui.CircularProgressControl.CircularProgressState;
 import com.trainerjim.android.util.Utils;
 
-public class TrainingActivity extends Activity implements SwipeListener,
-		RepetitionAnimationListener {
+import org.w3c.dom.Text;
+
+public class TrainingActivity extends Activity implements RepetitionAnimationListener {
 
 	private static final String TAG = Utils.getApplicationTag();
 
@@ -62,6 +60,16 @@ public class TrainingActivity extends Activity implements SwipeListener,
 	 */
 	private static final int REST_PROGRESS_UPDATE_RATE = 300;
 
+    /**
+     * Default series rating used when the user quickly finishes the series (doesn't
+     * edit series details information). Additionally as a default selection in
+     * edit series details view.
+     *
+     * Note: Numbers correspond to TRAINING_RATING_IMAGES and TRAINING_RATING_SELECTED_IMAGES
+     * arrays.
+     */
+    private static final int DEFAULT_SERIES_RATING = 1;
+
 	private PermanentSettings mSettings;
 	private ResponseReceiver mBroadcastReceiver;
 
@@ -70,18 +78,25 @@ public class TrainingActivity extends Activity implements SwipeListener,
 	 */
 	private CircularProgressControl mCircularProgress;
 	private ViewFlipper mViewFlipper;
-	private SwipeControl mSwipeControl;
 	private LinearLayout mTrainingSelector;
+    private LinearLayout mLayoutRectTrainingSelector;
+    private LinearLayout mLayoutRectLowerLine;
 	private ProgressDialog mProgressDialog;
 	private TextView mTrainingSelectorText;
+    private TextView mTextRectUpperLine;
+    private TextView mTextRectLowerLine;
+    private TextView mTextRectOneLine;
 	private RelativeLayout mBottomContainer;
 	private ImageView mInfoButton;
+    private ImageView mSkipButton;
+    private ImageView mNextButton;
+    private ImageView mPrevButton;
 	private LinearLayout mSeriesInformation;
 	private TextView mSeriesInfoText;
 	private TextView mTrainingCommentText;
 	private LinearLayout mAnimationRectangle;
 	private ImageView mImageArrowSeriesInfo;
-	private LinearLayout mViewRateExercise;
+	private LinearLayout mViewDuringExercise;
 	private CheckBox mEditDetailsCheckbox;
 	private RelativeLayout mEditDetailsView;
 	private EditText mEditRepetitionsValue;
@@ -117,6 +132,12 @@ public class TrainingActivity extends Activity implements SwipeListener,
 	 */
 	private int mTrainingRatingSelectedID = -1;
 
+    /**
+     * Holds the ID of the currently selected exercise rating (or -1 if no
+     * rating was yet selected).
+     */
+    private int mExerciseRatingSelectedID = -1;
+
 	/**
 	 * Holds ID of the training plan currently selected in the training
 	 * selector.
@@ -137,6 +158,12 @@ public class TrainingActivity extends Activity implements SwipeListener,
 	 * was not started yet.
 	 */
 	private long mGetReadyStartTimestamp = -1;
+
+    /**
+     * Controls the visibility of the edit series details view. If true, edit
+     * series view will be shown to the users.
+     */
+    private Boolean mEditSeriesDetails = false;
 
 	/**
 	 * Contains IDs of training rating images in non-selected (non-clicked)
@@ -178,18 +205,25 @@ public class TrainingActivity extends Activity implements SwipeListener,
 
 		mCircularProgress = (CircularProgressControl) findViewById(R.id.circularProgress);
 		mViewFlipper = (ViewFlipper) findViewById(R.id.viewFlipper);
-		mSwipeControl = (SwipeControl) findViewById(R.id.swipeControl);
 		mTrainingSelector = (LinearLayout) findViewById(R.id.trainingSelector);
+        mLayoutRectTrainingSelector = (LinearLayout) findViewById(R.id.layout_rect_training_selector);
+        mLayoutRectLowerLine = (LinearLayout)findViewById(R.id.layout_rect_lower_line);
 		mTrainingSelectorText = (TextView) findViewById(R.id.trainingSelectorText);
+        mTextRectUpperLine = (TextView)findViewById(R.id.text_rect_upper_line);
+        mTextRectLowerLine = (TextView)findViewById(R.id.text_rect_lower_line);
+        mTextRectOneLine = (TextView)findViewById(R.id.text_rect_one_line);
 		mBottomContainer = (RelativeLayout) findViewById(R.id.bottomContainer);
 		mInfoButton = (ImageView) findViewById(R.id.info_button);
+        mSkipButton = (ImageView) findViewById(R.id.skip_button);
+        mNextButton = (ImageView) findViewById(R.id.next_button);
+        mPrevButton = (ImageView) findViewById(R.id.prev_button);
 		mSeriesInformation = (LinearLayout) findViewById(R.id.seriesInformation);
 		mSeriesInfoText = (TextView) findViewById(R.id.nextSeriesText);
 		mTrainingCommentText = (TextView) findViewById(R.id.textTrainingComment);
 		mAnimationRectangle = (LinearLayout) findViewById(R.id.animationRectangle);
 		mImageArrowSeriesInfo = (ImageView) findViewById(R.id.imageArrowSeriesInfo);
-		mViewRateExercise = (LinearLayout) findViewById(R.id.viewRateExercise);
-		mEditDetailsCheckbox = (CheckBox) findViewById(R.id.checkbox_edit_details);
+		mViewDuringExercise = (LinearLayout) findViewById(R.id.viewDuringExercise);
+//		mEditDetailsCheckbox = (CheckBox) findViewById(R.id.checkbox_edit_details);
 		mEditDetailsView = (RelativeLayout)findViewById(R.id.editDetailsView);
 		mEditRepetitionsValue = (EditText)findViewById(R.id.editRepetitionsValue);
 		mEditWeightValue  =(EditText)findViewById(R.id.editWeightValue);
@@ -210,10 +244,18 @@ public class TrainingActivity extends Activity implements SwipeListener,
 				return true;
 			}
 		});
+
+        // add a long click action to skip exercise button (so the user won't
+        // activate this by mistake)
+        mSkipButton.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                skipExercise();
+                return true;
+            }
+        });
 		
 		mCircularProgress.setOnClickListener(mCircularButtonClick);
-
-		mSwipeControl.addSwipeListener(this);
 
 		mRepetitionAnimation = new RepetitionAnimation(mAnimationRectangle,
 				mUiHandler);
@@ -269,33 +311,101 @@ public class TrainingActivity extends Activity implements SwipeListener,
 	 * Invoked when a specific exercise rating image is clicked.
 	 * 
 	 * @param v
-	 *            contains the referense to the clicked exercise rating image.
+	 *            contains the reference to the clicked exercise rating image.
 	 */
 	public void onExerciseRatingSelected(View v) {
-		ImageView trainingRatingSelected = (ImageView) v;
+		ImageView exerciseRatingImage = (ImageView) v;
 
-		// loop through training ratings image views and set the appropriate
-		// image
-		for (int i = 0; i < mTrainingRatingImages.length; i++) {
-			if (mExerciseRatingImages[i] == trainingRatingSelected) {
-				mCurrentTraining.setCurrentSeriesExecutionRating(i);
-				mViewRateExercise.setVisibility(View.GONE);
-
-				AccelerationRecordingTimestamps timestamps = mAccelerationRecorder
-						.stopAccelerationSampling();
-				mCurrentTraining.endExercise(timestamps);
-
-				// advance to the next activity
-				mCurrentTraining.nextActivity();
-
-				saveCurrentTraining();
-
-				updateScreen();
-
-				break;
-			}
-		}
+        selectSeriesRatingIcon(exerciseRatingImage);
 	}
+
+    /**
+     * Manages series rating image views (smile icons).
+     * Selects the input imageView and deselect all the other rating image views.
+     * @param ratingImageSelected is the selected imageView
+     */
+    private void selectSeriesRatingIcon(ImageView ratingImageSelected){
+        // different padding as we make the selected image a bit larger
+        int imageSelectedPadding = getResources().getDimensionPixelSize(
+                R.dimen.training_rating_smile_selected_padding);
+        int imagePadding = getResources().getDimensionPixelSize(
+                R.dimen.training_rating_smile_padding);
+
+        // loop through training ratings image views and set the appropriate
+        // image
+        for (int i = 0; i < mExerciseRatingImages.length; i++) {
+            if (mExerciseRatingImages[i] == ratingImageSelected) {
+                mExerciseRatingImages[i]
+                        .setImageResource(TRAINING_RATING_SELECTED_IMAGES[i]);
+                mExerciseRatingImages[i].setPadding(imageSelectedPadding,
+                        imageSelectedPadding, imageSelectedPadding,
+                        imageSelectedPadding);
+                // set global information about the selected rating (this will also be used
+                // to store the rating to the corresponding SeriesExecution)
+                mExerciseRatingSelectedID = i;
+            } else {
+                mExerciseRatingImages[i]
+                        .setImageResource(TRAINING_RATING_IMAGES[i]);
+                mExerciseRatingImages[i].setPadding(imagePadding, imagePadding,
+                        imagePadding, imagePadding);
+            }
+        }
+    }
+
+    /**
+     * Finish series and set the input rating.
+     */
+    private void finishSeries(){
+        // store the default series rating (for quick entry). In case of edit series details
+        // the rating can be changed later on (in edit series details view).
+        mCurrentTraining.setCurrentSeriesExecutionRating(DEFAULT_SERIES_RATING);
+
+        // hide the screen that is shown during exercising
+        mViewDuringExercise.setVisibility(View.GONE);
+
+        // stop acceleration sampling and get acceleration timestamps only if acceleration sampling is enabled
+        AccelerationRecordingTimestamps timestamps = getResources().getBoolean(R.bool.sample_acceleration) ? mAccelerationRecorder
+                .stopAccelerationSampling() : null;
+
+        // end this exercise (series)
+        mCurrentTraining.endExercise(timestamps);
+
+        // advance to the next activity
+        mCurrentTraining.nextActivity();
+
+        saveCurrentTraining();
+
+        updateScreen();
+    }
+
+    /**
+     * Invoked when the user is done with a series.
+     *
+     * @param v
+     *            contains the reference to the clicked imageview
+     */
+    public void onSeriesDoneClick(View v) {
+        ImageView trainingRatingSelected = (ImageView) v;
+
+        finishSeries();
+    }
+
+    /**
+     * Invoked when the user wants to edit series details.
+     *
+     * @param v
+     *            contains the reference to the clicked imageview
+     */
+    public void onSeriesDetailsClick(View v) {
+        // select default rating icon on screen
+        selectSeriesRatingIcon(mExerciseRatingImages[DEFAULT_SERIES_RATING]);
+
+        // we will want to show the view for editing this series
+        mEditSeriesDetails = true;
+
+        // finish series with the default series rating
+        finishSeries();
+    }
 
 	/*
 	 * TODO: Check if stuff in onCreate and onDestroy should be moved to more
@@ -306,7 +416,6 @@ public class TrainingActivity extends Activity implements SwipeListener,
 	@Override
 	protected void onDestroy() {
 		unregisterReceiver(mBroadcastReceiver);
-		mSwipeControl.removeSwipeListener(this);
 		mRepetitionAnimation.removeRepetitionAnimationListener(this);
 
 		// remove all periodical tasks
@@ -396,7 +505,13 @@ public class TrainingActivity extends Activity implements SwipeListener,
 			String trainingName = trainings.getString(trainings
 					.getColumnIndex(TrainingPlan.NAME));
 			mTrainingSelectorText.setText(trainingName);
-		}
+            mTrainingSelector.setVisibility(View.VISIBLE);
+            mTextRectOneLine.setVisibility(View.GONE);
+		} else {
+            mTrainingSelector.setVisibility(View.GONE);
+            mTextRectOneLine.setText("NO TRAININGS.");
+            mTextRectOneLine.setVisibility(View.VISIBLE);
+        }
 	}
 
 	/**
@@ -420,6 +535,20 @@ public class TrainingActivity extends Activity implements SwipeListener,
 	public void onInfoButtonClick(View v) {
 		toggleInfoButtonVisible(!mCircularProgress.isInfoVisible());
 	}
+
+    /**
+     * Triggered on skip button click.
+     * @param v
+     */
+    public void onSkipButtonClick(View v){
+        // TODO: Show help popup
+        /*
+        Help popup could be show inside the circular button (in another color). It
+        should just outline the action results and explain that the action can be used
+        by long click.
+        The same help popup could be used for other cases.
+         */
+    }
 
 	/**
 	 * Triggered on finish button click in the training rating screen.
@@ -555,7 +684,7 @@ public class TrainingActivity extends Activity implements SwipeListener,
 	}
 
 	private void changeTrainingPlanState() {
-		if (mViewRateExercise.getVisibility() == View.VISIBLE) {
+		if (mViewDuringExercise.getVisibility() == View.VISIBLE) {
 			// exercise has to be rated before doing anything else
 
 		} else if (mCircularProgress.isInfoVisible()) {
@@ -632,17 +761,24 @@ public class TrainingActivity extends Activity implements SwipeListener,
 			// no training started yet, show the start button
 			mCircularProgress.setCurrentState(CircularProgressState.START);
 
+            mTextRectUpperLine.setText("Workout selected:");
+
 			mInfoButton.setVisibility(View.INVISIBLE);
+            mSkipButton.setVisibility(View.INVISIBLE);
 
 			mBottomContainer.setVisibility(View.VISIBLE);
 			mSeriesInformation.setVisibility(View.INVISIBLE);
 			mTrainingSelector.setVisibility(View.VISIBLE);
-			mSwipeControl.setVisibility(View.INVISIBLE);
+            mTextRectOneLine.setVisibility(View.INVISIBLE);
+            mLayoutRectTrainingSelector.setVisibility(View.VISIBLE);
+            mLayoutRectLowerLine.setVisibility(View.GONE);
+            mNextButton.setVisibility(View.INVISIBLE);
+            mPrevButton.setVisibility(View.INVISIBLE);
 		} else if (mCurrentTraining.getCurrentExercise() == null) {
 			if (!mCurrentTraining.isTrainingEnded()) {
+                // no more exercises, show the done button
 				showEditDetailsViewIfDemanded();
 
-				// no more exercises, show the done button
 				mCircularProgress.setCurrentState(CircularProgressState.STOP);
 				mSeriesInfoText.setText("tap to finish");
 				mBottomContainer.setVisibility(View.INVISIBLE);
@@ -652,6 +788,7 @@ public class TrainingActivity extends Activity implements SwipeListener,
 				mViewFlipper.showNext();
 			} else {
 				// show overview
+                mTextRectOneLine.setText("GREAT JOB!");
 
 				mCircularProgress.setNumberTotal(mCurrentTraining
 						.getTotalTrainingDuration());
@@ -663,14 +800,16 @@ public class TrainingActivity extends Activity implements SwipeListener,
 
 				mSeriesInfoText.setText("tap to close");
 				mBottomContainer.setVisibility(View.VISIBLE);
-				mSwipeControl.setVisibility(View.VISIBLE);
+				// TODO: mSwipeControl.setVisibility(View.VISIBLE);
+                mNextButton.setVisibility(View.INVISIBLE);
+                mPrevButton.setVisibility(View.INVISIBLE);
 				mTrainingSelector.setVisibility(View.INVISIBLE);
-				mSwipeControl.setCenterText("", "GREAT JOB!");
+                mTextRectOneLine.setVisibility(View.VISIBLE);
 			}
 
 			mInfoButton.setVisibility(View.INVISIBLE);
+            mSkipButton.setVisibility(View.INVISIBLE);
 			mSeriesInformation.setVisibility(View.VISIBLE);
-			mSwipeControl.setSwipeEnabled(false);
 			mImageArrowSeriesInfo.setVisibility(View.GONE);
 		} else {
 			// in general, show no timer message
@@ -691,14 +830,20 @@ public class TrainingActivity extends Activity implements SwipeListener,
 				// now show all the common information
 				Series curSeries = curExercise.getCurrentSeries();
 				mCircularProgress.setCurrentState(CircularProgressState.REST);
-				mSwipeControl.setCenterText("Next: ", curExercise
-						.getExerciseType().getName());
+
+                mTextRectUpperLine.setText("NEXT");
+                mTextRectLowerLine.setText(curExercise
+                        .getExerciseType().getName());
+                mLayoutRectLowerLine.setVisibility(View.VISIBLE);
+                mLayoutRectTrainingSelector.setVisibility(View.GONE);
 				mSeriesInfoText.setText(String.format(
 						"Series %d (%d reps, %d kg)",
 						curExercise.getCurrentSeriesNumber(),
 						curSeries.getNumberTotalRepetitions(),
 						curSeries.getWeight()));
 				mSeriesInformation.setVisibility(View.VISIBLE);
+
+                mCircularProgress.setTimerMessage("RESTING");
 
 				// get ready timer was not started yet so show the rest timer
 				if (mGetReadyStartTimestamp == -1) {
@@ -711,7 +856,7 @@ public class TrainingActivity extends Activity implements SwipeListener,
 				} else {
 					mCircularProgress.setRestMaxProgress(mGetReadyInterval);
 					mCircularProgress.setRestMinProgress(0);
-					mCircularProgress.setTimerMessage("Get ready!");
+					mCircularProgress.setTimerMessage("GET READY");
 
 					mUiHandler.postDelayed(mGetReadyTimer, 0);
 				}
@@ -727,13 +872,6 @@ public class TrainingActivity extends Activity implements SwipeListener,
 						.getTotalSeriesForCurrentExercise());
 				mCircularProgress
 						.setCurrentState(CircularProgressState.EXERCISE);
-				mSwipeControl.setCenterText(
-						"",
-						String.format("%s %d", mCurrentTraining
-								.getCurrentExercise().getExerciseType()
-								.getName(), mCurrentTraining
-								.getCurrentExercise().getCurrentSeries()
-								.getWeight()));
 
 				mSeriesInformation.setVisibility(View.INVISIBLE);
 
@@ -755,22 +893,25 @@ public class TrainingActivity extends Activity implements SwipeListener,
 					.getAllSeriesCount() - curExercise.getSeriesLeftCount());
 
 			mInfoButton.setVisibility(View.VISIBLE);
+            mSkipButton.setVisibility(View.VISIBLE);
 			mBottomContainer.setVisibility(View.VISIBLE);
 			mSeriesInformation.setVisibility(View.VISIBLE);
-			mTrainingSelector.setVisibility(View.INVISIBLE);
-			mSwipeControl.setVisibility(View.VISIBLE);
-			mSwipeControl.setSwipeEnabled(true);
+			mTrainingSelector.setVisibility(View.VISIBLE);
+			// TODO: mSwipeControl.setVisibility(View.VISIBLE);
+            mNextButton.setVisibility(View.VISIBLE);
+            mPrevButton.setVisibility(View.VISIBLE);
 			mImageArrowSeriesInfo.setVisibility(View.VISIBLE);
 		}
 	}
 
 	private void showEditDetailsViewIfDemanded() {
 		SeriesExecution lastSe = mCurrentTraining.getLastSeriesExecution();
-		if (mEditDetailsCheckbox.isChecked() && lastSe != null) {
+		if (mEditSeriesDetails && lastSe != null) {
 			mEditRepetitionsValue.setText(Integer.toString(lastSe.getRepetitions()));
 			mEditWeightValue.setText(Integer.toString(lastSe.getWeight()));
 
 			mEditDetailsView.setVisibility(View.VISIBLE);
+            mEditSeriesDetails = false;
 		}
 	}
 	
@@ -782,13 +923,50 @@ public class TrainingActivity extends Activity implements SwipeListener,
 		// defensive copy of the series execution in training
 		SeriesExecution lastSe = mCurrentTraining.getLastSeriesExecution();
 		if(lastSe != null){
+            lastSe.setRating(mExerciseRatingSelectedID);
 			lastSe.setWeight(Integer.parseInt(mEditWeightValue.getText().toString()));
 			lastSe.setRepetitions(Integer.parseInt(mEditRepetitionsValue.getText().toString()));
 		}
-		
-		mEditDetailsCheckbox.setChecked(false);
+
 		mEditDetailsView.setVisibility(View.GONE);
 	}
+
+    public void onPrevExerciseClick(View v){
+        mCurrentTraining.moveToPreviousExercise();
+        saveCurrentTraining();
+        toggleInfoButtonVisible(false);
+        updateScreen();
+    }
+
+    public void onNextExerciseClick(View v){
+        // don't do anything if exercise can not be scheduled for later
+        if (!mCurrentTraining.canScheduleLater()) {
+            return;
+        }
+
+        if (!mCurrentTraining.isCurrentRest()) {
+
+            AccelerationRecordingTimestamps timestamps = getResources().getBoolean(R.bool.sample_acceleration) ? mAccelerationRecorder
+                    .stopAccelerationSampling() : null;
+            mCurrentTraining.endExercise(timestamps);
+
+            // TODO: user should optionally rate the exercise here (scheduling
+            // the exercise for later because it was too hard)
+        }
+
+        // disable the get ready timer
+        mGetReadyStartTimestamp = -1;
+
+        // cancel the repetition animation if running
+        if (mRepetitionAnimation.isAnimationRunning()) {
+            mRepetitionAnimation.cancelAnimation();
+        }
+
+        mCurrentTraining.scheduleExerciseLater();
+        saveCurrentTraining();
+        toggleInfoButtonVisible(false);
+        updateScreen();
+    }
 
 	/**
 	 * Starts the select training activity.
@@ -796,82 +974,49 @@ public class TrainingActivity extends Activity implements SwipeListener,
 	 * @param view
 	 */
 	public void onSelectTrainingClick(View view) {
+        // ignore the training select event if resting
+        if(mCircularProgress.getCurrentState() == CircularProgressState.REST){
+            return;
+        }
+
 		Intent intent = new Intent(TrainingActivity.this,
 				TrainingSelectionList.class);
 		startActivityForResult(intent, ACTIVITY_REQUEST_TRAININGS_LIST);
 	}
 
-	/*
-	 * Schedule exercise later. Ends the current exercise if in the middle of
-	 * exercising.
-	 * 
-	 * @see net.pernek.jim.exercisedetector.ui.SwipeListener#onSwipeRight()
-	 */
-	@Override
-	public void onSwipeRight() {
-		// don't do anything if exercise can not be scheduled for later
-		if (!mCurrentTraining.canScheduleLater()) {
-			return;
-		}
+    /**
+     * Skips the current exercise. All planned executions of this exercise are removed
+     * from the training plan.
+     */
+    private void skipExercise(){
+        if (!mCurrentTraining.isCurrentRest()) {
+            AccelerationRecordingTimestamps timestamps = mAccelerationRecorder
+                    .stopAccelerationSampling();
+            mCurrentTraining.endExercise(timestamps);
+        }
 
-		if (!mCurrentTraining.isCurrentRest()) {
-			AccelerationRecordingTimestamps timestamps = mAccelerationRecorder
-					.stopAccelerationSampling();
-			mCurrentTraining.endExercise(timestamps);
+        // disable the get ready timer
+        mGetReadyStartTimestamp = -1;
 
-			// TODO: user should optionally rate the exercise here (scheduling
-			// the exercise for later because it was too hard)
-		}
+        // cancel the repetition animation if running
+        if (mRepetitionAnimation.isAnimationRunning()) {
+            mRepetitionAnimation.cancelAnimation();
+        }
 
-		// disable the get ready timer
-		mGetReadyStartTimestamp = -1;
+        // TODO: user should optionally rate the exercise here (e.g. skipping in
+        // the middle of the series because it was maybe to hard)
 
-		// cancel the repetition animation if running
-		if (mRepetitionAnimation.isAnimationRunning()) {
-			mRepetitionAnimation.cancelAnimation();
-		}
-
-		mCurrentTraining.scheduleExerciseLater();
-		saveCurrentTraining();
-		toggleInfoButtonVisible(false);
-		updateScreen();
-	}
-
-	/*
-	 * Skip exercise. Ends the current exercise if in the middle of exercising.
-	 * 
-	 * @see net.pernek.jim.exercisedetector.ui.SwipeListener#onSwipeLeft()
-	 */
-	@Override
-	public void onSwipeLeft() {
-		if (!mCurrentTraining.isCurrentRest()) {
-			AccelerationRecordingTimestamps timestamps = mAccelerationRecorder
-					.stopAccelerationSampling();
-			mCurrentTraining.endExercise(timestamps);
-		}
-
-		// disable the get ready timer
-		mGetReadyStartTimestamp = -1;
-
-		// cancel the repetition animation if running
-		if (mRepetitionAnimation.isAnimationRunning()) {
-			mRepetitionAnimation.cancelAnimation();
-		}
-
-		// TODO: user should optionally rate the exercise here (e.g. skipping in
-		// the middle of the series because it was maybe to hard)
-
-		mCurrentTraining.nextExercise();
-		saveCurrentTraining();
-		toggleInfoButtonVisible(false);
-		updateScreen();
-	}
+        mCurrentTraining.nextExercise();
+        saveCurrentTraining();
+        toggleInfoButtonVisible(false);
+        updateScreen();
+    }
 
 	/*
 	 * Repetition animation has legally ended so we should advance the training
 	 * plan.
 	 * 
-	 * @see net.pernek.jim.exercisedetector.ui.RepetitionAnimationListener#
+	 * @see com.trainerjim.android.ui.RepetitionAnimationListener#
 	 * onAnimationEnded()
 	 */
 	@Override
@@ -880,13 +1025,13 @@ public class TrainingActivity extends Activity implements SwipeListener,
 	}
 
 	private void showExerciseRateView() {
-		mViewRateExercise.setVisibility(View.VISIBLE);
+		mViewDuringExercise.setVisibility(View.VISIBLE);
 	}
 
 	/*
 	 * Triggered after each individual repetition is executed.
-	 * 
-	 * @see net.pernek.jim.exercisedetector.ui.RepetitionAnimationListener#
+	 *
+	 * @see com.trainerjim.android.ui.RepetitionAnimationListener#
 	 * onRepetitionCompleted()
 	 */
 	@Override
@@ -947,16 +1092,18 @@ public class TrainingActivity extends Activity implements SwipeListener,
 					showExerciseRateView();
 				}
 
-				// do acceleration sampling
-				try {
-					mAccelerationRecorder.startAccelerationSampling(
-							mCurrentTraining.getTrainingStartTimestamp(),
-							mCurrentTraining.getRawFile());
-				} catch (IOException e) {
-					Log.e(TAG,
-							"Unable to start acceleration sampling: "
-									+ e.getMessage());
-				}
+                if(getResources().getBoolean(R.bool.sample_acceleration)) {
+                    // do acceleration sampling
+                    try {
+                        mAccelerationRecorder.startAccelerationSampling(
+                                mCurrentTraining.getTrainingStartTimestamp(),
+                                mCurrentTraining.getRawFile());
+                    } catch (IOException e) {
+                        Log.e(TAG,
+                                "Unable to start acceleration sampling: "
+                                        + e.getMessage());
+                    }
+                }
 
 				updateScreen();
 			}

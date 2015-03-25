@@ -19,8 +19,6 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
-import net.pernek.jim.exercisedetector.R;
-
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -47,6 +45,7 @@ import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpParams;
 import org.apache.http.params.HttpProtocolParams;
 import org.apache.http.protocol.HTTP;
+import org.apache.http.util.EntityUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -58,6 +57,7 @@ import android.database.Cursor;
 import android.util.Log;
 
 import com.google.gson.Gson;
+import com.trainerjim.android.R;
 import com.trainerjim.android.entities.Measurement;
 import com.trainerjim.android.entities.Training;
 import com.trainerjim.android.storage.TrainingContentProvider.CompletedTraining;
@@ -449,7 +449,8 @@ public class ServerCommunicationService extends IntentService {
 		File trainingZip = training.getZipFile();
 		training.zipToFile(
 				getResources().getString(R.string.training_mainfest_name),
-				getResources().getString(R.string.raw_data_name));
+				getResources().getString(R.string.raw_data_name),
+                getResources().getBoolean(R.bool.sample_acceleration));
 
 		try {
 			String url = String.format("%s%s",
@@ -477,6 +478,10 @@ public class ServerCommunicationService extends IntentService {
 			HttpResponse response = mHttpClient.execute(httppost);
 			int status = response.getStatusLine().getStatusCode();
 
+            if(response.getEntity() != null){
+                response.getEntity().consumeContent();
+            }
+
 			if (status == HttpStatus.SC_OK) {
 				// if upload was successful delete training from the local
 				// database
@@ -492,7 +497,9 @@ public class ServerCommunicationService extends IntentService {
 					// keep the zip file in research mode, otherwise delete it
 					training.getZipFile().delete();
 				}
-			}
+			} else {
+                return false;
+            }
 
 			return true;
 		} catch (Exception e) {
