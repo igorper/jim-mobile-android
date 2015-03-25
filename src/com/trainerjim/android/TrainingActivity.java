@@ -832,7 +832,7 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
 				mCircularProgress.setCurrentState(CircularProgressState.REST);
 
                 mTextRectUpperLine.setText("NEXT");
-                mTextRectLowerLine.setText(curExercise
+                mTextRectLowerLine.setText(Integer.toString(curExercise.getOrder()) + " " + curExercise
                         .getExerciseType().getName());
                 mLayoutRectLowerLine.setVisibility(View.VISIBLE);
                 mLayoutRectTrainingSelector.setVisibility(View.GONE);

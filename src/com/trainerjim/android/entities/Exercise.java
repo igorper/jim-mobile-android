@@ -153,10 +153,16 @@ public class Exercise {
 		return duration_middle_repetition;
 	}
 	
-	/** Returns guidance type for this series.
+	/** Returns guidance type for this exercise.
 	 * @return
 	 */
 	public String getGuidanceType(){
 		return guidance_type;
 	}
+
+    /**
+     * Returns the order of the exercise.
+     * @return
+     */
+    public int getOrder() { return order; }
 }
