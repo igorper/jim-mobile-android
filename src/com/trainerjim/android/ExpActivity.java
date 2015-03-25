@@ -1,6 +1,5 @@
 package com.trainerjim.android;
 
-import net.pernek.jim.exercisedetector.R;
 import android.app.Activity;
 import android.os.Bundle;
 import android.view.View;

@@ -26,19 +26,17 @@
             android:label="@string/app_name"
             android:launchMode="singleTop"
             android:screenOrientation="portrait" >
-        </activity>
-        <activity
-            android:name="com.trainerjim.android.TrainingManifestActivity"
-            android:label="Expandable LV" >
-        </activity>
-        <activity android:name="com.trainerjim.android.TrainingSelectionList" />
-        <activity android:name="com.trainerjim.android.ExpActivity" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name="com.trainerjim.android.TrainingManifestActivity"
+            android:label="Expandable LV" >
+        </activity>
+        <activity android:name="com.trainerjim.android.TrainingSelectionList" />
         <activity
             android:name="com.trainerjim.android.LoginActivity"
             android:excludeFromRecents="true"
