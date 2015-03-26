@@ -11,6 +11,7 @@ public class ExerciseType {
 	 ***********************/
 	private int id;
 	private String name;
+    private String short_name;
 	
 	/** Gets the exercise type ID.
 	 * @return
@@ -18,11 +19,18 @@ public class ExerciseType {
 	public int getId(){
 		return id;
 	}
+
+    /** Gets the exercise type name.
+     * @return
+     */
+    public String getName(){
+        return name;
+    }
 	
-	/** Gets the exercise type name.
+	/** Gets the exercise type short name.
 	 * @return
 	 */
-	public String getName(){
-		return name;
+	public String getShortName(){
+		return short_name;
 	}
 }

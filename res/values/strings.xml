@@ -16,7 +16,7 @@
 
 
     <!-- REST SERVICES URLS AND PARAMETERS -->
-    <string name="server_url">http://trainerjim.com/</string>
+    <string name="server_url">http://192.168.122.70:3000/</string>
     <string name="server_path_training_list">/mapi/training/list</string>
     <string name="server_path_auth">/mapi/users/authenticate</string>
     <string name="server_path_training">/mapi/training/get</string>

@@ -832,8 +832,13 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
 				mCircularProgress.setCurrentState(CircularProgressState.REST);
 
                 mTextRectUpperLine.setText("NEXT");
-                mTextRectLowerLine.setText(Integer.toString(curExercise.getOrder()) + " " + curExercise
-                        .getExerciseType().getName());
+
+                // show short name if available
+                String exerciseName = curExercise.getExerciseType().getShortName() != null ? curExercise
+                        .getExerciseType().getShortName() : curExercise.getExerciseType().getName();
+
+                // visualize exercise order (useful when traversing exercises)
+                mTextRectLowerLine.setText(Integer.toString(curExercise.getOrder() + 1) + ". " + exerciseName);
                 mLayoutRectLowerLine.setVisibility(View.VISIBLE);
                 mLayoutRectTrainingSelector.setVisibility(View.GONE);
 				mSeriesInfoText.setText(String.format(
