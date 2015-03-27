@@ -13,6 +13,7 @@ import android.database.Cursor;
 import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
+import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -51,7 +52,8 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
 
 	private final static int MENU_SYNC = Menu.FIRST;
 	private final static int MENU_UPLOAD = Menu.FIRST + 1;
-	private final static int MENU_LOGOUT = Menu.FIRST + 2;
+    private final static int MENU_LOGOUT = Menu.FIRST + 2;
+    private final static int MENU_CANCEL = Menu.FIRST + 3;
 
 	private static final int ACTIVITY_REQUEST_TRAININGS_LIST = 0;
 
@@ -608,10 +610,15 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
 	public boolean onCreateOptionsMenu(android.view.Menu menu) {
 		// add sync option only if the user is logged in (or even better,
 		// disable sync if no user is logged in)
-		if (!mSettings.getUsername().equals("")) {
+		if (mCurrentTraining == null && !mSettings.getUsername().equals("")) {
 			menu.add(1, MENU_SYNC, 1, "Sync");
 			menu.add(1, MENU_UPLOAD, 1, "Upload");
 		}
+
+        if(mCurrentTraining != null){
+            menu.add(1, MENU_CANCEL, 1, "Cancel");
+        }
+
 		menu.add(1, MENU_LOGOUT, 3, "Logout");
 		return true;
 	};
@@ -632,6 +639,14 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
 
 			break;
 		}
+        case MENU_CANCEL:{
+            mUiHandler.removeCallbacks(mUpdateRestTimer);
+            mUiHandler.removeCallbacks(mGetReadyTimer);
+
+            mCurrentTraining = null;
+            updateScreen();
+            break;
+        }
 		case MENU_LOGOUT: {
 			mSettings.saveUsername("");
 			mSettings.savePassword("");
@@ -907,6 +922,8 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
             mPrevButton.setVisibility(View.VISIBLE);
 			mImageArrowSeriesInfo.setVisibility(View.VISIBLE);
 		}
+
+        invalidateOptionsMenu();
 	}
 
 	private void showEditDetailsViewIfDemanded() {
