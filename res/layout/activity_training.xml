@@ -364,6 +364,17 @@
                 </LinearLayout>
             </RelativeLayout>
 
+            <!-- START: FULLSCREEN EXERCISE IMAGE -->
+            <ImageView
+                android:id="@+id/exerciseImage"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:onClick="onClickExerciseImage"
+                android:scaleType="centerCrop"
+                android:visibility="gone" >
+            </ImageView>
+            <!-- END -->
+
             <!-- START: TEMPO ANIMATION VIEW -->
             <LinearLayout
                 android:id="@+id/animationRectangle"

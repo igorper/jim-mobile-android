@@ -1,10 +1,13 @@
 package com.trainerjim.android.network;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.lang.reflect.Type;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.security.KeyManagementException;
@@ -45,6 +48,7 @@ import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpParams;
 import org.apache.http.params.HttpProtocolParams;
 import org.apache.http.protocol.HTTP;
+import org.apache.http.util.ByteArrayBuffer;
 import org.apache.http.util.EntityUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -57,7 +61,9 @@ import android.database.Cursor;
 import android.util.Log;
 
 import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import com.trainerjim.android.R;
+import com.trainerjim.android.entities.ExerciseTypeImagesItem;
 import com.trainerjim.android.entities.Measurement;
 import com.trainerjim.android.entities.Training;
 import com.trainerjim.android.storage.TrainingContentProvider.CompletedTraining;
@@ -265,6 +271,13 @@ public class ServerCommunicationService extends IntentService {
 		} else if (action.equals(ACTION_FETCH_TRAININGS)) {
 			boolean getTrainingsSucessful = fetchTrainings(username, password);
 
+            // fetch images for all available exercises
+            // TODO: at some point this should be constrained only to fetching images
+            // for exercises that are contained in the training plains assigned to the user
+            if(getTrainingsSucessful){
+                fetchImages();
+            }
+
 			// send status intent
 			statusIntent.setAction(ACTION_FETCH_TRAINNGS_COMPLETED);
 			statusIntent
@@ -275,13 +288,79 @@ public class ServerCommunicationService extends IntentService {
 		sendBroadcast(statusIntent);
 	}
 
+    /**
+     * This methods fetches all medium sized images exposed by the backend through
+     * 'training/exercise_types.json' API. The images are just saved to the persisted storage.
+     *
+     * If an error occurs it is gracefully ignored (might be better to handle this differently
+     * in the future). Additionally, currently there is no checking if the image already exists,
+     * Even if it exists it is still downloaded repeatedly - a possile solution would be hash or
+     * filename checking.
+     */
+    private void fetchImages(){
+
+        HttpGet httpget = new HttpGet(String.format("%s%s",
+                getResources().getString(R.string.server_url),
+                getResources().getString(R.string.server_path_exercise_types_list)));
+
+        HttpResponse response = null;
+        try {
+            response = mHttpClient.execute(httpget);
+
+            int status = response.getStatusLine().getStatusCode();
+
+            if(status == HttpStatus.SC_OK){
+                String jsonExercisesList = extractJsonFromStream(response.getEntity().getContent());
+
+                Type listType = new TypeToken<ArrayList<ExerciseTypeImagesItem>>(){}.getType();
+                List<ExerciseTypeImagesItem> exerciseImagesList = mJsonEngine.fromJson(jsonExercisesList, listType);
+
+                // for each exercise fetch the image and save it to the persistent storage
+                for (ExerciseTypeImagesItem item : exerciseImagesList){
+                    String imageUrl = String.format("%s%s",
+                            getResources().getString(R.string.server_url),
+                            item.getMediumImageUrl());
+
+                    HttpGet httpgetImage = new HttpGet(imageUrl);
+
+                    HttpResponse responseImage = mHttpClient.execute(httpgetImage);
+                    int statusImage = responseImage.getStatusLine().getStatusCode();
+
+                    if(statusImage == HttpStatus.SC_OK){
+                        InputStream is = responseImage.getEntity().getContent();
+                        BufferedInputStream bis = new BufferedInputStream(is);
+
+                       /*
+                        * Read bytes to the Buffer until there is nothing more to read(-1).
+                        */
+                        ByteArrayBuffer baf = new ByteArrayBuffer(5000);
+                        int current = 0;
+                        while ((current = bis.read()) != -1) {
+                            baf.append((byte) current);
+                        }
+
+                       /* Convert the Bytes read to a String. */
+                        FileOutputStream fos = new FileOutputStream(new File(Utils.getDataFolderFile(), Integer.toString(item.getId())));
+                        fos.write(baf.toByteArray());
+                        fos.flush();
+                        fos.close();
+                    }
+                }
+
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            Log.e(TAG, e.getMessage());
+        }
+    }
+
 	/**
 	 * @param username
 	 * @param password
 	 * @return
 	 */
 	private boolean fetchTrainings(String username, String password) {
-		boolean wasSucessful;
+		boolean wasSucessful = false;
 		try {
 			// get list of all trainings for the user
 			String jsonTrainingPlans = getTrainingList(username, password);
@@ -525,8 +604,7 @@ public class ServerCommunicationService extends IntentService {
 	 */
 	private String getTraining(int trainingId, String username, String password)
 			throws ClientProtocolException, IOException {
-
-		List<NameValuePair> params = new ArrayList<NameValuePair>();
+        List<NameValuePair> params = new ArrayList<NameValuePair>();
 		params.add(new BasicNameValuePair("email", username));
 		params.add(new BasicNameValuePair("password", password));
 		params.add(new BasicNameValuePair("id", Integer.toString(trainingId)));

@@ -14,9 +14,10 @@
     <string name="checkbox_edit_details_text">Check to edit details</string>
 
     <!-- REST SERVICES URLS AND PARAMETERS -->
-    <string name="server_url">http://trainerjim.com/</string>
+    <string name="server_url">http://trainerjim.com</string>
     <string name="server_path_training_list">/mapi/training/list</string>
     <string name="server_path_auth">/mapi/users/authenticate</string>
+    <string name="server_path_exercise_types_list">/training/exercise_types.json</string>
     <string name="server_path_training">/mapi/training/get</string>
     <string name="server_path_upload">/mapi/training/upload</string>
     <string name="param_email">email</string>

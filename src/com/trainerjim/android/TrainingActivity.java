@@ -1,6 +1,11 @@
 package com.trainerjim.android;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
@@ -10,6 +15,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Matrix;
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.RotateDrawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
@@ -104,6 +114,7 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
 	private EditText mEditRepetitionsValue;
 	private EditText mEditWeightValue;
 	private EditText mEditCommentValue;
+    private ImageView mExerciseImage;
 
 	private AccelerationRecorder mAccelerationRecorder;
 
@@ -230,6 +241,7 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
 		mEditRepetitionsValue = (EditText)findViewById(R.id.editRepetitionsValue);
 		mEditWeightValue  =(EditText)findViewById(R.id.editWeightValue);
 		mEditCommentValue  =(EditText)findViewById(R.id.editCommentValue);
+        mExerciseImage = (ImageView)findViewById(R.id.exerciseImage);
 
 		updateTrainingSelector(-1);
 		initializeTrainingRatings();
@@ -308,6 +320,11 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
 		mExerciseRatingImages[1] = (ImageView) findViewById(R.id.exerciseRating2);
 		mExerciseRatingImages[2] = (ImageView) findViewById(R.id.exerciseRating3);
 	}
+
+    public boolean onClickExerciseImage(View v){
+        mExerciseImage.setVisibility(View.GONE);
+        return true;
+    }
 
 	/**
 	 * Invoked when a specific exercise rating image is clicked.
@@ -523,10 +540,16 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
 	 * @param visible
 	 */
 	private void toggleInfoButtonVisible(boolean visible) {
+		// This code was used before showing the full screen image (to show the exercise info
+        // circle view).
+		/*
 		mCircularProgress.setInfoVisible(visible);
 
 		mInfoButton.setImageResource(visible ? R.drawable.chair_ico_selected
 				: R.drawable.chair_ico);
+				*/
+
+        mExerciseImage.setVisibility(visible ? View.VISIBLE : View.GONE);
 	}
 
 	/**
@@ -644,6 +667,8 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
             mUiHandler.removeCallbacks(mGetReadyTimer);
 
             mCurrentTraining = null;
+
+            saveCurrentTraining();
             updateScreen();
             break;
         }
@@ -803,7 +828,7 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
 				mViewFlipper.showNext();
 			} else {
 				// show overview
-                mTextRectOneLine.setText("GREAT JOB!");
+                mTextRectOneLine.setText("ALL DONE!");
 
 				mCircularProgress.setNumberTotal(mCurrentTraining
 						.getTotalTrainingDuration());
@@ -833,7 +858,28 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
 			Exercise curExercise = mCurrentTraining.getCurrentExercise();
 			// there are still some exercises to be performed
 			if (mCurrentTraining.isCurrentRest()) {
-				mCircularProgress.setInfoChairLevel(mCurrentTraining
+                try {
+
+                    // TODO: encapsulate this or find a better way to do it
+
+                    Matrix matrix = new Matrix();
+
+                    // we presume that all images will be in landscape mode and thus rotate it.
+                    // A more intelligent algorithm could be implemented in the future - e.g.
+                    // checking the dimensions of the image
+                    matrix.postRotate(90);
+
+                    Bitmap scaledBitmap = BitmapFactory.decodeFile(new File(Utils.getDataFolderFile(),
+                            Integer.toString(curExercise.getExerciseType().getId())).getAbsolutePath());
+
+                    Bitmap rotatedBitmap = Bitmap.createBitmap(scaledBitmap , 0, 0, scaledBitmap .getWidth(), scaledBitmap .getHeight(), matrix, true);
+
+                    mExerciseImage.setImageBitmap(rotatedBitmap);
+                } catch (Exception e) {
+                    Log.e(TAG, "Unable to set current exercise image: " + e.getMessage());
+                }
+
+                mCircularProgress.setInfoChairLevel(mCurrentTraining
 						.getCurrentExercise().getMachineSetting());
 
 				showEditDetailsViewIfDemanded();
@@ -960,10 +1006,10 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
         updateScreen();
     }
 
-    public void onNextExerciseClick(View v){
+    public boolean onNextExerciseClick(View v){
         // don't do anything if exercise can not be scheduled for later
         if (!mCurrentTraining.canScheduleLater()) {
-            return;
+            return true;
         }
 
         if (!mCurrentTraining.isCurrentRest()) {
@@ -988,6 +1034,8 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
         saveCurrentTraining();
         toggleInfoButtonVisible(false);
         updateScreen();
+
+        return true;
     }
 
 	/**
