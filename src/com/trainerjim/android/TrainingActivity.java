@@ -322,15 +322,14 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
 	}
 
     public boolean onClickExerciseImage(View v){
-        mExerciseImage.setVisibility(View.GONE);
+        toggleInfoButtonVisible(false);
         return true;
     }
 
 	/**
 	 * Invoked when a specific exercise rating image is clicked.
 	 * 
-	 * @param v
-	 *            contains the reference to the clicked exercise rating image.
+	 * @param v contains the reference to the clicked exercise rating image.
 	 */
 	public void onExerciseRatingSelected(View v) {
 		ImageView exerciseRatingImage = (ImageView) v;
