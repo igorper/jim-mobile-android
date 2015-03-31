@@ -1,11 +1,7 @@
 package com.trainerjim.android;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
@@ -18,12 +14,9 @@ import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
-import android.graphics.drawable.Drawable;
-import android.graphics.drawable.RotateDrawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
-import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -53,8 +46,6 @@ import com.trainerjim.android.ui.RepetitionAnimation;
 import com.trainerjim.android.ui.RepetitionAnimationListener;
 import com.trainerjim.android.ui.CircularProgressControl.CircularProgressState;
 import com.trainerjim.android.util.Utils;
-
-import org.w3c.dom.Text;
 
 public class TrainingActivity extends Activity implements RepetitionAnimationListener {
 
@@ -1260,7 +1251,7 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
 				mProgressDialog.dismiss();
 
 				boolean getTrainingSuccessful = intent.getExtras().getBoolean(
-						ServerCommunicationService.PARAM_LOGIN_SUCCESSFUL);
+						ServerCommunicationService.PARAM_ACTION_SUCCESSFUL);
 
 				if (getTrainingSuccessful) {
 					updateTrainingSelector(-1);

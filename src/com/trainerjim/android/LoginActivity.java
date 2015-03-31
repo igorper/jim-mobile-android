@@ -85,7 +85,9 @@ public class LoginActivity extends Activity {
 		@Override
 		public void onReceive(Context context, Intent intent) {
 			boolean loginSuccessful = intent.getExtras().getBoolean(
-					ServerCommunicationService.PARAM_LOGIN_SUCCESSFUL);
+					ServerCommunicationService.PARAM_ACTION_SUCCESSFUL);
+            String statusMessage = intent.getExtras().getString(
+                    ServerCommunicationService.PARAM_ACTION_MSG);
 
 			mLoginProgress.dismiss();
 
@@ -99,7 +101,7 @@ public class LoginActivity extends Activity {
 			} else {
 				Toast.makeText(
 						getApplicationContext(),
-						"Ups. Unable to login. Also, this should be a part of the UI.",
+						statusMessage,
 						Toast.LENGTH_SHORT).show();
 			}
 

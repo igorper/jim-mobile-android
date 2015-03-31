@@ -8,48 +8,24 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.reflect.Type;
-import java.net.Socket;
-import java.net.UnknownHostException;
-import java.security.KeyManagementException;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
 import java.util.ArrayList;
 import java.util.List;
-
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
-import org.apache.http.HttpVersion;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.utils.URLEncodedUtils;
-import org.apache.http.conn.ClientConnectionManager;
-import org.apache.http.conn.scheme.PlainSocketFactory;
-import org.apache.http.conn.scheme.Scheme;
-import org.apache.http.conn.scheme.SchemeRegistry;
-import org.apache.http.conn.ssl.SSLSocketFactory;
 import org.apache.http.entity.mime.HttpMultipartMode;
 import org.apache.http.entity.mime.MultipartEntity;
 import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.entity.mime.content.StringBody;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
 import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.params.BasicHttpParams;
-import org.apache.http.params.HttpParams;
-import org.apache.http.params.HttpProtocolParams;
-import org.apache.http.protocol.HTTP;
 import org.apache.http.util.ByteArrayBuffer;
-import org.apache.http.util.EntityUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -64,7 +40,6 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.trainerjim.android.R;
 import com.trainerjim.android.entities.ExerciseTypeImagesItem;
-import com.trainerjim.android.entities.Measurement;
 import com.trainerjim.android.entities.Training;
 import com.trainerjim.android.storage.TrainingContentProvider.CompletedTraining;
 import com.trainerjim.android.storage.TrainingContentProvider.TrainingPlan;
@@ -92,9 +67,14 @@ public class ServerCommunicationService extends IntentService {
 	public static final String ACTION_LOGIN_COMPLETED = "action_done";
 
 	/**
-	 * This ID marks if the login operation was successful or not.
+	 * This ID marks if the executed operation was successful or not.
 	 */
-	public static final String PARAM_LOGIN_SUCCESSFUL = "login_successful";
+	public static final String PARAM_ACTION_SUCCESSFUL = "action_successful";
+
+    /**
+     * This ID marks if the executed operation status messages.
+     */
+    public static final String PARAM_ACTION_MSG = "action_msg";
 
 	/***********************
 	 * FETCH TRAININGS TASK ACTIONS AND PARAMETERS
@@ -262,11 +242,24 @@ public class ServerCommunicationService extends IntentService {
 			statusIntent.putExtra(PARAM_UPLOAD_TRAINING_NUM_ALL_ITEMS,
 					mNumCompletedTrainings);
 		} else if (action.equals(ACTION_CHECK_CREDENTIALS)) {
-			boolean loginSuccessful = checkCredentials(username, password);
+            String statusMessage = null;
 
-			// prepare the status intent
+            boolean loginSuccessful = false;
+            try {
+                loginSuccessful = checkCredentials(username, password);
+                if(!loginSuccessful){
+                    statusMessage = "Wrong username or password.";
+                }
+
+            } catch (Exception e) {
+                Log.e(TAG, e.getLocalizedMessage());
+                statusMessage = "Unable to connect to trainerjim server.";
+            }
+
+            // prepare the status intent
 			statusIntent.setAction(ACTION_LOGIN_COMPLETED);
-			statusIntent.putExtra(PARAM_LOGIN_SUCCESSFUL, loginSuccessful);
+			statusIntent.putExtra(PARAM_ACTION_SUCCESSFUL, loginSuccessful);
+            statusIntent.putExtra(PARAM_ACTION_MSG, statusMessage);
 
 		} else if (action.equals(ACTION_FETCH_TRAININGS)) {
 			boolean getTrainingsSucessful = fetchTrainings(username, password);
@@ -280,9 +273,8 @@ public class ServerCommunicationService extends IntentService {
 
 			// send status intent
 			statusIntent.setAction(ACTION_FETCH_TRAINNGS_COMPLETED);
-			statusIntent
-					.putExtra(PARAM_LOGIN_SUCCESSFUL, getTrainingsSucessful);
-
+			statusIntent.putExtra(PARAM_ACTION_SUCCESSFUL, getTrainingsSucessful);
+            statusIntent.putExtra(PARAM_ACTION_MSG, "Unable to fetch trainings.");
 		}
 
 		sendBroadcast(statusIntent);
@@ -652,35 +644,30 @@ public class ServerCommunicationService extends IntentService {
 	 * 
 	 * @return <code>true</code> if they are, otherwise <code>false</code>.
 	 */
-	private boolean checkCredentials(String username, String password) {
+	private boolean checkCredentials(String username, String password)
+            throws ClientProtocolException, IOException{
 		boolean loginSuccessful;
 
-		try {
-			List<NameValuePair> params = new ArrayList<NameValuePair>();
-			params.add(new BasicNameValuePair("email", username));
-			params.add(new BasicNameValuePair("password", password));
+        List<NameValuePair> params = new ArrayList<NameValuePair>();
+        params.add(new BasicNameValuePair("email", username));
+        params.add(new BasicNameValuePair("password", password));
 
-			String url = String.format("%s%s?%s",
-					getResources().getString(R.string.server_url),
-					getResources().getString(R.string.server_path_auth),
-					URLEncodedUtils.format(params, "utf-8"));
+        String url = String.format("%s%s?%s",
+                getResources().getString(R.string.server_url),
+                getResources().getString(R.string.server_path_auth),
+                URLEncodedUtils.format(params, "utf-8"));
 
-			Log.d(TAG, "Check credentials on " + url);
+        Log.d(TAG, "Check credentials on " + url);
 
-			HttpGet httpget = new HttpGet(url);
+        HttpGet httpget = new HttpGet(url);
 
-			HttpResponse response = mHttpClient.execute(httpget);
+        HttpResponse response = mHttpClient.execute(httpget);
 
-			int status = response.getStatusLine().getStatusCode();
+        int status = response.getStatusLine().getStatusCode();
 
-			loginSuccessful = (status == HttpStatus.SC_OK) ? Boolean
-					.parseBoolean(extractJsonFromStream(response.getEntity()
-							.getContent())) : false;
-
-		} catch (Exception e) {
-			loginSuccessful = false;
-			Log.e(TAG, e.getLocalizedMessage());
-		}
+        loginSuccessful = (status == HttpStatus.SC_OK) ? Boolean
+                .parseBoolean(extractJsonFromStream(response.getEntity()
+                        .getContent())) : false;
 
 		return loginSuccessful;
 	}
