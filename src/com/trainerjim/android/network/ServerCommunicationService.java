@@ -211,9 +211,17 @@ public class ServerCommunicationService extends IntentService {
 	public ServerCommunicationService() {
 		super("DataUploaderService");
 
-		// TODO: Dangerous client, change ASAP
-		mHttpClient = HttpsHelpers.getDangerousHttpClient();
+		mHttpClient = initializeHttpClient();
 	}
+
+    /**
+     * This method returns a freshly initialized Http Client.
+     * @return
+     */
+    private HttpClient initializeHttpClient(){
+        // TODO: Dangerous client, change ASAP
+        return HttpsHelpers.getDangerousHttpClient();
+    }
 
 	/*
 	 * Central method receiving all the server communication requests.
@@ -336,9 +344,14 @@ public class ServerCommunicationService extends IntentService {
                         fos.write(baf.toByteArray());
                         fos.flush();
                         fos.close();
+                    } else {
+                        // TODO: This is a very hacky approach. The problem is that on 404 status
+                        // http entity is not fully consumed (calling consumeEntity) does not help
+                        // either and the httpclient hangs after 2 successive 404 calls. To overcome
+                        // this temporarily a new client is initialized on every unsuccessful http call.
+                        mHttpClient = initializeHttpClient();
                     }
                 }
-
             }
         } catch (IOException e) {
             e.printStackTrace();
