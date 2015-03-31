@@ -96,7 +96,7 @@
                                 <RelativeLayout
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
-                                    android:layout_gravity="top" >
+                                    android:layout_gravity="top">
 
                                     <!-- It's really hard to pick the optimal triangle size and align it with the text (this should be done from scratch with low level drawing in the future -->
 
@@ -171,7 +171,6 @@
                                 android:adjustViewBounds="true"
                                 android:visibility="invisible"
                                 android:alpha="0.5"
-                                android:onClick="onPrevExerciseClick"
                                 android:src="@drawable/ic_before" />
 
                             <ImageView
@@ -182,7 +181,6 @@
                                 android:adjustViewBounds="true"
                                 android:visibility="invisible"
                                 android:alpha="0.5"
-                                android:onClick="onNextExerciseClick"
                                 android:src="@drawable/ic_next" />
                         </RelativeLayout>
 

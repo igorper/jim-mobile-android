@@ -259,8 +259,64 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
                 return true;
             }
         });
-		
-		mCircularProgress.setOnClickListener(mCircularButtonClick);
+
+        // add a long click action to previous exercise button
+        mPrevButton.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                mCurrentTraining.moveToPreviousExercise();
+                saveCurrentTraining();
+                toggleInfoButtonVisible(false);
+                updateScreen();
+                return true;
+            }
+        });
+
+
+        // add a long click action to next exercise button
+        mNextButton.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                // don't do anything if exercise can not be scheduled for later
+                if (!mCurrentTraining.canScheduleLater()) {
+                    return true;
+                }
+
+                if (!mCurrentTraining.isCurrentRest()) {
+
+                    AccelerationRecordingTimestamps timestamps = getResources().getBoolean(R.bool.sample_acceleration) ? mAccelerationRecorder
+                            .stopAccelerationSampling() : null;
+                    mCurrentTraining.endExercise(timestamps);
+
+                    // TODO: user should optionally rate the exercise here (scheduling
+                    // the exercise for later because it was too hard)
+                }
+
+                // disable the get ready timer
+                mGetReadyStartTimestamp = -1;
+
+                // cancel the repetition animation if running
+                if (mRepetitionAnimation.isAnimationRunning()) {
+                    mRepetitionAnimation.cancelAnimation();
+                }
+
+                mCurrentTraining.scheduleExerciseLater();
+                saveCurrentTraining();
+                toggleInfoButtonVisible(false);
+                updateScreen();
+
+                return true;
+            }
+        });
+
+        // add a long click action to the main exercise button
+		mCircularProgress.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                changeTrainingPlanState();
+                return true;
+            }
+        });
 
 		mRepetitionAnimation = new RepetitionAnimation(mAnimationRectangle,
 				mUiHandler);
@@ -989,45 +1045,6 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
 		mEditDetailsView.setVisibility(View.GONE);
 	}
 
-    public void onPrevExerciseClick(View v){
-        mCurrentTraining.moveToPreviousExercise();
-        saveCurrentTraining();
-        toggleInfoButtonVisible(false);
-        updateScreen();
-    }
-
-    public boolean onNextExerciseClick(View v){
-        // don't do anything if exercise can not be scheduled for later
-        if (!mCurrentTraining.canScheduleLater()) {
-            return true;
-        }
-
-        if (!mCurrentTraining.isCurrentRest()) {
-
-            AccelerationRecordingTimestamps timestamps = getResources().getBoolean(R.bool.sample_acceleration) ? mAccelerationRecorder
-                    .stopAccelerationSampling() : null;
-            mCurrentTraining.endExercise(timestamps);
-
-            // TODO: user should optionally rate the exercise here (scheduling
-            // the exercise for later because it was too hard)
-        }
-
-        // disable the get ready timer
-        mGetReadyStartTimestamp = -1;
-
-        // cancel the repetition animation if running
-        if (mRepetitionAnimation.isAnimationRunning()) {
-            mRepetitionAnimation.cancelAnimation();
-        }
-
-        mCurrentTraining.scheduleExerciseLater();
-        saveCurrentTraining();
-        toggleInfoButtonVisible(false);
-        updateScreen();
-
-        return true;
-    }
-
 	/**
 	 * Starts the select training activity.
 	 * 
@@ -1099,18 +1116,6 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
 		mCurrentTraining.increaseCurrentRepetition();
 		updateScreen();
 	}
-
-	/**
-	 * Defines what should happen on circular button click based on the state of
-	 * the current training plan (mCurrentTraining).
-	 */
-	private View.OnClickListener mCircularButtonClick = new View.OnClickListener() {
-
-		@Override
-		public void onClick(View v) {
-			changeTrainingPlanState();
-		}
-	};
 
 	private Runnable mGetReadyTimer = new Runnable() {
 
