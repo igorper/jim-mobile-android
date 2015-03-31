@@ -5,6 +5,7 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 
+import android.content.Context;
 import android.os.Environment;
 
 public class Utils {
@@ -17,29 +18,29 @@ public class Utils {
 		return "jimdata";
 	}
 
-	public static File getDataFolderFile() {
-		File dataFolder = new File(Environment.getExternalStorageDirectory(),
+	public static File getDataFolderFile(Context context) {
+		File dataFolder = new File(context.getFilesDir(),
 				Utils.getDataFolder());
 		dataFolder.mkdirs();
 		return dataFolder;
 	}
 
-	public static File getAccelerationFile(String outputFile) {
-		return new File(getDataFolderFile(), outputFile);
+	public static File getAccelerationFile(String outputFile, Context context) {
+		return new File(getDataFolderFile(context), outputFile);
 	}
 
-	public static File getInterpolatedAccelerationFile(String outputFile) {
-		return new File(getDataFolderFile(),
+	public static File getInterpolatedAccelerationFile(String outputFile, Context context) {
+		return new File(getDataFolderFile(context),
 				getInterpolationFileName(outputFile));
 	}
 
-	public static File getTrainingManifestFile(String outputFile) {
-		return new File(getDataFolderFile(),
+	public static File getTrainingManifestFile(String outputFile, Context context) {
+		return new File(getDataFolderFile(context),
 				getTrainingManifestFileName(outputFile));
 	}
 	
-	public static File getTimestampsFile(String outputFile) {
-		return new File(getDataFolderFile(),
+	public static File getTimestampsFile(String outputFile, Context context) {
+		return new File(getDataFolderFile(context),
 				getTimestampsFileName(outputFile));
 	}
 

@@ -32,6 +32,7 @@ import org.json.JSONObject;
 import android.app.IntentService;
 import android.content.ContentUris;
 import android.content.ContentValues;
+import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.util.Log;
@@ -340,7 +341,7 @@ public class ServerCommunicationService extends IntentService {
                         }
 
                        /* Convert the Bytes read to a String. */
-                        FileOutputStream fos = new FileOutputStream(new File(Utils.getDataFolderFile(), Integer.toString(item.getId())));
+                        FileOutputStream fos = new FileOutputStream(new File(Utils.getDataFolderFile(getApplicationContext()), Integer.toString(item.getId())));
                         fos.write(baf.toByteArray());
                         fos.flush();
                         fos.close();
@@ -530,11 +531,11 @@ public class ServerCommunicationService extends IntentService {
 			String username, String password) {
 
 		// create a zip file that will containt the training to upload
-		File trainingZip = training.getZipFile();
+		File trainingZip = training.getZipFile(getApplicationContext());
 		training.zipToFile(
 				getResources().getString(R.string.training_mainfest_name),
 				getResources().getString(R.string.raw_data_name),
-                getResources().getBoolean(R.bool.sample_acceleration));
+                getResources().getBoolean(R.bool.sample_acceleration),getApplicationContext());
 
 		try {
 			String url = String.format("%s%s",
@@ -575,11 +576,11 @@ public class ServerCommunicationService extends IntentService {
 						null, null);
 
 				// delete the raw data
-				training.getRawFile().delete();
+				training.getRawFile(getApplicationContext()).delete();
 
 				if (!getResources().getBoolean(R.bool.research_mode)) {
 					// keep the zip file in research mode, otherwise delete it
-					training.getZipFile().delete();
+					training.getZipFile(getApplicationContext()).delete();
 				}
 			} else {
                 return false;

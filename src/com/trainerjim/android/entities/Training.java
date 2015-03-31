@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+import android.content.Context;
 import android.util.Log;
 
 import com.google.gson.Gson;
@@ -491,8 +492,8 @@ public class Training {
 	 * 
 	 * @return
 	 */
-	public File getZipFile() {
-		return new File(Utils.getDataFolderFile(), getZipFilename());
+	public File getZipFile(Context context) {
+		return new File(Utils.getDataFolderFile(context), getZipFilename());
 	}
 
 	/**
@@ -500,8 +501,8 @@ public class Training {
 	 * 
 	 * @return
 	 */
-	public File getRawFile() {
-		return new File(Utils.getDataFolderFile(), getRawFilename());
+	public File getRawFile(Context context) {
+		return new File(Utils.getDataFolderFile(context), getRawFilename());
 	}
 
 	/**
@@ -533,10 +534,10 @@ public class Training {
 	 * @return
 	 */
 	public boolean zipToFile(String trainingManifestPartName,
-			String rawDataPartName, boolean sampleAcceleration) {
+			String rawDataPartName, boolean sampleAcceleration, Context context) {
 		try {
 			ZipOutputStream out = new ZipOutputStream(new BufferedOutputStream(
-					new FileOutputStream(getZipFile())));
+					new FileOutputStream(getZipFile(context))));
 
 			byte trainingData[] = new Gson().toJson(extractMeasurement())
 					.getBytes();
@@ -555,7 +556,7 @@ public class Training {
             // is enabled
             if(sampleAcceleration) {
                 BufferedInputStream rawData = new BufferedInputStream(
-                        new FileInputStream(getRawFile()));
+                        new FileInputStream(getRawFile(context)));
                 // FileInputStream rawData = new FileInputStream(getRawFile());
                 byte[] data = new byte[COPY_BUFFER];
 

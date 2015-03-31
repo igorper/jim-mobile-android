@@ -915,7 +915,7 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
                     // checking the dimensions of the image
                     matrix.postRotate(90);
 
-                    Bitmap scaledBitmap = BitmapFactory.decodeFile(new File(Utils.getDataFolderFile(),
+                    Bitmap scaledBitmap = BitmapFactory.decodeFile(new File(Utils.getDataFolderFile(getApplicationContext()),
                             Integer.toString(curExercise.getExerciseType().getId())).getAbsolutePath());
 
                     Bitmap rotatedBitmap = Bitmap.createBitmap(scaledBitmap , 0, 0, scaledBitmap .getWidth(), scaledBitmap .getHeight(), matrix, true);
@@ -1164,7 +1164,7 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
                     try {
                         mAccelerationRecorder.startAccelerationSampling(
                                 mCurrentTraining.getTrainingStartTimestamp(),
-                                mCurrentTraining.getRawFile());
+                                mCurrentTraining.getRawFile(getApplicationContext()));
                     } catch (IOException e) {
                         Log.e(TAG,
                                 "Unable to start acceleration sampling: "
