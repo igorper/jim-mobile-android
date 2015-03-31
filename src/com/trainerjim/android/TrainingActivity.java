@@ -279,7 +279,7 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
             public boolean onLongClick(View v) {
                 // don't do anything if exercise can not be scheduled for later
                 if (!mCurrentTraining.canScheduleLater()) {
-                    return true;
+                    return false;
                 }
 
                 if (!mCurrentTraining.isCurrentRest()) {
@@ -305,7 +305,7 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
                 toggleInfoButtonVisible(false);
                 updateScreen();
 
-                return true;
+                return false;
             }
         });
 
@@ -843,14 +843,19 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
 	 * responsible for periodic screen changes)
 	 */
 	private void updateScreen() {
+        // those should never be visible on updated screen (can be visible only on a special action)
+        mSkipButton.setVisibility(View.INVISIBLE);
+        mNextButton.setVisibility(View.INVISIBLE);
+        mPrevButton.setVisibility(View.INVISIBLE);
+
 		if (mCurrentTraining == null) {
 			// no training started yet, show the start button
 			mCircularProgress.setCurrentState(CircularProgressState.START);
 
             mTextRectUpperLine.setText("Workout selected:");
+            mTextRectUpperLine.setVisibility(View.VISIBLE);
 
 			mInfoButton.setVisibility(View.INVISIBLE);
-            mSkipButton.setVisibility(View.INVISIBLE);
 
 			mBottomContainer.setVisibility(View.VISIBLE);
 			mSeriesInformation.setVisibility(View.INVISIBLE);
@@ -858,8 +863,6 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
             mTextRectOneLine.setVisibility(View.INVISIBLE);
             mLayoutRectTrainingSelector.setVisibility(View.VISIBLE);
             mLayoutRectLowerLine.setVisibility(View.GONE);
-            mNextButton.setVisibility(View.INVISIBLE);
-            mPrevButton.setVisibility(View.INVISIBLE);
 		} else if (mCurrentTraining.getCurrentExercise() == null) {
 			if (!mCurrentTraining.isTrainingEnded()) {
                 // no more exercises, show the done button
@@ -874,7 +877,7 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
 				mViewFlipper.showNext();
 			} else {
 				// show overview
-                mTextRectOneLine.setText("ALL DONE!");
+                mTextRectOneLine.setText("ALL DONE");
 
 				mCircularProgress.setNumberTotal(mCurrentTraining
 						.getTotalTrainingDuration());
@@ -887,14 +890,11 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
 				mSeriesInfoText.setText("tap to close");
 				mBottomContainer.setVisibility(View.VISIBLE);
 				// TODO: mSwipeControl.setVisibility(View.VISIBLE);
-                mNextButton.setVisibility(View.INVISIBLE);
-                mPrevButton.setVisibility(View.INVISIBLE);
 				mTrainingSelector.setVisibility(View.INVISIBLE);
                 mTextRectOneLine.setVisibility(View.VISIBLE);
 			}
 
 			mInfoButton.setVisibility(View.INVISIBLE);
-            mSkipButton.setVisibility(View.INVISIBLE);
 			mSeriesInformation.setVisibility(View.VISIBLE);
 			mImageArrowSeriesInfo.setVisibility(View.GONE);
 		} else {
@@ -938,14 +938,14 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
 				Series curSeries = curExercise.getCurrentSeries();
 				mCircularProgress.setCurrentState(CircularProgressState.REST);
 
-                mTextRectUpperLine.setText("NEXT");
+                mTextRectUpperLine.setText("- " + Integer.toString(curExercise.getOrder() + 1) + " -");
 
                 // show short name if available
                 String exerciseName = curExercise.getExerciseType().getShortName() != null ? curExercise
                         .getExerciseType().getShortName() : curExercise.getExerciseType().getName();
 
                 // visualize exercise order (useful when traversing exercises)
-                mTextRectLowerLine.setText(Integer.toString(curExercise.getOrder() + 1) + ". " + exerciseName);
+                mTextRectLowerLine.setText(exerciseName);
                 mLayoutRectLowerLine.setVisibility(View.VISIBLE);
                 mLayoutRectTrainingSelector.setVisibility(View.GONE);
 				mSeriesInfoText.setText(String.format(
@@ -1005,13 +1005,10 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
 					.getAllSeriesCount() - curExercise.getSeriesLeftCount());
 
 			mInfoButton.setVisibility(View.VISIBLE);
-            mSkipButton.setVisibility(View.VISIBLE);
 			mBottomContainer.setVisibility(View.VISIBLE);
 			mSeriesInformation.setVisibility(View.VISIBLE);
 			mTrainingSelector.setVisibility(View.VISIBLE);
 			// TODO: mSwipeControl.setVisibility(View.VISIBLE);
-            mNextButton.setVisibility(View.VISIBLE);
-            mPrevButton.setVisibility(View.VISIBLE);
 			mImageArrowSeriesInfo.setVisibility(View.VISIBLE);
 		}
 
@@ -1050,15 +1047,20 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
 	 * 
 	 * @param view
 	 */
-	public void onSelectTrainingClick(View view) {
-        // ignore the training select event if resting
+	public void onBottomStrapClick(View view) {
+        // if resting toggle the next/prev buttons and the current exercise info
         if(mCircularProgress.getCurrentState() == CircularProgressState.REST){
-            return;
-        }
+            int visibilityControls = mPrevButton.getVisibility() == View.INVISIBLE ? View.VISIBLE : View.INVISIBLE;
 
-		Intent intent = new Intent(TrainingActivity.this,
-				TrainingSelectionList.class);
-		startActivityForResult(intent, ACTIVITY_REQUEST_TRAININGS_LIST);
+            mPrevButton.setVisibility(visibilityControls);
+            mNextButton.setVisibility(visibilityControls);
+            mSkipButton.setVisibility(visibilityControls);
+        } else {
+
+            Intent intent = new Intent(TrainingActivity.this,
+                    TrainingSelectionList.class);
+            startActivityForResult(intent, ACTIVITY_REQUEST_TRAININGS_LIST);
+        }
 	}
 
     /**
