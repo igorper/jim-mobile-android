@@ -5,6 +5,7 @@ import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -14,9 +15,11 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 import android.content.Context;
+import android.text.format.Time;
 import android.util.Log;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.trainerjim.android.AccelerationRecorder.AccelerationRecordingTimestamps;
 import com.trainerjim.android.util.Utils;
 
@@ -539,8 +542,9 @@ public class Training {
 			ZipOutputStream out = new ZipOutputStream(new BufferedOutputStream(
 					new FileOutputStream(getZipFile(context))));
 
-			byte trainingData[] = new Gson().toJson(extractMeasurement())
+			byte trainingData[] = Utils.getGsonObject().toJson(extractMeasurement())
 					.getBytes();
+
 
 			ZipEntry entry = new ZipEntry(trainingManifestPartName);
 			out.putNextEntry(entry);

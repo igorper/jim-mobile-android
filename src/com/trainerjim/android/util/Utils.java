@@ -8,7 +8,15 @@ import java.util.Date;
 import android.content.Context;
 import android.os.Environment;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
 public class Utils {
+
+    /**
+     * Object for (de)seralization of json data. Date format is set to include timezone information.
+     */
+    private static Gson mGson = new GsonBuilder().setDateFormat("yyyy-MM-dd'T'HH:mm:ssZ").create();
 
 	public static String getApplicationTag() {
 		return "MainActivity";
@@ -60,4 +68,13 @@ public class Utils {
 		return new SimpleDateFormat("yyyyMMddHHmmss").format(Calendar
 				.getInstance().getTime());
 	}
+
+    /**
+     * Returns the json (de)serialization object that can be used throught the application. The object
+     * is initialized so that the whole application uses the object with the same settings.
+     * @return
+     */
+    public static Gson getGsonObject(){
+        return mGson;
+    }
 }
