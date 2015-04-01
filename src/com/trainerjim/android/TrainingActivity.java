@@ -792,7 +792,11 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
 				mCurrentTraining = mGsonInstance.fromJson(jsonEncodedTraining,
 						Training.class);
 				mCurrentTraining.startTraining();
-			}
+			} else {
+                // if there is no training available this method should just exit and should
+                // not change the application state
+                return;
+            }
 		} else if (mCurrentTraining.getCurrentExercise() == null) {
 			if (!mCurrentTraining.isTrainingEnded()) {
 				// I'm done was clicked
