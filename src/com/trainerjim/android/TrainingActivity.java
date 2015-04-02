@@ -887,7 +887,7 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
 				showEditDetailsViewIfDemanded();
 
 				mCircularProgress.setCurrentState(CircularProgressState.STOP);
-				mSeriesInfoText.setText("tap to finish");
+				mSeriesInfoText.setText("hold to finish");
 				mBottomContainer.setVisibility(View.INVISIBLE);
 
 			} else if (mCurrentTraining.getTrainingRating() == -1) {
@@ -905,7 +905,7 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
 				mCircularProgress
 						.setCurrentState(CircularProgressState.OVERVIEW);
 
-				mSeriesInfoText.setText("tap to close");
+				mSeriesInfoText.setText("hold to close");
 				mBottomContainer.setVisibility(View.VISIBLE);
 				// TODO: mSwipeControl.setVisibility(View.VISIBLE);
 				mTrainingSelector.setVisibility(View.INVISIBLE);

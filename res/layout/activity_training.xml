@@ -343,6 +343,7 @@
                         android:hint="enter comment ..."
                         android:inputType="textMultiLine"
                         android:lines="3"
+                        android:visibility="gone"
                         android:scrollHorizontally="false"
                         android:textAppearance="?android:attr/textAppearanceLarge"
                         android:textColor="@color/input_text" />
