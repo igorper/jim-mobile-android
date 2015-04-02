@@ -21,6 +21,12 @@ public class ExerciseTypeImagesItem {
     public ExerciseTypeImagesItem() {}
 
     /**
+     * Gets the exercise short name.
+     * @return
+     */
+    public String getShortName() { return short_name; }
+
+    /**
      * Gets the exercise's medium size image url.
      * @return
      */

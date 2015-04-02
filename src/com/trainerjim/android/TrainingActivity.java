@@ -39,7 +39,6 @@ import com.trainerjim.android.entities.SeriesExecution;
 import com.trainerjim.android.entities.Training;
 import com.trainerjim.android.network.ServerCommunicationService;
 import com.trainerjim.android.storage.PermanentSettings;
-import com.trainerjim.android.storage.TrainingContentProvider;
 import com.trainerjim.android.storage.TrainingContentProvider.CompletedTraining;
 import com.trainerjim.android.storage.TrainingContentProvider.TrainingPlan;
 import com.trainerjim.android.ui.CircularProgressControl;
@@ -334,7 +333,7 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
 		IntentFilter filter = new IntentFilter(
 				ServerCommunicationService.ACTION_FETCH_TRAINNGS_COMPLETED);
 		filter.addAction(ServerCommunicationService.ACTION_GET_TRAINNGS_LIST_COMPLETED);
-		filter.addAction(ServerCommunicationService.ACTION_FETCH_TRAINNG_ITEM_COMPLETED);
+		filter.addAction(ServerCommunicationService.ACTION_REPORT_PROGRESS);
 		filter.addAction(ServerCommunicationService.ACTION_UPLOAD_TRAININGS_STARTED);
 		filter.addAction(ServerCommunicationService.ACTION_TRAININGS_ITEM_UPLOADED);
 		filter.addAction(ServerCommunicationService.ACTION_UPLOAD_TRAINNGS_COMPLETED);
@@ -1290,26 +1289,26 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
 				// calculate progress bar information and set progress
 				int totalNumberOfTrainings = intent
 						.getExtras()
-						.getInt(ServerCommunicationService.PARAM_FETCH_TRAINNGS_NUM_ALL_ITEMS);
+						.getInt(ServerCommunicationService.PARAM_REPORT_PROGRESS_TOTAL);
 				int progress = Math.round(1f / totalNumberOfTrainings * 100f);
 				mProgressDialog.setProgress(progress);
 			} else if (intent
 					.getAction()
-					.equals(ServerCommunicationService.ACTION_FETCH_TRAINNG_ITEM_COMPLETED)) {
+					.equals(ServerCommunicationService.ACTION_REPORT_PROGRESS)) {
 				// on individual training item downloaded
 
 				// calculate progress bar information and set progress with
 				// training name
 				int totalNumberOfTrainings = intent
 						.getExtras()
-						.getInt(ServerCommunicationService.PARAM_FETCH_TRAINNGS_NUM_ALL_ITEMS);
+						.getInt(ServerCommunicationService.PARAM_REPORT_PROGRESS_TOTAL);
 				int trainingCount = intent
 						.getExtras()
-						.getInt(ServerCommunicationService.PARAM_FETCH_TRAINNGS_CUR_ITEM_CNT);
+						.getInt(ServerCommunicationService.PARAM_REPORT_PROGRESS_CURRENT);
 				String trainingName = intent
 						.getExtras()
 						.getString(
-								ServerCommunicationService.PARAM_FETCH_TRAINNGS_CUR_ITEM_NAME);
+								ServerCommunicationService.PARAM_REPORT_PROGRESS_TEXT);
 				int progress = Math.round((1f + trainingCount)
 						/ totalNumberOfTrainings * 100f);
 				mProgressDialog.setMessage("Fetching " + trainingName);

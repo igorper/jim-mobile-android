@@ -32,7 +32,6 @@ import org.json.JSONObject;
 import android.app.IntentService;
 import android.content.ContentUris;
 import android.content.ContentValues;
-import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.util.Log;
@@ -94,24 +93,24 @@ public class ServerCommunicationService extends IntentService {
 	/**
 	 * This ID marks that the individual training item was successfully fetched.
 	 */
-	public static final String ACTION_FETCH_TRAINNG_ITEM_COMPLETED = "fetch_trainings_item_downloaded";
+	public static final String ACTION_REPORT_PROGRESS = "fetch_trainings_item_downloaded";
 
 	/**
 	 * This ID marks the number of all trainings to fetch from the server.
 	 */
-	public static final String PARAM_FETCH_TRAINNGS_NUM_ALL_ITEMS = "fetch_trainings_num_items";
+	public static final String PARAM_REPORT_PROGRESS_TOTAL = "fetch_trainings_num_items";
 
 	/**
 	 * This ID marks the name of the item being currently fetched from the
 	 * server.
 	 */
-	public static final String PARAM_FETCH_TRAINNGS_CUR_ITEM_NAME = "fetch_trainings_cur_item_name";
+	public static final String PARAM_REPORT_PROGRESS_TEXT = "fetch_trainings_cur_item_name";
 
 	/**
 	 * This ID marks the current count of the trainings downloaded from the
 	 * server (used for progress visualization).
 	 */
-	public static final String PARAM_FETCH_TRAINNGS_CUR_ITEM_CNT = "fetch_trainings_cur_item_cnt";
+	public static final String PARAM_REPORT_PROGRESS_CURRENT = "fetch_trainings_cur_item_cnt";
 
 	/***********************
 	 * UPLOAD TRAININGS TASK ACTIONS AND PARAMETERS
@@ -316,8 +315,17 @@ public class ServerCommunicationService extends IntentService {
                 Type listType = new TypeToken<ArrayList<ExerciseTypeImagesItem>>(){}.getType();
                 List<ExerciseTypeImagesItem> exerciseImagesList = mJsonEngine.fromJson(jsonExercisesList, listType);
 
+                // create a list of exercise images that are not yet downloaded (based on image name)
+                List<ExerciseTypeImagesItem> exercisesToDownload = new ArrayList<ExerciseTypeImagesItem>();
+                for (int i=0 ; i < exerciseImagesList.size(); i++){
+                    if(!new File(Utils.getDataFolderFile(getApplicationContext()), Integer.toString(exerciseImagesList.get(i).getId())).exists()) {
+                        exercisesToDownload.add(exerciseImagesList.get(i));
+                    }
+                }
+
+                int cnt = 0;
                 // for each exercise fetch the image and save it to the persistent storage
-                for (ExerciseTypeImagesItem item : exerciseImagesList){
+                for (ExerciseTypeImagesItem item : exercisesToDownload){
                     String imageUrl = String.format("%s%s",
                             getResources().getString(R.string.server_url),
                             item.getMediumImageUrl());
@@ -326,6 +334,19 @@ public class ServerCommunicationService extends IntentService {
 
                     HttpResponse responseImage = mHttpClient.execute(httpgetImage);
                     int statusImage = responseImage.getStatusLine().getStatusCode();
+
+                    Intent broadcastIntent = new Intent();
+                    broadcastIntent
+                            .setAction(ACTION_REPORT_PROGRESS);
+                    broadcastIntent.addCategory(Intent.CATEGORY_DEFAULT);
+                    broadcastIntent.putExtra(
+                            PARAM_REPORT_PROGRESS_TEXT, item.getShortName());
+                    broadcastIntent.putExtra(PARAM_REPORT_PROGRESS_CURRENT,
+                            cnt++);
+                    broadcastIntent.putExtra(
+                            PARAM_REPORT_PROGRESS_TOTAL,
+                            exercisesToDownload.size());
+                    sendBroadcast(broadcastIntent);
 
                     if(statusImage == HttpStatus.SC_OK){
                         InputStream is = responseImage.getEntity().getContent();
@@ -379,7 +400,7 @@ public class ServerCommunicationService extends IntentService {
 				Intent broadcastIntent = new Intent();
 				broadcastIntent.setAction(ACTION_GET_TRAINNGS_LIST_COMPLETED);
 				broadcastIntent.addCategory(Intent.CATEGORY_DEFAULT);
-				broadcastIntent.putExtra(PARAM_FETCH_TRAINNGS_NUM_ALL_ITEMS,
+				broadcastIntent.putExtra(PARAM_REPORT_PROGRESS_TOTAL,
 						jaTrainingsPlans.length());
 				sendBroadcast(broadcastIntent);
 
@@ -399,14 +420,14 @@ public class ServerCommunicationService extends IntentService {
 					// notify that we are fetching a specific training
 					broadcastIntent = new Intent();
 					broadcastIntent
-							.setAction(ACTION_FETCH_TRAINNG_ITEM_COMPLETED);
+							.setAction(ACTION_REPORT_PROGRESS);
 					broadcastIntent.addCategory(Intent.CATEGORY_DEFAULT);
 					broadcastIntent.putExtra(
-							PARAM_FETCH_TRAINNGS_CUR_ITEM_NAME, trainingName);
-					broadcastIntent.putExtra(PARAM_FETCH_TRAINNGS_CUR_ITEM_CNT,
+                            PARAM_REPORT_PROGRESS_TEXT, trainingName);
+					broadcastIntent.putExtra(PARAM_REPORT_PROGRESS_CURRENT,
 							i);
 					broadcastIntent.putExtra(
-							PARAM_FETCH_TRAINNGS_NUM_ALL_ITEMS,
+                            PARAM_REPORT_PROGRESS_TOTAL,
 							jaTrainingsPlans.length());
 					sendBroadcast(broadcastIntent);
 
