@@ -39,6 +39,7 @@ import com.trainerjim.android.entities.SeriesExecution;
 import com.trainerjim.android.entities.Training;
 import com.trainerjim.android.network.ServerCommunicationService;
 import com.trainerjim.android.storage.PermanentSettings;
+import com.trainerjim.android.storage.TrainingContentProvider;
 import com.trainerjim.android.storage.TrainingContentProvider.CompletedTraining;
 import com.trainerjim.android.storage.TrainingContentProvider.TrainingPlan;
 import com.trainerjim.android.ui.CircularProgressControl;
@@ -778,11 +779,7 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
 			toggleInfoButtonVisible(false);
 		} else if (mCurrentTraining == null) {
 			// start button was clicked
-			String[] projection = { TrainingPlan._ID, TrainingPlan.DATA };
-			String selection = String.format("%s == %d", TrainingPlan._ID,
-					mSelectedTrainingId);
-			Cursor trainings = managedQuery(TrainingPlan.CONTENT_URI,
-					projection, selection, null, null);
+            Cursor trainings = getAvailableTrainings();
 
 			if (trainings.moveToNext()) {
 				String jsonEncodedTraining = trainings.getString(trainings
@@ -792,11 +789,7 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
 				mCurrentTraining = mGsonInstance.fromJson(jsonEncodedTraining,
 						Training.class);
 				mCurrentTraining.startTraining();
-			} else {
-                // if there is no training available this method should just exit and should
-                // not change the application state
-                return;
-            }
+			}
 		} else if (mCurrentTraining.getCurrentExercise() == null) {
 			if (!mCurrentTraining.isTrainingEnded()) {
 				// I'm done was clicked
@@ -841,7 +834,19 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
 		updateScreen();
 	}
 
-	/**
+    /**
+     * This method queries the database to return a cursor with available trainings.
+     * @return
+     */
+    private Cursor getAvailableTrainings() {
+        String[] projection = { TrainingPlan._ID, TrainingPlan.DATA };
+        String selection = String.format("%s == %d", TrainingPlan._ID,
+                mSelectedTrainingId);
+        return managedQuery(TrainingPlan.CONTENT_URI,
+                projection, selection, null, null);
+    }
+
+    /**
 	 * This is the sole method responsible for setting the activity UI (apart
 	 * from runnables, which also have to be registered in this method, and are
 	 * responsible for periodic screen changes)
@@ -856,17 +861,26 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
 			// no training started yet, show the start button
 			mCircularProgress.setCurrentState(CircularProgressState.START);
 
-            mTextRectUpperLine.setText("Workout selected:");
-            mTextRectUpperLine.setVisibility(View.VISIBLE);
+            if(getAvailableTrainings().getCount() > 0){
+                mTextRectUpperLine.setText("Workout selected:");
+                mTextRectUpperLine.setVisibility(View.VISIBLE);
+                mTrainingSelector.setVisibility(View.VISIBLE);
+                mTextRectOneLine.setVisibility(View.INVISIBLE);
+                mLayoutRectTrainingSelector.setVisibility(View.VISIBLE);
+                mLayoutRectLowerLine.setVisibility(View.GONE);
+
+            } else {
+                mTrainingSelector.setVisibility(View.GONE);
+                mTextRectOneLine.setText("NO TRAININGS.");
+                mTextRectOneLine.setVisibility(View.VISIBLE);
+            }
+
 
 			mInfoButton.setVisibility(View.INVISIBLE);
 
 			mBottomContainer.setVisibility(View.VISIBLE);
 			mSeriesInformation.setVisibility(View.INVISIBLE);
-			mTrainingSelector.setVisibility(View.VISIBLE);
-            mTextRectOneLine.setVisibility(View.INVISIBLE);
-            mLayoutRectTrainingSelector.setVisibility(View.VISIBLE);
-            mLayoutRectLowerLine.setVisibility(View.GONE);
+
 		} else if (mCurrentTraining.getCurrentExercise() == null) {
 			if (!mCurrentTraining.isTrainingEnded()) {
                 // no more exercises, show the done button
@@ -1266,6 +1280,7 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
 
 				if (getTrainingSuccessful) {
 					updateTrainingSelector(-1);
+                    updateScreen();
 				}
 			} else if (intent
 					.getAction()

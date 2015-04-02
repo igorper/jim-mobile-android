@@ -34,7 +34,6 @@ public class TrainingSelectionList extends ListActivity {
 	
 	@Override
 	protected void onListItemClick(ListView l, View v, int position, long id) {
-		Toast.makeText(getApplicationContext(), Long.toString(id), Toast.LENGTH_SHORT).show();
 		Intent data = new Intent();
 		data.putExtra(INTENT_EXTRA_SELECTED_TRAINING_KEY,id);
 		setResult(RESULT_OK, data);
