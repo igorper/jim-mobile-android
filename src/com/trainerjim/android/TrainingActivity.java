@@ -871,7 +871,7 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
 
             } else {
                 mTrainingSelector.setVisibility(View.GONE);
-                mTextRectOneLine.setText("NO TRAININGS.");
+                mTextRectOneLine.setText("NO TRAININGS");
                 mTextRectOneLine.setVisibility(View.VISIBLE);
             }
 

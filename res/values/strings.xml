@@ -5,7 +5,7 @@
     <string name="hello_world">Hello world!</string>
     <string name="menu_settings">Settings</string>
     <string name="login_button_text">login</string>
-    <string name="input_username_hint_text">username or email</string>
+    <string name="input_username_hint_text">email</string>
     <string name="input_password_hint_text">password</string>
     <string name="input_comment_hint_text">comment &#8230;</string>
     <string name="button_rate_text">Rate</string>
