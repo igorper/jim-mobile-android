@@ -46,6 +46,8 @@ import com.trainerjim.android.storage.TrainingContentProvider.TrainingPlan;
 import com.trainerjim.android.util.HttpsHelpers;
 import com.trainerjim.android.util.Utils;
 
+import retrofit.RestAdapter;
+
 /**
  * This service is the central gateway for all the communication with the remote
  * server.
@@ -679,32 +681,13 @@ public class ServerCommunicationService extends IntentService {
 	 * 
 	 * @return <code>true</code> if they are, otherwise <code>false</code>.
 	 */
-	private boolean checkCredentials(String username, String password)
-            throws ClientProtocolException, IOException{
-		boolean loginSuccessful;
+	private boolean checkCredentials(String username, String password) {
 
-        List<NameValuePair> params = new ArrayList<NameValuePair>();
-        params.add(new BasicNameValuePair("email", username));
-        params.add(new BasicNameValuePair("password", password));
+        RestAdapter restAdapter = new RestAdapter.Builder().setEndpoint(getResources().getString(R.string.server_url)).build();
 
-        String url = String.format("%s%s?%s",
-                getResources().getString(R.string.server_url),
-                getResources().getString(R.string.server_path_auth),
-                URLEncodedUtils.format(params, "utf-8"));
+        TrainerJimService service = restAdapter.create(TrainerJimService.class);
 
-        Log.d(TAG, "Check credentials on " + url);
-
-        HttpGet httpget = new HttpGet(url);
-
-        HttpResponse response = mHttpClient.execute(httpget);
-
-        int status = response.getStatusLine().getStatusCode();
-
-        loginSuccessful = (status == HttpStatus.SC_OK) ? Boolean
-                .parseBoolean(extractJsonFromStream(response.getEntity()
-                        .getContent())) : false;
-
-		return loginSuccessful;
+		return service.checkCredentials(username, password);
 	}
 
 	/**

@@ -9,7 +9,12 @@ buildscript {
 apply plugin: 'android'
 
 dependencies {
-    compile fileTree(dir: 'libs', include: '*.jar')
+    repositories {
+        mavenCentral()
+    }
+
+    compile fileTree(include: '*.jar', dir: 'libs')
+    compile 'com.squareup.retrofit:retrofit:1.9.0'
 }
 
 android {
