@@ -41,12 +41,14 @@ import com.google.gson.reflect.TypeToken;
 import com.trainerjim.android.R;
 import com.trainerjim.android.entities.ExerciseTypeImagesItem;
 import com.trainerjim.android.entities.Training;
+import com.trainerjim.android.entities.TrainingDescription;
 import com.trainerjim.android.storage.TrainingContentProvider.CompletedTraining;
 import com.trainerjim.android.storage.TrainingContentProvider.TrainingPlan;
 import com.trainerjim.android.util.HttpsHelpers;
 import com.trainerjim.android.util.Utils;
 
 import retrofit.RestAdapter;
+import retrofit.client.Response;
 
 /**
  * This service is the central gateway for all the communication with the remote
@@ -210,11 +212,22 @@ public class ServerCommunicationService extends IntentService {
 	 */
 	private HttpClient mHttpClient;
 
+    /**
+     * Rest adapter for creating services. Needed by the "Retrofit" library.
+     */
+    private RestAdapter restAdapter;
+
+    /**
+     * Service for accessing the Trainerjim backend methods.
+     */
+    private TrainerJimService service;
+
 	public ServerCommunicationService() {
 		super("DataUploaderService");
 
 		mHttpClient = initializeHttpClient();
-	}
+
+    }
 
     /**
      * This method returns a freshly initialized Http Client.
@@ -237,7 +250,12 @@ public class ServerCommunicationService extends IntentService {
 		String username = intent.getExtras().getString(INTENT_KEY_USERNAME);
 		String password = intent.getExtras().getString(INTENT_KEY_PASSWORD);
 
-		// this one will hold the status of the service task (each action should
+        // initialize rest communication channel
+        restAdapter = new RestAdapter.Builder().setEndpoint(getResources().getString(R.string.server_url)).build();
+        service = restAdapter.create(TrainerJimService.class);
+
+
+        // this one will hold the status of the service task (each action should
 		// return a status)
 		Intent statusIntent = new Intent();
 		statusIntent.addCategory(Intent.CATEGORY_DEFAULT);
@@ -389,86 +407,61 @@ public class ServerCommunicationService extends IntentService {
 	 * @return
 	 */
 	private boolean fetchTrainings(String username, String password) {
-		boolean wasSucessful = false;
-		try {
-			// get list of all trainings for the user
-			String jsonTrainingPlans = getTrainingList(username, password);
-			wasSucessful = jsonTrainingPlans != null;
 
-			JSONArray jaTrainingsPlans = null;
-			if (wasSucessful) {
-				// notify that the trainings list was successfully downloaded
-				jaTrainingsPlans = new JSONArray(jsonTrainingPlans);
-				Intent broadcastIntent = new Intent();
-				broadcastIntent.setAction(ACTION_GET_TRAINNGS_LIST_COMPLETED);
-				broadcastIntent.addCategory(Intent.CATEGORY_DEFAULT);
-				broadcastIntent.putExtra(PARAM_REPORT_PROGRESS_TOTAL,
-						jaTrainingsPlans.length());
-				sendBroadcast(broadcastIntent);
+        List<TrainingDescription> trainingsManifest = service.getTrainingsList(username, password);
 
-				// download each training and save the information for later
-				// database storage
-				List<Integer> trainingIds = new ArrayList<Integer>();
-				List<String> trainingNames = new ArrayList<String>();
-				List<String> fetchedTrainings = new ArrayList<String>();
+        if(trainingsManifest != null){
+            Intent broadcastIntent = new Intent();
+            broadcastIntent.setAction(ACTION_GET_TRAINNGS_LIST_COMPLETED);
+            broadcastIntent.addCategory(Intent.CATEGORY_DEFAULT);
+            broadcastIntent.putExtra(PARAM_REPORT_PROGRESS_TOTAL,
+                    trainingsManifest.size());
+            sendBroadcast(broadcastIntent);
 
-				for (int i = 0; i < jaTrainingsPlans.length(); i++) {
-					JSONObject joTrainingPlan = (JSONObject) jaTrainingsPlans
-							.get(i);
+            // clear the database
+            getContentResolver().delete(TrainingPlan.CONTENT_URI, null,
+                    null);
 
-					int trainingId = joTrainingPlan.getInt("id");
-					String trainingName = joTrainingPlan.getString("name");
+            for (int i = 0; i < trainingsManifest.size(); i++) {
+                TrainingDescription trainingDescription = trainingsManifest.get(i);
 
-					// notify that we are fetching a specific training
-					broadcastIntent = new Intent();
-					broadcastIntent
-							.setAction(ACTION_REPORT_PROGRESS);
-					broadcastIntent.addCategory(Intent.CATEGORY_DEFAULT);
-					broadcastIntent.putExtra(
-                            PARAM_REPORT_PROGRESS_TEXT, trainingName);
-					broadcastIntent.putExtra(PARAM_REPORT_PROGRESS_CURRENT,
-							i);
-					broadcastIntent.putExtra(
-                            PARAM_REPORT_PROGRESS_TOTAL,
-							jaTrainingsPlans.length());
-					sendBroadcast(broadcastIntent);
+                // notify that we are fetching a specific training
+                broadcastIntent = new Intent();
+                broadcastIntent
+                        .setAction(ACTION_REPORT_PROGRESS);
+                broadcastIntent.addCategory(Intent.CATEGORY_DEFAULT);
+                broadcastIntent.putExtra(
+                        PARAM_REPORT_PROGRESS_TEXT, trainingDescription.getName());
+                broadcastIntent.putExtra(PARAM_REPORT_PROGRESS_CURRENT,
+                        i);
+                broadcastIntent.putExtra(
+                        PARAM_REPORT_PROGRESS_TOTAL,
+                        trainingsManifest.size());
+                sendBroadcast(broadcastIntent);
 
-					// break on error (get all or nothing)
-					String jsonTraining = getTraining(trainingId, username,
-							password);
-					if (jsonTraining == null) {
-						wasSucessful = false;
-						break;
-					}
+                Response trainingResponse = service.getTraining(username, password, trainingDescription.getId());
+                String training = null;
 
-					trainingIds.add(trainingId);
-					trainingNames.add(trainingName);
-					fetchedTrainings.add(jsonTraining);
-				}
+                try {
+                    training = extractJsonFromStream(trainingResponse.getBody().in());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    // TODO: implement logging
+                }
 
-				// clear the database
-				getContentResolver().delete(TrainingPlan.CONTENT_URI, null,
-						null);
+                if (training != null) {
+                    ContentValues trainingPlan = new ContentValues();
+                    trainingPlan.put(TrainingPlan._ID, trainingDescription.getId());
+                    trainingPlan.put(TrainingPlan.NAME, trainingDescription.getName());
+                    trainingPlan.put(TrainingPlan.DATA, training);
 
-				// store fetched trainings to the database
-				for (int i = 0; i < fetchedTrainings.size(); i++) {
-					ContentValues trainingPlan = new ContentValues();
-					trainingPlan.put(TrainingPlan._ID, trainingIds.get(i));
-					trainingPlan.put(TrainingPlan.NAME, trainingNames.get(i));
-					trainingPlan
-							.put(TrainingPlan.DATA, fetchedTrainings.get(i));
+                    getContentResolver().insert(TrainingPlan.CONTENT_URI,
+                            trainingPlan);
+                }
+            }
+        }
 
-					getContentResolver().insert(TrainingPlan.CONTENT_URI,
-							trainingPlan);
-				}
-
-			}
-		} catch (Exception e) {
-			wasSucessful = false;
-			e.printStackTrace();
-			Log.e(TAG, e.getMessage());
-		}
-		return wasSucessful;
+        return true;
 	}
 
 	/**
@@ -682,11 +675,6 @@ public class ServerCommunicationService extends IntentService {
 	 * @return <code>true</code> if they are, otherwise <code>false</code>.
 	 */
 	private boolean checkCredentials(String username, String password) {
-
-        RestAdapter restAdapter = new RestAdapter.Builder().setEndpoint(getResources().getString(R.string.server_url)).build();
-
-        TrainerJimService service = restAdapter.create(TrainerJimService.class);
-
 		return service.checkCredentials(username, password);
 	}
 
