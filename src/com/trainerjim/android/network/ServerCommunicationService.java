@@ -22,10 +22,6 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.utils.URLEncodedUtils;
-import org.apache.http.entity.mime.HttpMultipartMode;
-import org.apache.http.entity.mime.MultipartEntity;
-import org.apache.http.entity.mime.content.FileBody;
-import org.apache.http.entity.mime.content.StringBody;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.ByteArrayBuffer;
 
@@ -547,6 +543,7 @@ public class ServerCommunicationService extends IntentService {
                 getResources().getString(R.string.raw_data_name),
                 getResources().getBoolean(R.bool.sample_acceleration), getApplicationContext());
 
+        // upload training
         Response uploadResponse = service.uploadTraining(new TypedString(username), new TypedString(password), new TypedFile("application/zip", trainingZip));
 
         if(uploadResponse.getStatus() == 200){
