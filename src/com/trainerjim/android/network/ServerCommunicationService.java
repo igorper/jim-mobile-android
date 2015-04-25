@@ -3,11 +3,14 @@ package com.trainerjim.android.network;
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.reflect.Type;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,7 +18,6 @@ import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.NameValuePair;
-import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
@@ -26,19 +28,24 @@ import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.entity.mime.content.StringBody;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.ByteArrayBuffer;
-import org.json.JSONArray;
-import org.json.JSONObject;
 
 import android.app.IntentService;
 import android.content.ContentUris;
 import android.content.ContentValues;
+import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.drawable.Drawable;
 import android.util.Log;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import com.squareup.picasso.Picasso;
+import com.squareup.picasso.Target;
 import com.trainerjim.android.R;
+import com.trainerjim.android.entities.Exercise;
+import com.trainerjim.android.entities.ExerciseType;
 import com.trainerjim.android.entities.ExerciseTypeImagesItem;
 import com.trainerjim.android.entities.Training;
 import com.trainerjim.android.entities.TrainingDescription;
@@ -309,95 +316,86 @@ public class ServerCommunicationService extends IntentService {
 	}
 
     /**
+     * This function reports progress information from the service to interested listener. Each
+     * progress messages contains all required information (text, current and total progress).
+     * @param text is the message to describe the progress
+     * @param currentProgress is the current progress value
+     * @param totalProgress is the total progress value
+     */
+    private void reportProgress(String text, int currentProgress, int totalProgress){
+        Intent broadcastIntent = new Intent();
+        broadcastIntent.setAction(ACTION_REPORT_PROGRESS);
+        broadcastIntent.addCategory(Intent.CATEGORY_DEFAULT);
+        broadcastIntent.putExtra(PARAM_REPORT_PROGRESS_TEXT, text);
+        broadcastIntent.putExtra(PARAM_REPORT_PROGRESS_CURRENT, currentProgress);
+        broadcastIntent.putExtra(PARAM_REPORT_PROGRESS_TOTAL, totalProgress);
+        sendBroadcast(broadcastIntent);
+    }
+
+    /**
+     * Downloads the image based on the imageUrl in the exerciseType and stores it to persistent storage.
+     * @param exerciseType
+     */
+    private void downloadImage(ExerciseType exerciseType) {
+
+        String imageUrl = String.format("%s%s",
+                getResources().getString(R.string.server_url),
+                exerciseType.getImageUrl());
+
+        InputStream input = null;
+        FileOutputStream output = null;
+
+        try {
+        URL url = new URL(imageUrl);
+
+            input = url.openConnection().getInputStream();
+            output = new FileOutputStream(new File(Utils.getDataFolderFile(getApplicationContext()), Integer.toString(exerciseType.getId())));
+
+            int read;
+            byte[] data = new byte[1024];
+            while ((read = input.read(data)) != -1)
+                output.write(data, 0, read);
+        } catch (Exception e) {
+            // TODO: log that he image was not downloaded successfuly
+
+        } finally {
+            try {
+                if (output != null)
+                    output.close();
+                if (input != null)
+                    input.close();
+
+            } catch (Exception finallyEx){
+                // TODO: log this one as well
+            }
+        }
+    }
+
+    /**
      * This methods fetches all medium sized images exposed by the backend through
      * 'training/exercise_types.json' API. The images are just saved to the persisted storage.
-     *
-     * If an error occurs it is gracefully ignored (might be better to handle this differently
-     * in the future). Additionally, currently there is no checking if the image already exists,
-     * Even if it exists it is still downloaded repeatedly - a possile solution would be hash or
-     * filename checking.
      */
     private void fetchImages(){
+        // get list of exercises (images)
+        reportProgress("training images", 0, 100);
+        List<ExerciseType> exerciseTypes = service.getExerciseTypes();
 
-        HttpGet httpget = new HttpGet(String.format("%s%s",
-                getResources().getString(R.string.server_url),
-                getResources().getString(R.string.server_path_exercise_types_list)));
-
-        HttpResponse response = null;
-        try {
-            response = mHttpClient.execute(httpget);
-
-            int status = response.getStatusLine().getStatusCode();
-
-            if(status == HttpStatus.SC_OK){
-                String jsonExercisesList = extractJsonFromStream(response.getEntity().getContent());
-
-                Type listType = new TypeToken<ArrayList<ExerciseTypeImagesItem>>(){}.getType();
-                List<ExerciseTypeImagesItem> exerciseImagesList = mJsonEngine.fromJson(jsonExercisesList, listType);
-
-                // create a list of exercise images that are not yet downloaded (based on image name)
-                List<ExerciseTypeImagesItem> exercisesToDownload = new ArrayList<ExerciseTypeImagesItem>();
-                for (int i=0 ; i < exerciseImagesList.size(); i++){
-                    if(!new File(Utils.getDataFolderFile(getApplicationContext()), Integer.toString(exerciseImagesList.get(i).getId())).exists()) {
-                        exercisesToDownload.add(exerciseImagesList.get(i));
-                    }
-                }
-
-                int cnt = 0;
-                // for each exercise fetch the image and save it to the persistent storage
-                for (ExerciseTypeImagesItem item : exercisesToDownload){
-                    String imageUrl = String.format("%s%s",
-                            getResources().getString(R.string.server_url),
-                            item.getMediumImageUrl());
-
-                    HttpGet httpgetImage = new HttpGet(imageUrl);
-
-                    HttpResponse responseImage = mHttpClient.execute(httpgetImage);
-                    int statusImage = responseImage.getStatusLine().getStatusCode();
-
-                    Intent broadcastIntent = new Intent();
-                    broadcastIntent
-                            .setAction(ACTION_REPORT_PROGRESS);
-                    broadcastIntent.addCategory(Intent.CATEGORY_DEFAULT);
-                    broadcastIntent.putExtra(
-                            PARAM_REPORT_PROGRESS_TEXT, item.getShortName());
-                    broadcastIntent.putExtra(PARAM_REPORT_PROGRESS_CURRENT,
-                            cnt++);
-                    broadcastIntent.putExtra(
-                            PARAM_REPORT_PROGRESS_TOTAL,
-                            exercisesToDownload.size());
-                    sendBroadcast(broadcastIntent);
-
-                    if(statusImage == HttpStatus.SC_OK){
-                        InputStream is = responseImage.getEntity().getContent();
-                        BufferedInputStream bis = new BufferedInputStream(is);
-
-                       /*
-                        * Read bytes to the Buffer until there is nothing more to read(-1).
-                        */
-                        ByteArrayBuffer baf = new ByteArrayBuffer(5000);
-                        int current = 0;
-                        while ((current = bis.read()) != -1) {
-                            baf.append((byte) current);
-                        }
-
-                       /* Convert the Bytes read to a String. */
-                        FileOutputStream fos = new FileOutputStream(new File(Utils.getDataFolderFile(getApplicationContext()), Integer.toString(item.getId())));
-                        fos.write(baf.toByteArray());
-                        fos.flush();
-                        fos.close();
-                    } else {
-                        // TODO: This is a very hacky approach. The problem is that on 404 status
-                        // http entity is not fully consumed (calling consumeEntity) does not help
-                        // either and the httpclient hangs after 2 successive 404 calls. To overcome
-                        // this temporarily a new client is initialized on every unsuccessful http call.
-                        mHttpClient = initializeHttpClient();
-                    }
-                }
+        // create a list of exercise images that are not yet downloaded (based on image name)
+        // TODO: in the future we should implement a more roboust approach (e.g. based on image
+        // hash as the image can change)
+        List<ExerciseType> exercisesToDownload = new ArrayList<ExerciseType>();
+        for (ExerciseType exerciseType : exerciseTypes){
+            if(!new File(Utils.getDataFolderFile(getApplicationContext()), Integer.toString(exerciseType.getId())).exists()) {
+                exercisesToDownload.add(exerciseType);
             }
-        } catch (IOException e) {
-            e.printStackTrace();
-            Log.e(TAG, e.getMessage());
+        }
+
+        // download images that are not yet present in local storage
+        int imagesToDownload = exercisesToDownload.size();
+        for(int i=0; i < imagesToDownload; i++){
+            ExerciseType exerciseType = exerciseTypes.get(i);
+            reportProgress(exerciseType.getShortName(), i + 1, imagesToDownload);
+            downloadImage(exerciseType);
         }
     }
 
@@ -410,54 +408,48 @@ public class ServerCommunicationService extends IntentService {
 
         List<TrainingDescription> trainingsManifest = service.getTrainingsList(username, password);
 
-        if(trainingsManifest != null){
-            Intent broadcastIntent = new Intent();
-            broadcastIntent.setAction(ACTION_GET_TRAINNGS_LIST_COMPLETED);
-            broadcastIntent.addCategory(Intent.CATEGORY_DEFAULT);
-            broadcastIntent.putExtra(PARAM_REPORT_PROGRESS_TOTAL,
-                    trainingsManifest.size());
-            sendBroadcast(broadcastIntent);
+        // nothing to do if we were unable to get the manifest
+        if(trainingsManifest == null)
+            return false;
 
-            // clear the database
-            getContentResolver().delete(TrainingPlan.CONTENT_URI, null,
-                    null);
+        Intent broadcastIntent = new Intent();
+        broadcastIntent.setAction(ACTION_GET_TRAINNGS_LIST_COMPLETED);
+        broadcastIntent.addCategory(Intent.CATEGORY_DEFAULT);
+        broadcastIntent.putExtra(PARAM_REPORT_PROGRESS_TOTAL,
+                trainingsManifest.size());
+        sendBroadcast(broadcastIntent);
 
-            for (int i = 0; i < trainingsManifest.size(); i++) {
-                TrainingDescription trainingDescription = trainingsManifest.get(i);
+        // clear the database
+        getContentResolver().delete(TrainingPlan.CONTENT_URI, null,
+                null);
 
-                // notify that we are fetching a specific training
-                broadcastIntent = new Intent();
-                broadcastIntent
-                        .setAction(ACTION_REPORT_PROGRESS);
-                broadcastIntent.addCategory(Intent.CATEGORY_DEFAULT);
-                broadcastIntent.putExtra(
-                        PARAM_REPORT_PROGRESS_TEXT, trainingDescription.getName());
-                broadcastIntent.putExtra(PARAM_REPORT_PROGRESS_CURRENT,
-                        i);
-                broadcastIntent.putExtra(
-                        PARAM_REPORT_PROGRESS_TOTAL,
-                        trainingsManifest.size());
-                sendBroadcast(broadcastIntent);
+        for (int i = 0; i < trainingsManifest.size(); i++) {
+            TrainingDescription trainingDescription = trainingsManifest.get(i);
 
-                Response trainingResponse = service.getTraining(username, password, trainingDescription.getId());
-                String training = null;
+            // notify that we are fetching a specific training
+            reportProgress(trainingDescription.getName(), i, trainingsManifest.size());
 
-                try {
-                    training = extractJsonFromStream(trainingResponse.getBody().in());
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    // TODO: implement logging
-                }
+            // fetch individual training
+            Response trainingResponse = service.getTraining(username, password, trainingDescription.getId());
+            String training = null;
 
-                if (training != null) {
-                    ContentValues trainingPlan = new ContentValues();
-                    trainingPlan.put(TrainingPlan._ID, trainingDescription.getId());
-                    trainingPlan.put(TrainingPlan.NAME, trainingDescription.getName());
-                    trainingPlan.put(TrainingPlan.DATA, training);
+            // and convert it to a JSON string
+            try {
+                training = extractStringFromStream(trainingResponse.getBody().in());
+            } catch (IOException e) {
+                e.printStackTrace();
+                // TODO: implement logging
+            }
 
-                    getContentResolver().insert(TrainingPlan.CONTENT_URI,
-                            trainingPlan);
-                }
+            // save the JSON encoded training to the database
+            if (training != null) {
+                ContentValues trainingPlan = new ContentValues();
+                trainingPlan.put(TrainingPlan._ID, trainingDescription.getId());
+                trainingPlan.put(TrainingPlan.NAME, trainingDescription.getName());
+                trainingPlan.put(TrainingPlan.DATA, training);
+
+                getContentResolver().insert(TrainingPlan.CONTENT_URI,
+                        trainingPlan);
             }
         }
 
@@ -549,9 +541,9 @@ public class ServerCommunicationService extends IntentService {
 		// create a zip file that will containt the training to upload
 		File trainingZip = training.getZipFile(getApplicationContext());
 		training.zipToFile(
-				getResources().getString(R.string.training_mainfest_name),
-				getResources().getString(R.string.raw_data_name),
-                getResources().getBoolean(R.bool.sample_acceleration),getApplicationContext());
+                getResources().getString(R.string.training_mainfest_name),
+                getResources().getString(R.string.raw_data_name),
+                getResources().getBoolean(R.bool.sample_acceleration), getApplicationContext());
 
 		try {
 			String url = String.format("%s%s",
@@ -610,42 +602,25 @@ public class ServerCommunicationService extends IntentService {
 		}
 	}
 
-	/**
-	 * This method returns a JSON encoded training corresponding to the input
-	 * trainingID.
-	 * 
-	 * @param trainingId
-	 * @param username
-	 * @param password
-	 * @return a JSON encoded training string or null if Http return status code
-	 *         was not OK.
-	 * @throws IOException
-	 *             if unable to extract stream from JSON
-	 * @throws ClientProtocolException
-	 *             could happen during Http comunication
-	 */
-	private String getTraining(int trainingId, String username, String password)
-			throws ClientProtocolException, IOException {
-        List<NameValuePair> params = new ArrayList<NameValuePair>();
-		params.add(new BasicNameValuePair("email", username));
-		params.add(new BasicNameValuePair("password", password));
-		params.add(new BasicNameValuePair("id", Integer.toString(trainingId)));
+    /**
+     * This method extracts an array of bytes from the input stream.
+     * @param content
+     * @return
+     * @throws IOException
+     */
+    private static byte[] extractBytesFromStream(InputStream content) throws IOException {
+        int BYTE_COPY_BUFFER = 5000;
+        BufferedInputStream bis = new BufferedInputStream(content);
 
-		String url = String.format("%s%s?%s",
-				getResources().getString(R.string.server_url), getResources()
-						.getString(R.string.server_path_training),
-				URLEncodedUtils.format(params, "utf-8"));
+        // Read bytes to the Buffer until there is nothing more to read(-1).
+        ByteArrayBuffer baf = new ByteArrayBuffer(BYTE_COPY_BUFFER);
+        int current = 0;
+        while ((current = bis.read()) != -1) {
+            baf.append((byte) current);
+        }
 
-		Log.d(TAG, "Get training with " + url);
-
-		HttpGet httpget = new HttpGet(url);
-
-		HttpResponse response = mHttpClient.execute(httpget);
-		int status = response.getStatusLine().getStatusCode();
-
-		return status == HttpStatus.SC_OK ? extractJsonFromStream(response
-				.getEntity().getContent()) : null;
-	}
+        return baf.toByteArray();
+    }
 
 	/**
 	 * This method extracts a JSON string from stream.
@@ -655,7 +630,7 @@ public class ServerCommunicationService extends IntentService {
 	 * @throws IOException
 	 *             could happen while reading the from stream.
 	 */
-	private static String extractJsonFromStream(InputStream content)
+	private static String extractStringFromStream(InputStream content)
 			throws IOException {
 		BufferedReader reader = new BufferedReader(new InputStreamReader(
 				content));
