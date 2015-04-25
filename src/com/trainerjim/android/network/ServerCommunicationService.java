@@ -37,8 +37,6 @@ import android.util.Log;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import com.squareup.picasso.Picasso;
-import com.squareup.picasso.Target;
 import com.trainerjim.android.R;
 import com.trainerjim.android.entities.Exercise;
 import com.trainerjim.android.entities.ExerciseType;
