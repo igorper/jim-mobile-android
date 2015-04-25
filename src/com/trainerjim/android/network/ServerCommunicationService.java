@@ -56,6 +56,8 @@ import com.trainerjim.android.util.Utils;
 
 import retrofit.RestAdapter;
 import retrofit.client.Response;
+import retrofit.mime.TypedFile;
+import retrofit.mime.TypedString;
 
 /**
  * This service is the central gateway for all the communication with the remote
@@ -545,61 +547,28 @@ public class ServerCommunicationService extends IntentService {
                 getResources().getString(R.string.raw_data_name),
                 getResources().getBoolean(R.bool.sample_acceleration), getApplicationContext());
 
-		try {
-			String url = String.format("%s%s",
-					getResources().getString(R.string.server_url),
-					getResources().getString(R.string.server_path_upload));
+        Response uploadResponse = service.uploadTraining(new TypedString(username), new TypedString(password), new TypedFile("application/zip", trainingZip));
 
-			Log.d(TAG, "Upload training to " + url);
+        if(uploadResponse.getStatus() == 200){
+            // if upload was successful delete training from the local
+            // database
+            getContentResolver().delete(
+                    ContentUris.withAppendedId(
+                            CompletedTraining.CONTENT_URI, trainingId),
+                    null, null);
 
-			HttpPost httppost = new HttpPost(url);
+            // delete the raw data
+            training.getRawFile(getApplicationContext()).delete();
 
-			MultipartEntity multipartEntity = new MultipartEntity(
-					HttpMultipartMode.BROWSER_COMPATIBLE);
-			multipartEntity.addPart(
-					getResources().getString(R.string.param_email),
-					new StringBody(username));
-			multipartEntity.addPart(
-					getResources().getString(R.string.param_password),
-					new StringBody(password));
-
-			multipartEntity.addPart(
-					getResources().getString(R.string.param_zipfile),
-					new FileBody(trainingZip));
-			httppost.setEntity(multipartEntity);
-
-			HttpResponse response = mHttpClient.execute(httppost);
-			int status = response.getStatusLine().getStatusCode();
-
-            if(response.getEntity() != null){
-                response.getEntity().consumeContent();
+            if (!getResources().getBoolean(R.bool.research_mode)) {
+                // keep the zip file in research mode, otherwise delete it
+                training.getZipFile(getApplicationContext()).delete();
             }
 
-			if (status == HttpStatus.SC_OK) {
-				// if upload was successful delete training from the local
-				// database
-				getContentResolver().delete(
-						ContentUris.withAppendedId(
-								CompletedTraining.CONTENT_URI, trainingId),
-						null, null);
+            return true;
+        }
 
-				// delete the raw data
-				training.getRawFile(getApplicationContext()).delete();
-
-				if (!getResources().getBoolean(R.bool.research_mode)) {
-					// keep the zip file in research mode, otherwise delete it
-					training.getZipFile(getApplicationContext()).delete();
-				}
-			} else {
-                return false;
-            }
-
-			return true;
-		} catch (Exception e) {
-
-			Log.e(TAG, e.getLocalizedMessage());
-			return false;
-		}
+        return false;
 	}
 
     /**

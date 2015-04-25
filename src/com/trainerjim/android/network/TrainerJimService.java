@@ -8,8 +8,14 @@ import java.util.List;
 
 import retrofit.client.Response;
 import retrofit.http.GET;
+import retrofit.http.Multipart;
+import retrofit.http.POST;
+import retrofit.http.PUT;
+import retrofit.http.Part;
 import retrofit.http.Path;
 import retrofit.http.Query;
+import retrofit.mime.TypedFile;
+import retrofit.mime.TypedString;
 
 /**
  * Created by igor on 23.04.15.
@@ -30,4 +36,8 @@ public interface  TrainerJimService {
 
     @GET("/{imageUrl}")
     Response getExerciseTypeImage(@Path(value="imageUrl", encode=false) String imageUrl);
+
+    @Multipart
+    @POST("/mapi/training/upload")
+    Response uploadTraining(@Part("email") TypedString email, @Part("password") TypedString password, @Part("trainingData") TypedFile trainingData);
 }
