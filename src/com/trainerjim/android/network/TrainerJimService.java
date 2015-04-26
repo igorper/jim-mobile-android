@@ -1,7 +1,6 @@
 package com.trainerjim.android.network;
 
 import com.trainerjim.android.entities.ExerciseType;
-import com.trainerjim.android.entities.Training;
 import com.trainerjim.android.entities.TrainingDescription;
 
 import java.util.List;
@@ -10,7 +9,6 @@ import retrofit.client.Response;
 import retrofit.http.GET;
 import retrofit.http.Multipart;
 import retrofit.http.POST;
-import retrofit.http.PUT;
 import retrofit.http.Part;
 import retrofit.http.Path;
 import retrofit.http.Query;

@@ -1,52 +1,33 @@
 package com.trainerjim.android.network;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.lang.reflect.Type;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.utils.URLEncodedUtils;
-import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.util.ByteArrayBuffer;
-
 import android.app.IntentService;
 import android.content.ContentUris;
 import android.content.ContentValues;
-import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
-import android.graphics.Bitmap;
-import android.graphics.drawable.Drawable;
 import android.util.Log;
 
 import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 import com.trainerjim.android.R;
-import com.trainerjim.android.entities.Exercise;
 import com.trainerjim.android.entities.ExerciseType;
-import com.trainerjim.android.entities.ExerciseTypeImagesItem;
 import com.trainerjim.android.entities.Training;
 import com.trainerjim.android.entities.TrainingDescription;
 import com.trainerjim.android.storage.TrainingContentProvider.CompletedTraining;
 import com.trainerjim.android.storage.TrainingContentProvider.TrainingPlan;
-import com.trainerjim.android.util.HttpsHelpers;
 import com.trainerjim.android.util.Utils;
+
+import org.apache.http.util.ByteArrayBuffer;
+
+import java.io.BufferedInputStream;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
 import retrofit.RestAdapter;
 import retrofit.client.Response;
@@ -210,11 +191,6 @@ public class ServerCommunicationService extends IntentService {
 	 */
 	private int mNumCompletedTrainings = 0;
 
-	/**
-	 * Http client instance used for server communication.
-	 */
-	private HttpClient mHttpClient;
-
     /**
      * Rest adapter for creating services. Needed by the "Retrofit" library.
      */
@@ -228,17 +204,6 @@ public class ServerCommunicationService extends IntentService {
 	public ServerCommunicationService() {
 		super("DataUploaderService");
 
-		mHttpClient = initializeHttpClient();
-
-    }
-
-    /**
-     * This method returns a freshly initialized Http Client.
-     * @return
-     */
-    private HttpClient initializeHttpClient(){
-        // TODO: Dangerous client, change ASAP
-        return HttpsHelpers.getDangerousHttpClient();
     }
 
 	/*
@@ -615,53 +580,5 @@ public class ServerCommunicationService extends IntentService {
 	 */
 	private boolean checkCredentials(String username, String password) {
 		return service.checkCredentials(username, password);
-	}
-
-	/**
-	 * This method returns the list of all the trainings for the user specified
-	 * by the @param username.
-	 * 
-	 * @param username
-	 * @param password
-	 * @return JSON encoded string of all the trainings or <code>null</code> if
-	 *         the list could not be retrieved.
-	 */
-	private String getTrainingList(String username, String password) {
-		try {
-			List<NameValuePair> params = new ArrayList<NameValuePair>();
-			params.add(new BasicNameValuePair("email", username));
-			params.add(new BasicNameValuePair("password", password));
-
-			String url = String.format("%s%s?%s",
-					getResources().getString(R.string.server_url),
-					getResources()
-							.getString(R.string.server_path_training_list),
-					URLEncodedUtils.format(params, "utf-8"));
-
-			Log.d(TAG, "Get training list from " + url);
-
-			HttpGet httpget = new HttpGet(url);
-
-			HttpResponse response = mHttpClient.execute(httpget);
-
-			if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-				// convert the response content to a string (containing JSON
-				// encoded list of trainings)
-				HttpEntity entity = response.getEntity();
-				InputStream content = entity.getContent();
-				BufferedReader reader = new BufferedReader(
-						new InputStreamReader(content));
-				String line;
-				StringBuilder builder = new StringBuilder();
-				while ((line = reader.readLine()) != null) {
-					builder.append(line);
-				}
-				return builder.toString();
-			}
-		} catch (Exception e) {
-			Log.e(TAG, e.getLocalizedMessage());
-		}
-
-		return null;
 	}
 }

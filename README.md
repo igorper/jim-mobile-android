@@ -8,5 +8,4 @@ The app is able to:
 - upload training results
 
 External libraries used:
-- HttpClient for communication with the REST backend
-- GSON for JSON serialization
+- Retrofit for communication with the REST backend
