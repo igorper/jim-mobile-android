@@ -279,59 +279,55 @@
                             android:src="@drawable/rating3" />
                     </LinearLayout>
 
-                    <!-- EDIT REPETITIONS -->
-                    <RelativeLayout
+                    <LinearLayout
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content" >
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
 
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_alignParentLeft="true"
-                            android:layout_centerVertical="true"
-                            android:text="Repetitions:"
-                            android:textSize="@dimen/edit_details_popup_label_text_size" />
+                        <!-- EDIT REPETITIONS -->
+                        <LinearLayout
+                            android:layout_weight="1"
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:orientation="vertical">
 
-                        <EditText
-                            android:id="@+id/editRepetitionsValue"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_alignParentRight="true"
-                            android:layout_centerVertical="true"
-                            android:layout_margin="5dp"
-                            android:numeric="integer"
-                            android:background="@color/input_login_background"
-                            android:text="10"
-                            android:textColor="@color/input_text"
-                            android:textSize="@dimen/edit_details_popup_label_text_size" />
-                    </RelativeLayout>
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Repetitions"
+                                android:layout_gravity="center_horizontal"
+                                android:textSize="@dimen/edit_details_popup_label_text_size" />
 
-                    <!-- EDIT WEIGHT -->
-                    <RelativeLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content" >
+                            <NumberPicker
+                                android:theme="@android:style/Theme.Holo.Light"
+                                android:id="@+id/edit_reps_num_pick"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="center_horizontal"/>
+                        </LinearLayout>
 
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_alignParentLeft="true"
-                            android:layout_centerVertical="true"
-                            android:text="Weight:"
-                            android:textSize="@dimen/edit_details_popup_label_text_size" />
+                        <!-- EDIT WEIGHT -->
+                        <LinearLayout
+                            android:layout_weight="1"
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:orientation="vertical">
 
-                        <EditText
-                            android:id="@+id/editWeightValue"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_alignParentRight="true"
-                            android:layout_centerVertical="true"
-                            android:layout_margin="5dp"
-                            android:numeric="integer"
-                            android:background="@color/input_login_background"
-                            android:text="10"
-                            android:textColor="@color/input_text"
-                            android:textSize="@dimen/edit_details_popup_label_text_size" />
-                    </RelativeLayout>
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Weight"
+                                android:layout_gravity="center_horizontal"
+                                android:textSize="@dimen/edit_details_popup_label_text_size" />
+
+                            <NumberPicker
+                                android:theme="@android:style/Theme.Holo.Light"
+                                android:id="@+id/edit_weight_num_pick"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="center_horizontal"/>
+                        </LinearLayout>
+                    </LinearLayout>
 
                     <!-- COMMENT -->
                     <EditText

@@ -30,6 +30,8 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ViewFlipper;
+import android.widget.NumberPicker;
+import android.widget.NumberPicker.OnValueChangeListener;
 
 import com.google.gson.Gson;
 import com.trainerjim.android.AccelerationRecorder.AccelerationRecordingTimestamps;
@@ -102,10 +104,10 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
 	private LinearLayout mViewDuringExercise;
 	private CheckBox mEditDetailsCheckbox;
 	private RelativeLayout mEditDetailsView;
-	private EditText mEditRepetitionsValue;
-	private EditText mEditWeightValue;
 	private EditText mEditCommentValue;
     private ImageView mExerciseImage;
+    private NumberPicker mEditRepetitionsNumPick;
+    private NumberPicker mEditWeightNumPick;
 
 	private AccelerationRecorder mAccelerationRecorder;
 
@@ -229,10 +231,17 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
 		mViewDuringExercise = (LinearLayout) findViewById(R.id.viewDuringExercise);
 //		mEditDetailsCheckbox = (CheckBox) findViewById(R.id.checkbox_edit_details);
 		mEditDetailsView = (RelativeLayout)findViewById(R.id.editDetailsView);
-		mEditRepetitionsValue = (EditText)findViewById(R.id.editRepetitionsValue);
-		mEditWeightValue  =(EditText)findViewById(R.id.editWeightValue);
 		mEditCommentValue  =(EditText)findViewById(R.id.editCommentValue);
         mExerciseImage = (ImageView)findViewById(R.id.exerciseImage);
+        mEditRepetitionsNumPick = (NumberPicker)findViewById(R.id.edit_reps_num_pick);
+        mEditWeightNumPick = (NumberPicker)findViewById(R.id.edit_weight_num_pick);
+
+        mEditRepetitionsNumPick.setMinValue(0);
+        mEditRepetitionsNumPick.setMaxValue(100);
+
+
+        mEditWeightNumPick.setMinValue(0);
+        mEditWeightNumPick.setMaxValue(300);
 
 		updateTrainingSelector(-1);
 		initializeTrainingRatings();
@@ -1035,8 +1044,8 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
 	private void showEditDetailsViewIfDemanded() {
 		SeriesExecution lastSe = mCurrentTraining.getLastSeriesExecution();
 		if (mEditSeriesDetails && lastSe != null) {
-			mEditRepetitionsValue.setText(Integer.toString(lastSe.getRepetitions()));
-			mEditWeightValue.setText(Integer.toString(lastSe.getWeight()));
+			mEditRepetitionsNumPick.setValue(lastSe.getRepetitions());
+			mEditWeightNumPick.setValue(lastSe.getWeight());
 
 			mEditDetailsView.setVisibility(View.VISIBLE);
             mEditSeriesDetails = false;
@@ -1052,8 +1061,8 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
 		SeriesExecution lastSe = mCurrentTraining.getLastSeriesExecution();
 		if(lastSe != null){
             lastSe.setRating(mExerciseRatingSelectedID);
-			lastSe.setWeight(Integer.parseInt(mEditWeightValue.getText().toString()));
-			lastSe.setRepetitions(Integer.parseInt(mEditRepetitionsValue.getText().toString()));
+			lastSe.setWeight(mEditWeightNumPick.getValue());
+			lastSe.setRepetitions(mEditRepetitionsNumPick.getValue());
 		}
 
 		mEditDetailsView.setVisibility(View.GONE);
