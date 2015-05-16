@@ -109,6 +109,8 @@ public class Training {
 	 */
 	private List<SeriesExecution> mSeriesExecutions;
 
+    public List<Exercise> getExercises(){ return exercises; }
+
 	/**
 	 * This method is called to start a new training. It initializes all
 	 * exercises, timestamps, etc. NOTE: Nothing happens, if this method is

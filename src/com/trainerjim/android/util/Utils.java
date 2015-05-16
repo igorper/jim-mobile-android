@@ -16,7 +16,7 @@ public class Utils {
     /**
      * Object for (de)seralization of json data. Date format is set to include timezone information.
      */
-    private static Gson mGson = new GsonBuilder().setDateFormat("yyyy-MM-dd'T'HH:mm:ssZ").create();
+    private static Gson sGson = new GsonBuilder().setDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").create();
 
 	public static String getApplicationTag() {
 		return "MainActivity";
@@ -75,6 +75,6 @@ public class Utils {
      * @return
      */
     public static Gson getGsonObject(){
-        return mGson;
+        return sGson;
     }
 }

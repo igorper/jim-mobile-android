@@ -33,7 +33,6 @@ import android.widget.ViewFlipper;
 import android.widget.NumberPicker;
 import android.widget.NumberPicker.OnValueChangeListener;
 
-import com.google.gson.Gson;
 import com.trainerjim.android.AccelerationRecorder.AccelerationRecordingTimestamps;
 import com.trainerjim.android.entities.Exercise;
 import com.trainerjim.android.entities.Series;
@@ -115,11 +114,6 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
 	 * Reference to the repetition animation.
 	 */
 	private RepetitionAnimation mRepetitionAnimation;
-
-	/**
-	 * Reference to JSON2Object converter.
-	 */
-	private Gson mGsonInstance = new Gson();
 
 	/**
 	 * Holds the currently active training or {@code null} if no training is
@@ -529,8 +523,7 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
 	 */
 	private void loadCurrentTraining() {
 		if (!mSettings.getCurrentTrainingPlan().equals("")) {
-			Gson gson = new Gson();
-			mCurrentTraining = gson.fromJson(
+			mCurrentTraining = Utils.getGsonObject().fromJson(
 					mSettings.getCurrentTrainingPlan(), Training.class);
 		} else {
 			mCurrentTraining = null;
@@ -544,7 +537,7 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
 	 */
 	private void saveCurrentTraining() {
 		mSettings.saveCurrentTrainingPlan(mCurrentTraining == null ? ""
-				: mGsonInstance.toJson(mCurrentTraining));
+				: Utils.getGsonObject().toJson(mCurrentTraining));
 	}
 
 	private boolean areTrainingsAvailable() {
@@ -794,7 +787,7 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
 						.getColumnIndex(TrainingPlan.DATA));
 
 				// load to memory
-				mCurrentTraining = mGsonInstance.fromJson(jsonEncodedTraining,
+				mCurrentTraining = Utils.getGsonObject().fromJson(jsonEncodedTraining,
 						Training.class);
 				mCurrentTraining.startTraining();
 			}
@@ -810,7 +803,7 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
 				completedTraining.put(CompletedTraining.NAME,
 						mCurrentTraining.getTrainingName());
 				completedTraining.put(CompletedTraining.DATA,
-						mGsonInstance.toJson(mCurrentTraining));
+						Utils.getGsonObject().toJson(mCurrentTraining));
 
 				getContentResolver().insert(CompletedTraining.CONTENT_URI,
 						completedTraining);
@@ -942,7 +935,7 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
                     matrix.postRotate(90);
 
                     Bitmap scaledBitmap = BitmapFactory.decodeFile(new File(Utils.getDataFolderFile(getApplicationContext()),
-                            Integer.toString(curExercise.getExerciseType().getId())).getAbsolutePath());
+                            curExercise.getExerciseType().getLocalImageFileName()).getAbsolutePath());
 
                     Bitmap rotatedBitmap = Bitmap.createBitmap(scaledBitmap , 0, 0, scaledBitmap .getWidth(), scaledBitmap .getHeight(), matrix, true);
 
