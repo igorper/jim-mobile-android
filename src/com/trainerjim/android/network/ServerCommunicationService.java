@@ -186,11 +186,6 @@ public class ServerCommunicationService extends IntentService {
 	public static final String ACTION_CHECK_CREDENTIALS = "action-login";
 
 	/**
-	 * Instance of the engine used for json serialization.
-	 */
-	private Gson mJsonEngine = new Gson();
-
-	/**
 	 * The number of completed trainings stored in the local database.
 	 */
 	private int mNumCompletedTrainings = 0;
@@ -494,7 +489,7 @@ public class ServerCommunicationService extends IntentService {
 			while (trainings.moveToNext()) {
 				int trainingId = trainings.getInt(trainings
 						.getColumnIndex(TrainingPlan._ID));
-				Training trainingToUpload = mJsonEngine.fromJson(
+				Training trainingToUpload = Utils.getGsonObject().fromJson(
 						trainings.getString(trainings
 								.getColumnIndex(TrainingPlan.DATA)),
 						Training.class);
