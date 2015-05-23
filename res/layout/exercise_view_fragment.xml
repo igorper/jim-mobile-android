@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/rate_exercise_background"
+    android:orientation="vertical"
+    android:visibility="gone">
+    <!-- START: EDIT SERIES DETAILS VIEW -->
+    <RelativeLayout
+        android:id="@+id/editDetailsView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#00ffffff"
+        android:visibility="gone" >
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_margin="20dp"
+            android:background="@drawable/rounded_shape"
+            android:orientation="vertical"
+            android:visibility="visible" >
+
+            <!-- TITLE -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/training_rating_top_margin"
+                android:background="@color/rate_training_title_background"
+                android:gravity="center"
+                android:paddingBottom="@dimen/standard_button_padding"
+                android:paddingTop="@dimen/standard_button_padding"
+                android:text="@string/rate_training_title_text"
+                android:textColor="@color/rate_training_text"
+                android:textSize="@dimen/training_rating_title_text_size" />
+
+            <!-- SMILE RATINGS -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:visibility="visible" >
+
+                <ImageView
+                    android:id="@+id/exerciseRating1"
+                    android:layout_width="0dp"
+                    android:layout_height="100dp"
+                    android:layout_weight="1"
+                    android:clickable="true"
+                    android:padding="@dimen/exercise_rating_smile_padding"
+                    android:src="@drawable/rating1" />
+
+                <ImageView
+                    android:id="@+id/exerciseRating2"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:clickable="true"
+                    android:padding="@dimen/exercise_rating_smile_padding"
+                    android:src="@drawable/rating2" />
+
+                <ImageView
+                    android:id="@+id/exerciseRating3"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:clickable="true"
+                    android:padding="@dimen/exercise_rating_smile_padding"
+                    android:src="@drawable/rating3" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <!-- EDIT REPETITIONS -->
+                <LinearLayout
+                    android:layout_weight="1"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical"
+                    android:id="@+id/ll_edit_reps">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Repetitions"
+                        android:layout_gravity="center_horizontal"
+                        android:textSize="@dimen/edit_details_popup_label_text_size" />
+
+                    <NumberPicker
+                        android:theme="@android:style/Theme.Holo.Light"
+                        android:id="@+id/edit_reps_num_pick"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_horizontal"/>
+                </LinearLayout>
+
+                <!-- EDIT WEIGHT -->
+                <LinearLayout
+                    android:layout_weight="1"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Weight"
+                        android:layout_gravity="center_horizontal"
+                        android:textSize="@dimen/edit_details_popup_label_text_size" />
+
+                    <NumberPicker
+                        android:theme="@android:style/Theme.Holo.Light"
+                        android:id="@+id/edit_weight_num_pick"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_horizontal"/>
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- COMMENT -->
+            <EditText
+                android:id="@+id/editCommentValue"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@color/input_login_background"
+                android:gravity="top"
+                android:hint="enter comment ..."
+                android:inputType="textMultiLine"
+                android:lines="3"
+                android:visibility="gone"
+                android:scrollHorizontally="false"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:textColor="@color/input_text" />
+
+            <!-- SAVE/DONE BUTTON -->
+            <Button
+                style="@style/standard_button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:text="Done"
+                android:id="@+id/frag_exe_view_btn_save_series"/>
+        </LinearLayout>
+    </RelativeLayout>
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+            <TextView
+                android:id="@+id/frag_exe_view_tv_exercise_timer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="@dimen/exercise_timer_size"
+                android:textStyle="bold"
+                android:gravity="center"/>
+            <ImageView
+                android:id="@+id/frag_exe_view_training_weight"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:clickable="true"
+                android:padding="@dimen/exercise_rating_smile_padding"
+                android:src="@drawable/weight" />
+            <ImageView
+                android:id="@+id/frag_exe_view_edit"
+                android:layout_width="@dimen/edit_series_info_image_size"
+                android:layout_height="@dimen/edit_series_info_image_size"
+                android:clickable="true"
+                android:padding="@dimen/exercise_rating_smile_padding"
+                android:src="@drawable/ic_edit"
+                android:layout_alignParentBottom="true"
+                android:layout_alignParentRight="true"/>
+        </RelativeLayout>
+</LinearLayout>

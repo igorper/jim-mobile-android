@@ -14,34 +14,28 @@ import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
-import android.media.MediaPlayer;
-import android.media.Ringtone;
-import android.media.RingtoneManager;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.MotionEvent;
 import android.view.View;
 import android.widget.CheckBox;
-import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ViewFlipper;
-import android.widget.NumberPicker;
-import android.widget.NumberPicker.OnValueChangeListener;
 
 import com.trainerjim.android.AccelerationRecorder.AccelerationRecordingTimestamps;
 import com.trainerjim.android.entities.Exercise;
 import com.trainerjim.android.entities.Series;
-import com.trainerjim.android.entities.SeriesExecution;
 import com.trainerjim.android.entities.Training;
+import com.trainerjim.android.events.EndExerciseEvent;
+import com.trainerjim.android.events.StartExerciseEvent;
+import com.trainerjim.android.fragments.ExerciseViewFragment;
 import com.trainerjim.android.network.ServerCommunicationService;
 import com.trainerjim.android.storage.PermanentSettings;
 import com.trainerjim.android.storage.TrainingContentProvider.CompletedTraining;
@@ -51,6 +45,8 @@ import com.trainerjim.android.ui.RepetitionAnimation;
 import com.trainerjim.android.ui.RepetitionAnimationListener;
 import com.trainerjim.android.ui.CircularProgressControl.CircularProgressState;
 import com.trainerjim.android.util.Utils;
+
+import de.greenrobot.event.EventBus;
 
 public class TrainingActivity extends Activity implements RepetitionAnimationListener {
 
@@ -67,16 +63,6 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
 	 * In ms.
 	 */
 	private static final int REST_PROGRESS_UPDATE_RATE = 300;
-
-    /**
-     * Default series rating used when the user quickly finishes the series (doesn't
-     * edit series details information). Additionally as a default selection in
-     * edit series details view.
-     *
-     * Note: Numbers correspond to TRAINING_RATING_IMAGES and TRAINING_RATING_SELECTED_IMAGES
-     * arrays.
-     */
-    private static final int DEFAULT_SERIES_RATING = 1;
 
 	private PermanentSettings mSettings;
 	private ResponseReceiver mBroadcastReceiver;
@@ -104,15 +90,8 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
 	private TextView mTrainingCommentText;
 	private LinearLayout mAnimationRectangle;
 	private ImageView mImageArrowSeriesInfo;
-	private LinearLayout mViewDuringExercise;
 	private CheckBox mEditDetailsCheckbox;
-	private RelativeLayout mEditDetailsView;
-	private EditText mEditCommentValue;
     private ImageView mExerciseImage;
-    private NumberPicker mEditRepetitionsNumPick;
-    private NumberPicker mEditWeightNumPick;
-    private TextView mExerciseTimer;
-    private LinearLayout mLlEditReps;
 
 	private AccelerationRecorder mAccelerationRecorder;
 
@@ -138,11 +117,6 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
 	 */
 	private int mTrainingRatingSelectedID = -1;
 
-    /**
-     * Holds the ID of the currently selected exercise rating (or -1 if no
-     * rating was yet selected).
-     */
-    private int mExerciseRatingSelectedID = -1;
 
 	/**
 	 * Holds ID of the training plan currently selected in the training
@@ -172,12 +146,6 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
      */
     private long mLastExerciseTimerValue;
 
-    /**
-     * Controls the visibility of the edit series details view. If true, edit
-     * series view will be shown to the users.
-     */
-    private Boolean mEditSeriesDetails = false;
-
 	/**
 	 * Contains IDs of training rating images in non-selected (non-clicked)
 	 * state.
@@ -196,15 +164,13 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
 	 */
 	private ImageView[] mTrainingRatingImages;
 
-	/**
-	 * References to the ImageViews hosting exercise rating images.
-	 */
-	private ImageView[] mExerciseRatingImages;
-
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 
-		mSettings = PermanentSettings.create(PreferenceManager
+        EventBus.getDefault().register(this);
+
+
+        mSettings = PermanentSettings.create(PreferenceManager
 				.getDefaultSharedPreferences(this));
 
 		// if we are not logged in yet show the login activity first
@@ -235,39 +201,13 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
 		mTrainingCommentText = (TextView) findViewById(R.id.textTrainingComment);
 		mAnimationRectangle = (LinearLayout) findViewById(R.id.animationRectangle);
 		mImageArrowSeriesInfo = (ImageView) findViewById(R.id.imageArrowSeriesInfo);
-		mViewDuringExercise = (LinearLayout) findViewById(R.id.viewDuringExercise);
 //		mEditDetailsCheckbox = (CheckBox) findViewById(R.id.checkbox_edit_details);
-		mEditDetailsView = (RelativeLayout)findViewById(R.id.editDetailsView);
-		mEditCommentValue  =(EditText)findViewById(R.id.editCommentValue);
         mExerciseImage = (ImageView)findViewById(R.id.exerciseImage);
-        mEditRepetitionsNumPick = (NumberPicker)findViewById(R.id.edit_reps_num_pick);
-        mEditWeightNumPick = (NumberPicker)findViewById(R.id.edit_weight_num_pick);
-        mExerciseTimer = (TextView)findViewById(R.id.tv_exercise_timer);
-        mLlEditReps = (LinearLayout)findViewById(R.id.ll_edit_reps);
-
-
-        mEditRepetitionsNumPick.setMinValue(0);
-        mEditRepetitionsNumPick.setMaxValue(100);
-
-
-        mEditWeightNumPick.setMinValue(0);
-        mEditWeightNumPick.setMaxValue(300);
 
 		updateTrainingSelector(-1);
 		initializeTrainingRatings();
-		initializeExerciseRatings();
 		loadCurrentTraining();
 		updateScreen();
-
-		mEditDetailsView.setOnTouchListener(new View.OnTouchListener() {
-			
-			@Override
-			public boolean onTouch(View v, MotionEvent event) {
-				// only used to handle all the clicks while the edit details
-				// view is visible
-				return true;
-			}
-		});
 
         // add a long click action to skip exercise button (so the user won't
         // activate this by mistake)
@@ -377,119 +317,10 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
 		return !mSettings.getUsername().equals("");
 	}
 
-	/**
-	 * Creates a mapping of exercise rating images and exercise rattings.
-	 */
-	private void initializeExerciseRatings() {
-		mExerciseRatingImages = new ImageView[TRAINING_RATING_IMAGES.length];
-		mExerciseRatingImages[0] = (ImageView) findViewById(R.id.exerciseRating1);
-		mExerciseRatingImages[1] = (ImageView) findViewById(R.id.exerciseRating2);
-		mExerciseRatingImages[2] = (ImageView) findViewById(R.id.exerciseRating3);
-	}
 
     public boolean onClickExerciseImage(View v){
         toggleInfoButtonVisible(false);
         return true;
-    }
-
-	/**
-	 * Invoked when a specific exercise rating image is clicked.
-	 * 
-	 * @param v contains the reference to the clicked exercise rating image.
-	 */
-	public void onExerciseRatingSelected(View v) {
-		ImageView exerciseRatingImage = (ImageView) v;
-
-        selectSeriesRatingIcon(exerciseRatingImage);
-	}
-
-    /**
-     * Manages series rating image views (smile icons).
-     * Selects the input imageView and deselect all the other rating image views.
-     * @param ratingImageSelected is the selected imageView
-     */
-    private void selectSeriesRatingIcon(ImageView ratingImageSelected){
-        // different padding as we make the selected image a bit larger
-        int imageSelectedPadding = getResources().getDimensionPixelSize(
-                R.dimen.training_rating_smile_selected_padding);
-        int imagePadding = getResources().getDimensionPixelSize(
-                R.dimen.training_rating_smile_padding);
-
-        // loop through training ratings image views and set the appropriate
-        // image
-        for (int i = 0; i < mExerciseRatingImages.length; i++) {
-            if (mExerciseRatingImages[i] == ratingImageSelected) {
-                mExerciseRatingImages[i]
-                        .setImageResource(TRAINING_RATING_SELECTED_IMAGES[i]);
-                mExerciseRatingImages[i].setPadding(imageSelectedPadding,
-                        imageSelectedPadding, imageSelectedPadding,
-                        imageSelectedPadding);
-                // set global information about the selected rating (this will also be used
-                // to store the rating to the corresponding SeriesExecution)
-                mExerciseRatingSelectedID = i;
-            } else {
-                mExerciseRatingImages[i]
-                        .setImageResource(TRAINING_RATING_IMAGES[i]);
-                mExerciseRatingImages[i].setPadding(imagePadding, imagePadding,
-                        imagePadding, imagePadding);
-            }
-        }
-    }
-
-    /**
-     * Finish series and set the input rating.
-     */
-    private void finishSeries(){
-        // store the default series rating (for quick entry). In case of edit series details
-        // the rating can be changed later on (in edit series details view).
-        mCurrentTraining.setCurrentSeriesExecutionRating(DEFAULT_SERIES_RATING);
-
-        // hide the screen that is shown during exercising
-        mViewDuringExercise.setVisibility(View.GONE);
-
-        // stop acceleration sampling and get acceleration timestamps only if acceleration sampling is enabled
-        AccelerationRecordingTimestamps timestamps = getResources().getBoolean(R.bool.sample_acceleration) ? mAccelerationRecorder
-                .stopAccelerationSampling() : null;
-
-        // end this exercise (series)
-        mCurrentTraining.endExercise(timestamps);
-
-        // advance to the next activity
-        mCurrentTraining.nextActivity();
-
-        saveCurrentTraining();
-
-        updateScreen();
-    }
-
-    /**
-     * Invoked when the user is done with a series.
-     *
-     * @param v
-     *            contains the reference to the clicked imageview
-     */
-    public void onSeriesDoneClick(View v) {
-        ImageView trainingRatingSelected = (ImageView) v;
-
-        finishSeries();
-    }
-
-    /**
-     * Invoked when the user wants to edit series details.
-     *
-     * @param v
-     *            contains the reference to the clicked imageview
-     */
-    public void onSeriesDetailsClick(View v) {
-        // select default rating icon on screen
-        selectSeriesRatingIcon(mExerciseRatingImages[DEFAULT_SERIES_RATING]);
-
-        // we will want to show the view for editing this series
-        mEditSeriesDetails = true;
-        mLlEditReps.setVisibility(mCurrentTraining.getCurrentExercise().getGuidanceType().equals(Exercise.GUIDANCE_TYPE_DURATION) ? View.GONE : View.VISIBLE);
-
-        // finish series with the default series rating
-        finishSeries();
     }
 
 	/*
@@ -500,7 +331,8 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
 	 */
 	@Override
 	protected void onDestroy() {
-		unregisterReceiver(mBroadcastReceiver);
+        EventBus.getDefault().unregister(this);
+        unregisterReceiver(mBroadcastReceiver);
 		mRepetitionAnimation.removeRepetitionAnimationListener(this);
 
 		// remove all periodical tasks
@@ -617,6 +449,27 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
         mExerciseImage.setVisibility(visible ? View.VISIBLE : View.GONE);
 	}
 
+    /**
+     * This event is called when a user ends performing a particular exercise.
+     * @param event
+     */
+    public void onEvent(EndExerciseEvent event){
+        // stop acceleration sampling and get acceleration timestamps only if acceleration sampling is enabled
+        AccelerationRecorder.AccelerationRecordingTimestamps timestamps = getResources().getBoolean(R.bool.sample_acceleration) ? mAccelerationRecorder
+                .stopAccelerationSampling() : null;
+
+
+        // end this exercise (series)
+        mCurrentTraining.endExercise(timestamps);
+
+        // advance to the next activity
+        mCurrentTraining.nextActivity();
+
+        // TODO: this will most probably have to be communicated outside to the parent activity
+        saveCurrentTraining();
+
+        updateScreen();
+    }
 	/**
 	 * Triggered on additional info button click.
 	 * 
@@ -789,10 +642,10 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
 	}
 
 	private void changeTrainingPlanState() {
-		if (mViewDuringExercise.getVisibility() == View.VISIBLE) {
+		/*if (mViewDuringExercise.getVisibility() == View.VISIBLE) {
 			// exercise has to be rated before doing anything else
 
-		} else if (mCircularProgress.isInfoVisible()) {
+		} else */if (mCircularProgress.isInfoVisible()) {
 			// if info button is visible close it on tap
 			toggleInfoButtonVisible(false);
 		} else if (mCurrentTraining == null) {
@@ -902,8 +755,6 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
 		} else if (mCurrentTraining.getCurrentExercise() == null) {
 			if (!mCurrentTraining.isTrainingEnded()) {
                 // no more exercises, show the done button
-				showEditDetailsViewIfDemanded();
-
 				mCircularProgress.setCurrentState(CircularProgressState.STOP);
 				mSeriesInfoText.setText("hold to finish");
 				mBottomContainer.setVisibility(View.INVISIBLE);
@@ -964,12 +815,10 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
                 mCircularProgress.setInfoChairLevel(mCurrentTraining
 						.getCurrentExercise().getMachineSetting());
 
-				showEditDetailsViewIfDemanded();
-
 				// first remove all existing callbacks
 				mUiHandler.removeCallbacks(mUpdateRestTimer);
 				mUiHandler.removeCallbacks(mGetReadyTimer);
-                mUiHandler.removeCallbacks(mUpdateExerciseTimer);
+               // mUiHandler.removeCallbacks(mUpdateExerciseTimer);
 
 				// now show all the common information
 				Series curSeries = curExercise.getCurrentSeries();
@@ -1026,24 +875,11 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
 				}
 			} else {
 				// otherwise show exercising UI
-                mExerciseTimer.setVisibility(mCurrentTraining.getCurrentExercise().getGuidanceType().equals(Exercise.GUIDANCE_TYPE_DURATION) ? View.VISIBLE : View.INVISIBLE);
+                mUiHandler.removeCallbacks(mUpdateRestTimer);
 
-				mCircularProgress.setCurrentRepetition(mCurrentTraining
-						.getCurrentRepetition());
-				mCircularProgress.setTotalRepetitions(mCurrentTraining
-						.getTotalRepetitions());
-				mCircularProgress.setCurrentSeries(mCurrentTraining
-						.getCurrentSeriesNumber());
-				mCircularProgress.setTotalSeries(mCurrentTraining
-						.getTotalSeriesForCurrentExercise());
-				mCircularProgress
-						.setCurrentState(CircularProgressState.EXERCISE);
-
-				mSeriesInformation.setVisibility(View.INVISIBLE);
-
-				// remove any periodic rest timers
-				mUiHandler.removeCallbacks(mUpdateRestTimer);
-                mUiHandler.postDelayed(mUpdateExerciseTimer, 0);
+                // TODO: mightr be better to decouple the training here (and not pass it,
+                // but rather pass a minimum set of parameters)
+                EventBus.getDefault().post(new StartExerciseEvent(mCurrentTraining));
 			}
 
 			// set exercise and training progres bars
@@ -1068,33 +904,6 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
 		}
 
         invalidateOptionsMenu();
-	}
-
-	private void showEditDetailsViewIfDemanded() {
-		SeriesExecution lastSe = mCurrentTraining.getLastSeriesExecution();
-		if (mEditSeriesDetails && lastSe != null) {
-			mEditRepetitionsNumPick.setValue(lastSe.getRepetitions());
-			mEditWeightNumPick.setValue(lastSe.getWeight());
-
-			mEditDetailsView.setVisibility(View.VISIBLE);
-            mEditSeriesDetails = false;
-		}
-	}
-	
-	/** Save the (edited) series execution values and hides the edit details view.
-	 * @param v
-	 */
-	public void onEditDetailsDoneClick(View v){
-		// this is possible (however not very secure) as we are not creating a
-		// defensive copy of the series execution in training
-		SeriesExecution lastSe = mCurrentTraining.getLastSeriesExecution();
-		if(lastSe != null){
-            lastSe.setRating(mExerciseRatingSelectedID);
-			lastSe.setWeight(mEditWeightNumPick.getValue());
-			lastSe.setRepetitions(mEditRepetitionsNumPick.getValue());
-		}
-
-		mEditDetailsView.setVisibility(View.GONE);
 	}
 
 	/**
@@ -1159,7 +968,7 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
 	}
 
 	private void showExerciseRateView() {
-		mViewDuringExercise.setVisibility(View.VISIBLE);
+		//mViewDuringExercise.setVisibility(View.VISIBLE);
 	}
 
 	/*
@@ -1261,7 +1070,7 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
 
     /**
      */
-    private Runnable mUpdateExerciseTimer = new Runnable() {
+    /*private Runnable mUpdateExerciseTimer = new Runnable() {
 
         @Override
         public void run() {
@@ -1296,7 +1105,7 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
                 mUiHandler.postDelayed(this, REST_PROGRESS_UPDATE_RATE);
             }
         }
-    };
+    };*/
 
 	/*
 	 * Gets the results from activities started from this activity.
