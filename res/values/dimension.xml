@@ -27,6 +27,7 @@
     <dimen name="rate_exercise_text_size">40dp</dimen>
     <dimen name="edit_details_popup_label_text_size">25dp</dimen>
     <dimen name="edit_series_info_image_size">100dp</dimen>
+    <dimen name="exercise_timer_size">60dp</dimen>
 
     <!-- Start circular progress control -->
     <dimen name="cpc_outer_progress_thickness">10dp</dimen>

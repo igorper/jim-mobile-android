@@ -177,6 +177,13 @@ public class Training {
 				* 1000 - (now - mLastPauseStart);
 		return Math.round((float) diff / 1000);
 	}
+
+    public int calculateDurationLeft() {
+        long now = System.currentTimeMillis();
+        long diff = getCurrentExercise().getCurrentSeries().getNumberTotalRepetitions()
+                * 1000 - (now - mExerciseStart);
+        return Math.round((float) diff / 1000);
+    }
 	
 	/**
 	 * Called to start each exercise. Only marks the exercise start timestamp.

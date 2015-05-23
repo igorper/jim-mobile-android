@@ -14,6 +14,10 @@ import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
+import android.media.MediaPlayer;
+import android.media.Ringtone;
+import android.media.RingtoneManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
@@ -107,6 +111,8 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
     private ImageView mExerciseImage;
     private NumberPicker mEditRepetitionsNumPick;
     private NumberPicker mEditWeightNumPick;
+    private TextView mExerciseTimer;
+    private LinearLayout mLlEditReps;
 
 	private AccelerationRecorder mAccelerationRecorder;
 
@@ -158,6 +164,13 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
 	 * was not started yet.
 	 */
 	private long mGetReadyStartTimestamp = -1;
+
+
+    /**
+     * Holds the last value of the running exercise timer. This field is used
+     * when playing a notification during an exercise timer.
+     */
+    private long mLastExerciseTimerValue;
 
     /**
      * Controls the visibility of the edit series details view. If true, edit
@@ -229,6 +242,9 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
         mExerciseImage = (ImageView)findViewById(R.id.exerciseImage);
         mEditRepetitionsNumPick = (NumberPicker)findViewById(R.id.edit_reps_num_pick);
         mEditWeightNumPick = (NumberPicker)findViewById(R.id.edit_weight_num_pick);
+        mExerciseTimer = (TextView)findViewById(R.id.tv_exercise_timer);
+        mLlEditReps = (LinearLayout)findViewById(R.id.ll_edit_reps);
+
 
         mEditRepetitionsNumPick.setMinValue(0);
         mEditRepetitionsNumPick.setMaxValue(100);
@@ -470,6 +486,7 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
 
         // we will want to show the view for editing this series
         mEditSeriesDetails = true;
+        mLlEditReps.setVisibility(mCurrentTraining.getCurrentExercise().getGuidanceType().equals(Exercise.GUIDANCE_TYPE_DURATION) ? View.GONE : View.VISIBLE);
 
         // finish series with the default series rating
         finishSeries();
@@ -952,6 +969,7 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
 				// first remove all existing callbacks
 				mUiHandler.removeCallbacks(mUpdateRestTimer);
 				mUiHandler.removeCallbacks(mGetReadyTimer);
+                mUiHandler.removeCallbacks(mUpdateExerciseTimer);
 
 				// now show all the common information
 				Series curSeries = curExercise.getCurrentSeries();
@@ -993,6 +1011,8 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
 				}
 			} else {
 				// otherwise show exercising UI
+                mExerciseTimer.setVisibility(mCurrentTraining.getCurrentExercise().getGuidanceType().equals(Exercise.GUIDANCE_TYPE_DURATION) ? View.VISIBLE : View.INVISIBLE);
+
 				mCircularProgress.setCurrentRepetition(mCurrentTraining
 						.getCurrentRepetition());
 				mCircularProgress.setTotalRepetitions(mCurrentTraining
@@ -1008,6 +1028,7 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
 
 				// remove any periodic rest timers
 				mUiHandler.removeCallbacks(mUpdateRestTimer);
+                mUiHandler.postDelayed(mUpdateExerciseTimer, 0);
 			}
 
 			// set exercise and training progres bars
@@ -1222,6 +1243,45 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
 			}
 		}
 	};
+
+    /**
+     */
+    private Runnable mUpdateExerciseTimer = new Runnable() {
+
+        @Override
+        public void run() {
+            Exercise currentExercise = mCurrentTraining.getCurrentExercise();
+            if (currentExercise != null && currentExercise.getGuidanceType().equals(Exercise.GUIDANCE_TYPE_DURATION)) {
+                int currentDuration = currentExercise.getCurrentSeries()
+                        .getNumberTotalRepetitions();
+                int currentDurationLeft = mCurrentTraining
+                        .calculateDurationLeft();
+                int absDurationLeft = Math.abs(currentDurationLeft);
+
+                int minutes = absDurationLeft / 60;
+                int seconds = absDurationLeft - minutes * 60;
+
+                mExerciseTimer.setText(String.format("%02d:%02d", minutes, seconds));
+
+                // play a notification on duration due (and another one after 10 seconds if
+                // the user missed it)
+                if(currentDurationLeft == 0 || currentDurationLeft == -10){
+                    // play the notification only once per second (event)
+                    if(mLastExerciseTimerValue != currentDurationLeft){
+                        try {
+                            MediaPlayer mPlayer = MediaPlayer.create(TrainingActivity.this, R.raw.alert);
+                            mPlayer.start();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+
+                mLastExerciseTimerValue = currentDurationLeft;
+                mUiHandler.postDelayed(this, REST_PROGRESS_UPDATE_RATE);
+            }
+        }
+    };
 
 	/*
 	 * Gets the results from activities started from this activity.

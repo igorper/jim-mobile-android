@@ -289,7 +289,8 @@
                             android:layout_weight="1"
                             android:layout_width="0dp"
                             android:layout_height="match_parent"
-                            android:orientation="vertical">
+                            android:orientation="vertical"
+                            android:id="@+id/ll_edit_reps">
 
                             <TextView
                                 android:layout_width="wrap_content"
@@ -391,6 +392,14 @@
                     android:layout_height="match_parent"
                     android:background="@color/rate_exercise_background"
                     android:visibility="visible" >
+                    <TextView
+                        android:id="@+id/tv_exercise_timer"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textSize="@dimen/exercise_timer_size"
+                        android:textStyle="bold"
+                        android:gravity="center"
+                        android:text="00:30"/>
                     <ImageView
                         android:id="@+id/trainingWeight"
                         android:layout_width="match_parent"
