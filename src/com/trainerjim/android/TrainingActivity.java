@@ -985,11 +985,26 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
                 mTextRectLowerLine.setText(exerciseName);
                 mLayoutRectLowerLine.setVisibility(View.VISIBLE);
                 mLayoutRectTrainingSelector.setVisibility(View.GONE);
-				mSeriesInfoText.setText(String.format(
-						"Series %d (%d reps, %d kg)",
-						curExercise.getCurrentSeriesNumber(),
-						curSeries.getNumberTotalRepetitions(),
-						curSeries.getWeight()));
+
+                if(curExercise.getGuidanceType().equals(Exercise.GUIDANCE_TYPE_DURATION)){
+                    int minutes = curSeries.getNumberTotalRepetitions() / 60;
+                    int seconds = curSeries.getNumberTotalRepetitions() - minutes * 60;
+                    mSeriesInfoText.setText(
+                            String.format(
+                                    "Series %d (%d min %d sec, %d kg)",
+                                    curExercise.getCurrentSeriesNumber(),
+                                    minutes,
+                                    seconds,
+                                    curSeries.getWeight()));
+                } else {
+                    mSeriesInfoText.setText(
+                            String.format(
+                                    "Series %d (%d reps, %d kg)",
+                                    curExercise.getCurrentSeriesNumber(),
+                                    curSeries.getNumberTotalRepetitions(),
+                                    curSeries.getWeight()));
+                }
+
 				mSeriesInformation.setVisibility(View.VISIBLE);
 
                 mCircularProgress.setTimerMessage("RESTING");
