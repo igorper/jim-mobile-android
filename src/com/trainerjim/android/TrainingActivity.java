@@ -848,11 +848,12 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
 					// also start the periodic timer to update the rest screen
 					mUiHandler.postDelayed(mUpdateRestTimer, 0);
 
-                    ArrayList<Exercise> exercises = new ArrayList<Exercise>(mCurrentTraining.getExercisesLeft());
-
                     // only in this state the user should be allowed to see the list of exercises
                     // update the training plan based on the current state
-                    mDrawerExercisesList.setAdapter(new ExerciseAdapter(getApplicationContext(), exercises));
+                    ExerciseAdapter adapter = new ExerciseAdapter(getApplicationContext(), new ArrayList<Exercise>(mCurrentTraining.getExercisesLeft()));
+                    adapter.setSelectedExercisePosition(mCurrentTraining.getSelectedExercisePosition());
+                    
+                    mDrawerExercisesList.setAdapter(adapter);
                     mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
 				} else {
 					mCircularProgress.setRestMaxProgress(mGetReadyInterval);

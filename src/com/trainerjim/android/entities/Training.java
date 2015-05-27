@@ -578,4 +578,8 @@ public class Training {
 		int sizeSe = mSeriesExecutions.size();
 		return sizeSe == 0 ? null : mSeriesExecutions.get(sizeSe - 1);
 	}
+
+    public int getSelectedExercisePosition() {
+        return mSelectedExercisePosition;
+    }
 }

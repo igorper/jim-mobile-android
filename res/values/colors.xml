@@ -37,6 +37,7 @@
     <color name="exercise_menu_item_text">#FFE1563E</color>
     <color name="exercise_menu_item_series_text">#FF0080D0</color>
     <color name="exercise_menu_background">#DDFBC911</color>
+    <color name="exercise_menu_selected_background">#FFEAB130</color>
     <color name="exercise_menu_divder">#FFEAB130</color>
     <!-- End exercises menu -->
 

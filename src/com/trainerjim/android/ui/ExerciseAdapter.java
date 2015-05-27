@@ -1,6 +1,7 @@
 package com.trainerjim.android.ui;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -9,6 +10,7 @@ import android.widget.TextView;
 
 import com.trainerjim.android.R;
 import com.trainerjim.android.entities.Exercise;
+import com.trainerjim.android.entities.Training;
 
 import java.util.ArrayList;
 
@@ -16,8 +18,14 @@ import java.util.ArrayList;
  * Created by igor on 26.05.15.
  */
 public class ExerciseAdapter extends ArrayAdapter<Exercise> {
+    private int mSelectedExercisePosition;
+
     public ExerciseAdapter(Context context, ArrayList<Exercise> exercises) {
         super(context, 0, exercises);
+    }
+
+    public void setSelectedExercisePosition(int position){
+        mSelectedExercisePosition = position;
     }
 
     @Override
@@ -28,6 +36,13 @@ public class ExerciseAdapter extends ArrayAdapter<Exercise> {
         if (convertView == null) {
             convertView = LayoutInflater.from(getContext()).inflate(R.layout.exercise_list_row, parent, false);
         }
+
+        if(position == mSelectedExercisePosition){
+            convertView.setBackgroundResource(R.color.exercise_menu_selected_background);
+        } else {
+            convertView.setBackgroundResource(R.color.exercise_menu_background);
+        }
+
         // Lookup view for data population
         TextView tvExerciseName = (TextView) convertView.findViewById(R.id.tvExerciseName);
         TextView tvSeriesInfo = (TextView) convertView.findViewById(R.id.tvSeriesInfo);
