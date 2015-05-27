@@ -5,7 +5,6 @@ import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -15,11 +14,8 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 import android.content.Context;
-import android.text.format.Time;
 import android.util.Log;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.trainerjim.android.AccelerationRecorder.AccelerationRecordingTimestamps;
 import com.trainerjim.android.util.Utils;
 
@@ -62,14 +58,6 @@ public class Training {
 	private long mTrainingStartTimestamp;
 
 	/**
-	 * Holds {@code exercise} indices for exercise that still have to be
-	 * performed. The first element is the index of the current exercise. If
-	 * this list is empty this means there are no more exercises planned for
-	 * this training.
-	 */
-	private List<Integer> mExercisesToDo;
-
-	/**
 	 * Holds the ms timestamp (obtained by System.currentTimeMillis()) of the
 	 * last start of the rest between exercises.
 	 */
@@ -109,7 +97,17 @@ public class Training {
 	 */
 	private List<SeriesExecution> mSeriesExecutions;
 
+    /**
+     * Position of the currently selected exercise in the exercises list.
+     */
+    private int mSelectedExercisePosition;
+
+    private List<Exercise> mExercisesLeft;
+
+    public List<Exercise> getExercisesLeft(){ return mExercisesLeft; }
+
     public List<Exercise> getExercises(){ return exercises; }
+
 
 	/**
 	 * This method is called to start a new training. It initializes all
@@ -122,7 +120,8 @@ public class Training {
 		}
 
 		// initialize support structures, dates and timestamps
-		mExercisesToDo = new ArrayList<Integer>();
+        mSelectedExercisePosition = 0;
+        mExercisesLeft = new ArrayList<Exercise>(exercises);
 		mSeriesExecutions = new ArrayList<SeriesExecution>();
 		mTrainingStarted = Calendar.getInstance().getTime();
 		mLastPauseStart = System.currentTimeMillis();
@@ -132,7 +131,6 @@ public class Training {
 
 		// add all exercises to the ToDo list and initialize them
 		for (int exerciseIndex = 0; exerciseIndex < exercises.size(); exerciseIndex++) {
-			mExercisesToDo.add(exerciseIndex);
 			exercises.get(exerciseIndex).initializeExercise();
 		}
 	}
@@ -160,8 +158,7 @@ public class Training {
 	 * @return
 	 */
 	public Exercise getCurrentExercise() {
-		return mExercisesToDo.size() == 0 ? null : exercises.get(mExercisesToDo
-				.get(0));
+		return mExercisesLeft.size() == 0 ? null : mExercisesLeft.get(mSelectedExercisePosition);
 	}
 
 	/**
@@ -200,7 +197,7 @@ public class Training {
 	 */
 	public void endExercise(AccelerationRecordingTimestamps timestamps) {
 		long exerciseEnd = System.currentTimeMillis();
-		Exercise currentExercise = exercises.get(mExercisesToDo.get(0));
+		Exercise currentExercise = mExercisesLeft.get(mSelectedExercisePosition);
 		Series currentSeries = currentExercise.getCurrentSeries();
 
         // if the exercise was tempo guided, count the number of completed tempo guidance
@@ -260,45 +257,9 @@ public class Training {
 		return Math.round((float) (endTimeInMs - startTimeInMs) / 1000);
 	}
 
-	/**
-	 * Schedules the current exercise to be performed later. Current exercise is
-	 * pushed to the end of the exercises queue. Nothing happens if there is
-	 * only one exercise left.
-	 */
-	public void scheduleExerciseLater() {
-		if (mExercisesToDo.size() > 1) {
-			int newLastExercise = mExercisesToDo.get(0);
-			mExercisesToDo.remove(0);
-			mExercisesToDo.add(newLastExercise);
-		}
-	}
-
-    public void moveToPreviousExercise(){
-        if(mExercisesToDo.size() > 1){
-            int prevExercise = mExercisesToDo.get(mExercisesToDo.size() - 1);
-            mExercisesToDo.remove(mExercisesToDo.size() - 1);
-            mExercisesToDo.add(0, prevExercise);
-        }
+    public void selectExercise(int exercisePosition) {
+        mSelectedExercisePosition = exercisePosition;
     }
-
-	/**
-	 * @return <code>true</code> if the exercise can be scheduled for later,
-	 *         otherwise <code>false</code>.
-	 */
-	public boolean canScheduleLater() {
-		return mExercisesToDo.size() > 1;
-	}
-
-	/**
-	 * Moves to the next exercise. Nothing happens if there are no more
-	 * exercises left.
-	 */
-	public void nextExercise() {
-		Exercise current = getCurrentExercise();
-		if (current != null) {
-			mExercisesToDo.remove(0);
-		}
-	}
 
 	/**
 	 * Moves either to next series or to next exercise, if the current exercise
@@ -308,9 +269,20 @@ public class Training {
 	public void nextActivity() {
 		Exercise current = getCurrentExercise();
 		if (current != null && !current.moveToNextSeries()) {
-			mExercisesToDo.remove(0);
+            removeExercise(mSelectedExercisePosition);
 		}
 	}
+
+
+    public void removeExercise(int position) {
+        mExercisesLeft.remove(position);
+
+        // if the last exercise was removed and there are still some exercises left we should
+        // decrease the currently selected exercise position
+        if(mSelectedExercisePosition > mExercisesLeft.size() - 1){
+            mSelectedExercisePosition--;
+        }
+    }
 
 	/**
 	 * Gets the total number of series in this training.
@@ -333,8 +305,8 @@ public class Training {
 	 */
 	public int getSeriesPerformedCount() {
 		int retVal = getTotalSeriesCount();
-		for (int i = 0; i < mExercisesToDo.size(); i++) {
-			retVal -= exercises.get(mExercisesToDo.get(i)).getSeriesLeftCount();
+		for (int i = 0; i < mExercisesLeft.size(); i++) {
+			retVal -= mExercisesLeft.get(i).getSeriesLeftCount();
 		}
 
 		return retVal;

@@ -2,6 +2,7 @@ package com.trainerjim.android;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
@@ -17,30 +18,34 @@ import android.graphics.Matrix;
 import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
+import android.support.v4.widget.DrawerLayout;
 import android.util.Log;
+import android.view.ContextMenu;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ViewFlipper;
 
-import com.trainerjim.android.AccelerationRecorder.AccelerationRecordingTimestamps;
 import com.trainerjim.android.entities.Exercise;
 import com.trainerjim.android.entities.Series;
 import com.trainerjim.android.entities.Training;
 import com.trainerjim.android.events.EndExerciseEvent;
 import com.trainerjim.android.events.StartExerciseEvent;
-import com.trainerjim.android.fragments.ExerciseViewFragment;
 import com.trainerjim.android.network.ServerCommunicationService;
 import com.trainerjim.android.storage.PermanentSettings;
 import com.trainerjim.android.storage.TrainingContentProvider.CompletedTraining;
 import com.trainerjim.android.storage.TrainingContentProvider.TrainingPlan;
 import com.trainerjim.android.ui.CircularProgressControl;
+import com.trainerjim.android.ui.ExerciseAdapter;
 import com.trainerjim.android.ui.RepetitionAnimation;
 import com.trainerjim.android.ui.RepetitionAnimationListener;
 import com.trainerjim.android.ui.CircularProgressControl.CircularProgressState;
@@ -82,9 +87,6 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
     private TextView mTextRectOneLine;
 	private RelativeLayout mBottomContainer;
 	private ImageView mInfoButton;
-    private ImageView mSkipButton;
-    private ImageView mNextButton;
-    private ImageView mPrevButton;
 	private LinearLayout mSeriesInformation;
 	private TextView mSeriesInfoText;
 	private TextView mTrainingCommentText;
@@ -92,6 +94,8 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
 	private ImageView mImageArrowSeriesInfo;
 	private CheckBox mEditDetailsCheckbox;
     private ImageView mExerciseImage;
+    private DrawerLayout mDrawerLayout;
+    private ListView mDrawerExercisesList;
 
 	private AccelerationRecorder mAccelerationRecorder;
 
@@ -193,9 +197,6 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
         mTextRectOneLine = (TextView)findViewById(R.id.text_rect_one_line);
 		mBottomContainer = (RelativeLayout) findViewById(R.id.bottomContainer);
 		mInfoButton = (ImageView) findViewById(R.id.info_button);
-        mSkipButton = (ImageView) findViewById(R.id.skip_button);
-        mNextButton = (ImageView) findViewById(R.id.next_button);
-        mPrevButton = (ImageView) findViewById(R.id.prev_button);
 		mSeriesInformation = (LinearLayout) findViewById(R.id.seriesInformation);
 		mSeriesInfoText = (TextView) findViewById(R.id.nextSeriesText);
 		mTrainingCommentText = (TextView) findViewById(R.id.textTrainingComment);
@@ -203,70 +204,13 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
 		mImageArrowSeriesInfo = (ImageView) findViewById(R.id.imageArrowSeriesInfo);
 //		mEditDetailsCheckbox = (CheckBox) findViewById(R.id.checkbox_edit_details);
         mExerciseImage = (ImageView)findViewById(R.id.exerciseImage);
+        mDrawerLayout = (DrawerLayout)findViewById(R.id.drawer_layout);
+        mDrawerExercisesList = (ListView)findViewById(R.id.exercises_list);
 
 		updateTrainingSelector(-1);
 		initializeTrainingRatings();
 		loadCurrentTraining();
 		updateScreen();
-
-        // add a long click action to skip exercise button (so the user won't
-        // activate this by mistake)
-        mSkipButton.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-                skipExercise();
-                return true;
-            }
-        });
-
-        // add a long click action to previous exercise button
-        mPrevButton.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-                mCurrentTraining.moveToPreviousExercise();
-                saveCurrentTraining();
-                toggleInfoButtonVisible(false);
-                updateScreen();
-                return true;
-            }
-        });
-
-
-        // add a long click action to next exercise button
-        mNextButton.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-                // don't do anything if exercise can not be scheduled for later
-                if (!mCurrentTraining.canScheduleLater()) {
-                    return false;
-                }
-
-                if (!mCurrentTraining.isCurrentRest()) {
-
-                    AccelerationRecordingTimestamps timestamps = getResources().getBoolean(R.bool.sample_acceleration) ? mAccelerationRecorder
-                            .stopAccelerationSampling() : null;
-                    mCurrentTraining.endExercise(timestamps);
-
-                    // TODO: user should optionally rate the exercise here (scheduling
-                    // the exercise for later because it was too hard)
-                }
-
-                // disable the get ready timer
-                mGetReadyStartTimestamp = -1;
-
-                // cancel the repetition animation if running
-                if (mRepetitionAnimation.isAnimationRunning()) {
-                    mRepetitionAnimation.cancelAnimation();
-                }
-
-                mCurrentTraining.scheduleExerciseLater();
-                saveCurrentTraining();
-                toggleInfoButtonVisible(false);
-                updateScreen();
-
-                return false;
-            }
-        });
 
         // add a long click action to the main exercise button
 		mCircularProgress.setOnLongClickListener(new View.OnLongClickListener() {
@@ -277,7 +221,20 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
             }
         });
 
-		mRepetitionAnimation = new RepetitionAnimation(mAnimationRectangle,
+        // set action when user click the exercise in the exercises menu
+        mDrawerExercisesList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                // move to a particular exercise in the training plan
+                mCurrentTraining.selectExercise(i);
+                mDrawerLayout.closeDrawers();
+                updateScreen();
+            }
+        });
+
+        registerForContextMenu(mDrawerExercisesList);
+
+        mRepetitionAnimation = new RepetitionAnimation(mAnimationRectangle,
 				mUiHandler);
 		mRepetitionAnimation.addRepetitionAnimationListener(this);
 
@@ -341,7 +298,32 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
 		super.onDestroy();
 	}
 
-	/**
+    @Override
+    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
+        super.onCreateContextMenu(menu, v, menuInfo);
+
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.exercise_list_context_menu, menu);
+    }
+
+    @Override
+    public boolean onContextItemSelected(MenuItem item) {
+        AdapterView.AdapterContextMenuInfo info  = (AdapterView.AdapterContextMenuInfo)item.getMenuInfo();
+
+        switch (item.getItemId()){
+            case R.id.skip_exercise:{
+                mCurrentTraining.removeExercise(info.position);
+                saveCurrentTraining();
+                updateScreen();
+                mDrawerLayout.closeDrawers();
+                break;
+            }
+        }
+
+        return super.onContextItemSelected(item);
+    }
+
+    /**
 	 * Initializes a list of training rating ImageViews references.
 	 * Additionally, sets the non-selected images.
 	 */
@@ -723,10 +705,6 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
 	 * responsible for periodic screen changes)
 	 */
 	private void updateScreen() {
-        // those should never be visible on updated screen (can be visible only on a special action)
-        mSkipButton.setVisibility(View.INVISIBLE);
-        mNextButton.setVisibility(View.INVISIBLE);
-        mPrevButton.setVisibility(View.INVISIBLE);
 
 		if (mCurrentTraining == null) {
 			// no training started yet, show the start button
@@ -747,6 +725,7 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
             }
 
 
+            mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
 			mInfoButton.setVisibility(View.INVISIBLE);
 
 			mBottomContainer.setVisibility(View.VISIBLE);
@@ -781,6 +760,7 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
                 mTextRectOneLine.setVisibility(View.VISIBLE);
 			}
 
+            mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
 			mInfoButton.setVisibility(View.INVISIBLE);
 			mSeriesInformation.setVisibility(View.VISIBLE);
 			mImageArrowSeriesInfo.setVisibility(View.GONE);
@@ -854,6 +834,7 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
                                     curSeries.getWeight()));
                 }
 
+
 				mSeriesInformation.setVisibility(View.VISIBLE);
 
                 mCircularProgress.setTimerMessage("RESTING");
@@ -866,12 +847,21 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
 
 					// also start the periodic timer to update the rest screen
 					mUiHandler.postDelayed(mUpdateRestTimer, 0);
+
+                    ArrayList<Exercise> exercises = new ArrayList<Exercise>(mCurrentTraining.getExercisesLeft());
+
+                    // only in this state the user should be allowed to see the list of exercises
+                    // update the training plan based on the current state
+                    mDrawerExercisesList.setAdapter(new ExerciseAdapter(getApplicationContext(), exercises));
+                    mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
 				} else {
 					mCircularProgress.setRestMaxProgress(mGetReadyInterval);
 					mCircularProgress.setRestMinProgress(0);
 					mCircularProgress.setTimerMessage("GET READY");
 
 					mUiHandler.postDelayed(mGetReadyTimer, 0);
+
+                    mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
 				}
 			} else {
 				// otherwise show exercising UI
@@ -880,6 +870,8 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
                 // TODO: mightr be better to decouple the training here (and not pass it,
                 // but rather pass a minimum set of parameters)
                 EventBus.getDefault().post(new StartExerciseEvent(mCurrentTraining));
+
+                mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
 			}
 
 			// set exercise and training progres bars
@@ -913,47 +905,12 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
 	 */
 	public void onBottomStrapClick(View view) {
         // if resting toggle the next/prev buttons and the current exercise info
-        if(mCircularProgress.getCurrentState() == CircularProgressState.REST){
-            int visibilityControls = mPrevButton.getVisibility() == View.INVISIBLE ? View.VISIBLE : View.INVISIBLE;
-
-            mPrevButton.setVisibility(visibilityControls);
-            mNextButton.setVisibility(visibilityControls);
-            mSkipButton.setVisibility(visibilityControls);
-        } else {
-
+        if(mCircularProgress.getCurrentState() != CircularProgressState.REST){
             Intent intent = new Intent(TrainingActivity.this,
                     TrainingSelectionList.class);
             startActivityForResult(intent, ACTIVITY_REQUEST_TRAININGS_LIST);
         }
 	}
-
-    /**
-     * Skips the current exercise. All planned executions of this exercise are removed
-     * from the training plan.
-     */
-    private void skipExercise(){
-        if (!mCurrentTraining.isCurrentRest()) {
-            AccelerationRecordingTimestamps timestamps = mAccelerationRecorder
-                    .stopAccelerationSampling();
-            mCurrentTraining.endExercise(timestamps);
-        }
-
-        // disable the get ready timer
-        mGetReadyStartTimestamp = -1;
-
-        // cancel the repetition animation if running
-        if (mRepetitionAnimation.isAnimationRunning()) {
-            mRepetitionAnimation.cancelAnimation();
-        }
-
-        // TODO: user should optionally rate the exercise here (e.g. skipping in
-        // the middle of the series because it was maybe to hard)
-
-        mCurrentTraining.nextExercise();
-        saveCurrentTraining();
-        toggleInfoButtonVisible(false);
-        updateScreen();
-    }
 
 	/*
 	 * Repetition animation has legally ended so we should advance the training
@@ -1067,45 +1024,6 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
 			}
 		}
 	};
-
-    /**
-     */
-    /*private Runnable mUpdateExerciseTimer = new Runnable() {
-
-        @Override
-        public void run() {
-            Exercise currentExercise = mCurrentTraining.getCurrentExercise();
-            if (currentExercise != null && currentExercise.getGuidanceType().equals(Exercise.GUIDANCE_TYPE_DURATION)) {
-                int currentDuration = currentExercise.getCurrentSeries()
-                        .getNumberTotalRepetitions();
-                int currentDurationLeft = mCurrentTraining
-                        .calculateDurationLeft();
-                int absDurationLeft = Math.abs(currentDurationLeft);
-
-                int minutes = absDurationLeft / 60;
-                int seconds = absDurationLeft - minutes * 60;
-
-                mExerciseTimer.setText(String.format("%02d:%02d", minutes, seconds));
-
-                // play a notification on duration due (and another one after 10 seconds if
-                // the user missed it)
-                if(currentDurationLeft == 0 || currentDurationLeft == -10){
-                    // play the notification only once per second (event)
-                    if(mLastExerciseTimerValue != currentDurationLeft){
-                        try {
-                            MediaPlayer mPlayer = MediaPlayer.create(TrainingActivity.this, R.raw.alert);
-                            mPlayer.start();
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }
-
-                mLastExerciseTimerValue = currentDurationLeft;
-                mUiHandler.postDelayed(this, REST_PROGRESS_UPDATE_RATE);
-            }
-        }
-    };*/
 
 	/*
 	 * Gets the results from activities started from this activity.

@@ -39,6 +39,10 @@ public class Exercise {
 	 */
 	private List<Integer> mSeriesToDo;
 
+    public int getId(){
+        return id;
+    }
+
 	/**
 	 * Gets Exercise type information.
 	 * 
