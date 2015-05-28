@@ -428,7 +428,11 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
 				: R.drawable.chair_ico);
 				*/
 
-        mExerciseImage.setVisibility(visible ? View.VISIBLE : View.GONE);
+        // show the image view only if there is an image available
+        if(mExerciseImage.getDrawable() != null) {
+            mExerciseImage.setVisibility(visible ? View.VISIBLE : View.GONE);
+            mDrawerLayout.setDrawerLockMode(visible ? DrawerLayout.LOCK_MODE_LOCKED_CLOSED : DrawerLayout.LOCK_MODE_UNLOCKED);
+        }
 	}
 
     /**
@@ -460,20 +464,6 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
 	public void onInfoButtonClick(View v) {
 		toggleInfoButtonVisible(!mCircularProgress.isInfoVisible());
 	}
-
-    /**
-     * Triggered on skip button click.
-     * @param v
-     */
-    public void onSkipButtonClick(View v){
-        // TODO: Show help popup
-        /*
-        Help popup could be show inside the circular button (in another color). It
-        should just outline the action results and explain that the action can be used
-        by long click.
-        The same help popup could be used for other cases.
-         */
-    }
 
 	/**
 	 * Triggered on finish button click in the training rating screen.
@@ -771,25 +761,26 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
 			Exercise curExercise = mCurrentTraining.getCurrentExercise();
 			// there are still some exercises to be performed
 			if (mCurrentTraining.isCurrentRest()) {
-                try {
+                // TODO: encapsulate this or find a better way to do it
 
-                    // TODO: encapsulate this or find a better way to do it
+                Matrix matrix = new Matrix();
 
-                    Matrix matrix = new Matrix();
+                // we presume that all images will be in landscape mode and thus rotate it.
+                // A more intelligent algorithm could be implemented in the future - e.g.
+                // checking the dimensions of the image
+                matrix.postRotate(90);
 
-                    // we presume that all images will be in landscape mode and thus rotate it.
-                    // A more intelligent algorithm could be implemented in the future - e.g.
-                    // checking the dimensions of the image
-                    matrix.postRotate(90);
+                String localImageFileName = curExercise.getExerciseType().getLocalImageFileName();
 
+                if(localImageFileName != null) {
                     Bitmap scaledBitmap = BitmapFactory.decodeFile(new File(Utils.getDataFolderFile(getApplicationContext()),
-                            curExercise.getExerciseType().getLocalImageFileName()).getAbsolutePath());
+                            localImageFileName).getAbsolutePath());
 
                     Bitmap rotatedBitmap = Bitmap.createBitmap(scaledBitmap , 0, 0, scaledBitmap .getWidth(), scaledBitmap .getHeight(), matrix, true);
 
                     mExerciseImage.setImageBitmap(rotatedBitmap);
-                } catch (Exception e) {
-                    Log.e(TAG, "Unable to set current exercise image: " + e.getMessage());
+                } else {
+                    mExerciseImage.setImageDrawable(null);
                 }
 
                 mCircularProgress.setInfoChairLevel(mCurrentTraining

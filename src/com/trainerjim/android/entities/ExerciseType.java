@@ -61,7 +61,7 @@ public class ExerciseType {
      * @return
      */
     public String getLocalImageFileName() {
-        return String.format("%d%s%d%s", getId(), IMAGE_DATE_DELIMITER, getImageUpdatedDate().getTime(), IMAGE_EXTENSION);
+        return image_updated_at == null ? null : String.format("%d%s%d%s", getId(), IMAGE_DATE_DELIMITER, getImageUpdatedDate().getTime(), IMAGE_EXTENSION);
     }
 
     public Date getImageUpdatedDate() { return  image_updated_at; }

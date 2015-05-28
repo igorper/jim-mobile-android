@@ -330,20 +330,24 @@ public class ServerCommunicationService extends IntentService {
      * 'training/exercise_types.json' API. The images are just saved to the persisted storage.
      */
     private void fetchImages(HashMap<Integer, ExerciseType> exerciseTypes){
-        // get local images manifest
+        // Get a list of local images. Exercises that are present in current training plans will
+        // be removed from this list. In the end exercises that will be left in this list will be
+        // removed from local storage, as they are not used by current training plans.
         HashMap<Integer, File> existingImages = getLocalImageFiles();
 
         List<ExerciseType> exercisesToDownload = new ArrayList<ExerciseType>();
         for(ExerciseType exerciseType : exerciseTypes.values()){
+            String localImageFileName = exerciseType.getLocalImageFileName();
+
             // image should be downloaded if it does not exist yet or if the time stamp has changed
-            if(!new File(Utils.getDataFolderFile(getApplicationContext()), exerciseType.getLocalImageFileName()).exists()
+            if(localImageFileName != null && (!new File(Utils.getDataFolderFile(getApplicationContext()), localImageFileName).exists()
                     || ExerciseType.extractTimestampFromFileName(existingImages.get(exerciseType.getId()).getName())
-                    < exerciseType.getImageUpdatedDate().getTime()) {
+                    < exerciseType.getImageUpdatedDate().getTime())) {
                 exercisesToDownload.add(exerciseType);
             }
 
-            // remove exercise types present in current trainings. exercise types that will stay
-            // in the
+            // Remove exercise types from existing images. This means the exercise is present in
+            // current training plans and its image should not be deleted from local storage,
             existingImages.remove(exerciseType.getId());
         }
 
@@ -369,13 +373,15 @@ public class ServerCommunicationService extends IntentService {
      * @return a hashmap of exercise type ids and local file pairs.
      */
     private HashMap<Integer, File> getLocalImageFiles() {
-        // get all the exercise images (to delete those that are not used in this training plan)
+        // Get all the exercise images (to delete those that are not used in this training plan).
+        // Exercises are retreived based on the predefined file extension.
         List<File> existingExerciseImages = Arrays.asList(Utils.getDataFolderFile(getApplicationContext()).listFiles(new FilenameFilter() {
             public boolean accept(File dir, String name) {
                 return name.toLowerCase().endsWith(ExerciseType.IMAGE_EXTENSION);
             }
         }));
 
+        // create a hashmap of exercise name + file pairs
         HashMap<Integer, File> existingImages = new HashMap<Integer, File>();
         for(File f : existingExerciseImages){
             existingImages.put(ExerciseType.extractIdFromFileName(f.getName()), f);
