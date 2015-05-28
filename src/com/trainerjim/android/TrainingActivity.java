@@ -78,7 +78,6 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
 	 * References to the XML defined UI controls.
 	 */
 	private CircularProgressControl mCircularProgress;
-	private ViewFlipper mViewFlipper;
 	private LinearLayout mTrainingSelector;
     private LinearLayout mLayoutRectTrainingSelector;
     private LinearLayout mLayoutRectLowerLine;
@@ -163,7 +162,6 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
 		setContentView(R.layout.activity_training);
 
 		mCircularProgress = (CircularProgressControl) findViewById(R.id.circularProgress);
-		mViewFlipper = (ViewFlipper) findViewById(R.id.viewFlipper);
 		mTrainingSelector = (LinearLayout) findViewById(R.id.trainingSelector);
         mLayoutRectTrainingSelector = (LinearLayout) findViewById(R.id.layout_rect_training_selector);
         mLayoutRectLowerLine = (LinearLayout)findViewById(R.id.layout_rect_lower_line);
@@ -857,7 +855,7 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
 
 				// TODO: support duration timer as well
 				Exercise curExercise = mCurrentTraining.getCurrentExercise();
-				if (curExercise.getGuidanceType().equals(
+				/*if (curExercise.getGuidanceType().equals(
 						Exercise.GUIDANCE_TYPE_TEMPO)) {
 					mRepetitionAnimation
 							.startAnimation(
@@ -871,9 +869,9 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
 									(int) (curExercise
 											.getRepetitionDurationAfter() * 1000),
 									mCurrentTraining.getTotalRepetitions());
-				} else {
+				} else {*/
 					showExerciseRateView();
-				}
+				//}
 
                 if(getResources().getBoolean(R.bool.sample_acceleration)) {
                     // do acceleration sampling
