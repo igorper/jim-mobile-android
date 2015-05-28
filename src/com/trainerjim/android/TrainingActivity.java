@@ -39,6 +39,8 @@ import com.trainerjim.android.entities.Exercise;
 import com.trainerjim.android.entities.Series;
 import com.trainerjim.android.entities.Training;
 import com.trainerjim.android.events.EndExerciseEvent;
+import com.trainerjim.android.events.EndRateTraining;
+import com.trainerjim.android.events.StartRateTraining;
 import com.trainerjim.android.events.StartExerciseEvent;
 import com.trainerjim.android.network.ServerCommunicationService;
 import com.trainerjim.android.storage.PermanentSettings;
@@ -89,7 +91,6 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
 	private ImageView mInfoButton;
 	private LinearLayout mSeriesInformation;
 	private TextView mSeriesInfoText;
-	private TextView mTrainingCommentText;
 	private LinearLayout mAnimationRectangle;
 	private ImageView mImageArrowSeriesInfo;
 	private CheckBox mEditDetailsCheckbox;
@@ -114,13 +115,6 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
 	 * UI thread handler.
 	 */
 	private Handler mUiHandler = new Handler();
-
-	/**
-	 * Holds the ID of the currently selected training rating (or -1 if no
-	 * rating was yet selected).
-	 */
-	private int mTrainingRatingSelectedID = -1;
-
 
 	/**
 	 * Holds ID of the training plan currently selected in the training
@@ -149,24 +143,6 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
      * when playing a notification during an exercise timer.
      */
     private long mLastExerciseTimerValue;
-
-	/**
-	 * Contains IDs of training rating images in non-selected (non-clicked)
-	 * state.
-	 */
-	private static int[] TRAINING_RATING_IMAGES = { R.drawable.sm_1_ns,
-			R.drawable.sm_2_ns, R.drawable.sm_3_ns };
-
-	/**
-	 * Contains IDs of training rating images in selected (touched) state.
-	 */
-	private static int[] TRAINING_RATING_SELECTED_IMAGES = { R.drawable.sm_1_s,
-			R.drawable.sm_2_s, R.drawable.sm_3_s };
-
-	/**
-	 * References to the ImageViews hosting training rating images.
-	 */
-	private ImageView[] mTrainingRatingImages;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -199,7 +175,6 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
 		mInfoButton = (ImageView) findViewById(R.id.info_button);
 		mSeriesInformation = (LinearLayout) findViewById(R.id.seriesInformation);
 		mSeriesInfoText = (TextView) findViewById(R.id.nextSeriesText);
-		mTrainingCommentText = (TextView) findViewById(R.id.textTrainingComment);
 		mAnimationRectangle = (LinearLayout) findViewById(R.id.animationRectangle);
 		mImageArrowSeriesInfo = (ImageView) findViewById(R.id.imageArrowSeriesInfo);
 //		mEditDetailsCheckbox = (CheckBox) findViewById(R.id.checkbox_edit_details);
@@ -208,7 +183,6 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
         mDrawerExercisesList = (ListView)findViewById(R.id.exercises_list);
 
 		updateTrainingSelector(-1);
-		initializeTrainingRatings();
 		loadCurrentTraining();
 		updateScreen();
 
@@ -323,30 +297,6 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
         return super.onContextItemSelected(item);
     }
 
-    /**
-	 * Initializes a list of training rating ImageViews references.
-	 * Additionally, sets the non-selected images.
-	 */
-	private void initializeTrainingRatings() {
-		mTrainingRatingSelectedID = -1;
-		mTrainingCommentText.setText("");
-
-		mTrainingRatingImages = new ImageView[TRAINING_RATING_IMAGES.length];
-		mTrainingRatingImages[0] = (ImageView) findViewById(R.id.trainingRating1);
-		mTrainingRatingImages[1] = (ImageView) findViewById(R.id.trainingRating2);
-		mTrainingRatingImages[2] = (ImageView) findViewById(R.id.trainingRating3);
-
-		int imagePadding = getResources().getDimensionPixelSize(
-				R.dimen.training_rating_smile_padding);
-
-		for (int i = 0; i < mTrainingRatingImages.length; i++) {
-			mTrainingRatingImages[i]
-					.setImageResource(TRAINING_RATING_IMAGES[i]);
-			mTrainingRatingImages[i].setPadding(imagePadding, imagePadding,
-					imagePadding, imagePadding);
-		}
-	}
-
 	/**
 	 * This method loads the currently active training to a memory object from
 	 * json string saved in application settings. If the json string is
@@ -456,6 +406,12 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
 
         updateScreen();
     }
+
+    public void onEvent(EndRateTraining event){
+        saveCurrentTraining();
+        updateScreen();
+    }
+
 	/**
 	 * Triggered on additional info button click.
 	 * 
@@ -463,60 +419,6 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
 	 */
 	public void onInfoButtonClick(View v) {
 		toggleInfoButtonVisible(!mCircularProgress.isInfoVisible());
-	}
-
-	/**
-	 * Triggered on finish button click in the training rating screen.
-	 * 
-	 * @param v
-	 */
-	public void onFinishClick(View v) {
-		if (mTrainingRatingSelectedID == -1) {
-			Toast.makeText(getApplicationContext(),
-					"You should rate the training.", Toast.LENGTH_SHORT).show();
-		} else {
-			mCurrentTraining.setTrainingRating(mTrainingRatingSelectedID);
-			mCurrentTraining.setTrainingComment(mTrainingCommentText.getText()
-					.toString());
-
-			saveCurrentTraining();
-
-			updateScreen();
-			mViewFlipper.showPrevious();
-		}
-	}
-
-	/**
-	 * Triggered when clicked on a specific training rating icon.
-	 * 
-	 * @param v
-	 *            The view hosting the clicked icon (of type ImageView).
-	 */
-	public void onTrainingRatingSelected(View v) {
-		ImageView trainingRatingSelected = (ImageView) v;
-
-		int imageSelectedPadding = getResources().getDimensionPixelSize(
-				R.dimen.training_rating_smile_selected_padding);
-		int imagePadding = getResources().getDimensionPixelSize(
-				R.dimen.training_rating_smile_padding);
-
-		// loop through training ratings image views and set the appropriate
-		// image
-		for (int i = 0; i < mTrainingRatingImages.length; i++) {
-			if (mTrainingRatingImages[i] == trainingRatingSelected) {
-				mTrainingRatingImages[i]
-						.setImageResource(TRAINING_RATING_SELECTED_IMAGES[i]);
-				mTrainingRatingImages[i].setPadding(imageSelectedPadding,
-						imageSelectedPadding, imageSelectedPadding,
-						imageSelectedPadding);
-				mTrainingRatingSelectedID = i;
-			} else {
-				mTrainingRatingImages[i]
-						.setImageResource(TRAINING_RATING_IMAGES[i]);
-				mTrainingRatingImages[i].setPadding(imagePadding, imagePadding,
-						imagePadding, imagePadding);
-			}
-		}
 	}
 
 	@Override
@@ -651,7 +553,6 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
 						completedTraining);
 
 				mCurrentTraining = null;
-				initializeTrainingRatings();
 			}
 
 		} else if (mCurrentTraining.isCurrentRest()) {
@@ -730,7 +631,9 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
 
 			} else if (mCurrentTraining.getTrainingRating() == -1) {
 				// show training rating screen
-				mViewFlipper.showNext();
+                // TODO: mightr be better to decouple the training here (and not pass it,
+                // but rather pass a minimum set of parameters)
+                EventBus.getDefault().post(new StartRateTraining(mCurrentTraining, getApplicationContext()));
 			} else {
 				// show overview
                 mTextRectOneLine.setText("ALL DONE");
