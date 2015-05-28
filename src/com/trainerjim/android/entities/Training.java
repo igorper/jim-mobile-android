@@ -170,7 +170,9 @@ public class Training {
 	 */
 	public int calculateCurrentRestLeft() {
 		long now = System.currentTimeMillis();
-		long diff = getCurrentExercise().getCurrentSeries().getRestTime()
+
+        // if this is the first exercises we should not count down any rest
+		long diff = (mSeriesExecutions.size() == 0 ? 0 : getCurrentExercise().getCurrentSeries().getRestTime())
 				* 1000 - (now - mLastPauseStart);
 		return Math.round((float) diff / 1000);
 	}
