@@ -205,18 +205,6 @@
                 </ImageView>
                 <!-- END -->
 
-                <!-- START: TEMPO ANIMATION VIEW -->
-                <LinearLayout
-                    android:id="@+id/animationRectangle"
-                    android:layout_width="match_parent"
-                    android:layout_height="1px"
-                    android:layout_alignParentBottom="true"
-                    android:background="@color/repetition_animation_background"
-                    android:orientation="horizontal"
-                    android:visibility="gone" >
-                </LinearLayout>
-                <!-- END -->
-
                 <!-- START: THE VIEW SHOWN DURING THE EXERCISE -->
 
                 <fragment

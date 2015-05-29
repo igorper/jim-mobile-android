@@ -90,7 +90,6 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
 	private ImageView mInfoButton;
 	private LinearLayout mSeriesInformation;
 	private TextView mSeriesInfoText;
-	private LinearLayout mAnimationRectangle;
 	private ImageView mImageArrowSeriesInfo;
 	private CheckBox mEditDetailsCheckbox;
     private ImageView mExerciseImage;
@@ -98,11 +97,6 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
     private ListView mDrawerExercisesList;
 
 	private AccelerationRecorder mAccelerationRecorder;
-
-	/**
-	 * Reference to the repetition animation.
-	 */
-	private RepetitionAnimation mRepetitionAnimation;
 
 	/**
 	 * Holds the currently active training or {@code null} if no training is
@@ -173,7 +167,6 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
 		mInfoButton = (ImageView) findViewById(R.id.info_button);
 		mSeriesInformation = (LinearLayout) findViewById(R.id.seriesInformation);
 		mSeriesInfoText = (TextView) findViewById(R.id.nextSeriesText);
-		mAnimationRectangle = (LinearLayout) findViewById(R.id.animationRectangle);
 		mImageArrowSeriesInfo = (ImageView) findViewById(R.id.imageArrowSeriesInfo);
 //		mEditDetailsCheckbox = (CheckBox) findViewById(R.id.checkbox_edit_details);
         mExerciseImage = (ImageView)findViewById(R.id.exerciseImage);
@@ -205,10 +198,6 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
         });
 
         registerForContextMenu(mDrawerExercisesList);
-
-        mRepetitionAnimation = new RepetitionAnimation(mAnimationRectangle,
-				mUiHandler);
-		mRepetitionAnimation.addRepetitionAnimationListener(this);
 
 		mAccelerationRecorder = AccelerationRecorder
 				.create(getApplicationContext());
@@ -262,7 +251,6 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
 	protected void onDestroy() {
         EventBus.getDefault().unregister(this);
         unregisterReceiver(mBroadcastReceiver);
-		mRepetitionAnimation.removeRepetitionAnimationListener(this);
 
 		// remove all periodical tasks
 		mUiHandler.removeCallbacks(mUpdateRestTimer);
@@ -287,7 +275,6 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
                 mCurrentTraining.removeExercise(info.position);
                 saveCurrentTraining();
                 updateScreen();
-                mDrawerLayout.closeDrawers();
                 break;
             }
         }
@@ -565,10 +552,6 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
 		} else {
 			// exercise -> rest
 
-			if (mRepetitionAnimation.isAnimationRunning()) {
-				mRepetitionAnimation.cancelAnimation();
-				showExerciseRateView();
-			}
 		}
 
 		saveCurrentTraining();
@@ -853,25 +836,7 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
 				// time is up, start the exercise animation
 				mCurrentTraining.startExercise();
 
-				// TODO: support duration timer as well
-				Exercise curExercise = mCurrentTraining.getCurrentExercise();
-				/*if (curExercise.getGuidanceType().equals(
-						Exercise.GUIDANCE_TYPE_TEMPO)) {
-					mRepetitionAnimation
-							.startAnimation(
-									mViewFlipper.getMeasuredHeight(),
-									(int) (curExercise
-											.getRepetitionDurationUp() * 1000),
-									(int) (curExercise
-											.getRepetitionDurationDown() * 1000),
-									(int) (curExercise
-											.getRepetitionDurationMiddle() * 1000),
-									(int) (curExercise
-											.getRepetitionDurationAfter() * 1000),
-									mCurrentTraining.getTotalRepetitions());
-				} else {*/
-					showExerciseRateView();
-				//}
+                showExerciseRateView();
 
                 if(getResources().getBoolean(R.bool.sample_acceleration)) {
                     // do acceleration sampling
