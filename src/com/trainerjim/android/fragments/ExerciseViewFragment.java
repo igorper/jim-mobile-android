@@ -147,6 +147,7 @@ public class ExerciseViewFragment extends Fragment implements View.OnClickListen
         this.mCurrentTraining = event.getCurrentTraining();
 
         getView().setVisibility(View.VISIBLE);
+        mExerciseTimer.setVisibility(mCurrentTraining.getCurrentExercise().getGuidanceType().equals(Exercise.GUIDANCE_TYPE_DURATION) ? View.VISIBLE : View.GONE);
 
         mUiHandler.postDelayed(mUpdateExerciseTimer, 0);
     }
