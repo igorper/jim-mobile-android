@@ -15,6 +15,7 @@ import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
@@ -832,6 +833,13 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
 			} else {
 				// mark the the timer is over
 				mGetReadyStartTimestamp = -1;
+
+                try {
+                    MediaPlayer mPlayer = MediaPlayer.create(TrainingActivity.this, R.raw.alert);
+                    mPlayer.start();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
 
 				// time is up, start the exercise animation
 				mCurrentTraining.startExercise();
