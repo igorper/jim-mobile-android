@@ -14,6 +14,11 @@ import com.google.gson.GsonBuilder;
 public class Utils {
 
     /**
+     * Update rate for on screen timers (in ms).
+     */
+    public static final int UI_TIMER_UPDATE_RATE = 300;
+
+    /**
      * Object for (de)seralization of json data. Date format is set to include timezone information.
      */
     private static Gson sGson = new GsonBuilder().setDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").create();

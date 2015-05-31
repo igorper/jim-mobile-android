@@ -47,6 +47,7 @@ import com.trainerjim.android.network.ServerCommunicationService;
 import com.trainerjim.android.storage.PermanentSettings;
 import com.trainerjim.android.storage.TrainingContentProvider.CompletedTraining;
 import com.trainerjim.android.storage.TrainingContentProvider.TrainingPlan;
+import com.trainerjim.android.timers.UpdateRestTimer;
 import com.trainerjim.android.ui.CircularProgressControl;
 import com.trainerjim.android.ui.ExerciseAdapter;
 import com.trainerjim.android.ui.RepetitionAnimationListener;
@@ -55,7 +56,7 @@ import com.trainerjim.android.util.Utils;
 
 import de.greenrobot.event.EventBus;
 
-public class TrainingActivity extends Activity implements RepetitionAnimationListener {
+public class TrainingActivity extends Activity {
 
 	private static final String TAG = Utils.getApplicationTag();
 
@@ -65,11 +66,6 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
     private final static int MENU_CANCEL = Menu.FIRST + 3;
 
 	private static final int ACTIVITY_REQUEST_TRAININGS_LIST = 0;
-
-	/**
-	 * In ms.
-	 */
-	private static final int REST_PROGRESS_UPDATE_RATE = 300;
 
 	private PermanentSettings mSettings;
 	private ResponseReceiver mBroadcastReceiver;
@@ -130,18 +126,17 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
 	 */
 	private long mGetReadyStartTimestamp = -1;
 
-
     /**
-     * Holds the last value of the running rest timer. This field is used
-     * when playing a notification at the end of rest interval.
+     * This runnable updates the screen during the rest state.It calls itself
+     * recursively until externally stopped or until there are no more exercises
+     * left.
      */
-    private long mLastRestTimerValue;
+    private Runnable mUpdateRestTimer = null;
 
-	@Override
+    @Override
 	protected void onCreate(Bundle savedInstanceState) {
 
         EventBus.getDefault().register(this);
-
 
         mSettings = PermanentSettings.create(PreferenceManager
 				.getDefaultSharedPreferences(this));
@@ -155,7 +150,7 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_training);
 
-		mCircularProgress = (CircularProgressControl) findViewById(R.id.circularProgress);
+        mCircularProgress = (CircularProgressControl) findViewById(R.id.circularProgress);
 		mTrainingSelector = (LinearLayout) findViewById(R.id.trainingSelector);
         mLayoutRectTrainingSelector = (LinearLayout) findViewById(R.id.layout_rect_training_selector);
         mLayoutRectLowerLine = (LinearLayout)findViewById(R.id.layout_rect_lower_line);
@@ -173,9 +168,12 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
         mDrawerLayout = (DrawerLayout)findViewById(R.id.drawer_layout);
         mDrawerExercisesList = (ListView)findViewById(R.id.exercises_list);
 
+        mUpdateRestTimer = new UpdateRestTimer(this);
+
 		updateTrainingSelector(-1);
 		loadCurrentTraining();
-		updateScreen();
+
+        updateScreen();
 
         // add a long click action to the main exercise button
 		mCircularProgress.setOnLongClickListener(new View.OnLongClickListener() {
@@ -272,6 +270,8 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
 
         switch (item.getItemId()){
             case R.id.skip_exercise:{
+                // TODO: think about a better way to consistently remove the update timer callback
+                mUiHandler.removeCallbacks(mUpdateRestTimer);
                 mCurrentTraining.removeExercise(info.position);
                 saveCurrentTraining();
                 updateScreen();
@@ -280,6 +280,14 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
         }
 
         return super.onContextItemSelected(item);
+    }
+
+    public Training getCurrentTraining() {
+        return mCurrentTraining;
+    }
+
+    public Handler getUiHandler(){
+        return mUiHandler;
     }
 
 	/**
@@ -375,10 +383,11 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
      * @param event
      */
     public void onEvent(EndExerciseEvent event){
+        mUiHandler.removeCallbacks(mUpdateRestTimer);
+
         // stop acceleration sampling and get acceleration timestamps only if acceleration sampling is enabled
         AccelerationRecorder.AccelerationRecordingTimestamps timestamps = getResources().getBoolean(R.bool.sample_acceleration) ? mAccelerationRecorder
                 .stopAccelerationSampling() : null;
-
 
         // end this exercise (series)
         mCurrentTraining.endExercise(timestamps);
@@ -519,7 +528,7 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
 				mCurrentTraining = Utils.getGsonObject().fromJson(jsonEncodedTraining,
 						Training.class);
 				mCurrentTraining.startTraining();
-			}
+            }
 		} else if (mCurrentTraining.getCurrentExercise() == null) {
 			if (!mCurrentTraining.isTrainingEnded()) {
 				// I'm done was clicked
@@ -577,7 +586,6 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
 	 * responsible for periodic screen changes)
 	 */
 	private void updateScreen() {
-
 		if (mCurrentTraining == null) {
 			// no training started yet, show the start button
 			mCircularProgress.setCurrentState(CircularProgressState.START);
@@ -788,32 +796,8 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
         }
 	}
 
-	/*
-	 * Repetition animation has legally ended so we should advance the training
-	 * plan.
-	 * 
-	 * @see com.trainerjim.android.ui.RepetitionAnimationListener#
-	 * onAnimationEnded()
-	 */
-	@Override
-	public void onAnimationEnded() {
-		showExerciseRateView();
-	}
-
 	private void showExerciseRateView() {
 		//mViewDuringExercise.setVisibility(View.VISIBLE);
-	}
-
-	/*
-	 * Triggered after each individual repetition is executed.
-	 *
-	 * @see com.trainerjim.android.ui.RepetitionAnimationListener#
-	 * onRepetitionCompleted()
-	 */
-	@Override
-	public void onRepetitionCompleted() {
-		mCurrentTraining.increaseCurrentRepetition();
-		updateScreen();
 	}
 
 	private Runnable mGetReadyTimer = new Runnable() {
@@ -828,7 +812,7 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
 				mCircularProgress.setRestProgressValue(secLeft);
 				mCircularProgress.setTimer(secLeft);
 
-				mUiHandler.postDelayed(this, REST_PROGRESS_UPDATE_RATE);
+				mUiHandler.postDelayed(this, Utils.UI_TIMER_UPDATE_RATE);
 			} else {
 				// mark the the timer is over
 				mGetReadyStartTimestamp = -1;
@@ -856,43 +840,11 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
 		}
 	};
 
-	/**
-	 * This runnable updates the screen during the rest state.It calls itself
-	 * recursively until externally stopped or until there are no more exercises
-	 * left.
-	 */
-	private Runnable mUpdateRestTimer = new Runnable() {
-
-		@Override
-		public void run() {
-			Exercise currentExercise = mCurrentTraining.getCurrentExercise();
-			if (currentExercise != null) {
-				int currentRest = currentExercise.getCurrentSeries()
-						.getRestTime();
-				int currentRestLeft = mCurrentTraining
-						.calculateCurrentRestLeft();
-				mCircularProgress.setRestProgressValue(currentRestLeft < 0 ? 0
-						: currentRestLeft);
-				mCircularProgress.setTimer(Math.abs(currentRestLeft));
-				// Log.d(TAG, String.format("Update screen: %d, %d",
-				// currentRest,
-				// currentRestLeft));
-
-                // play a sound if the rest interval got to 0
-                if(!mCurrentTraining.isFirstSeries() && currentRestLeft == 0 && currentRestLeft != mLastRestTimerValue) {
-                    try {
-                        MediaPlayer.create(TrainingActivity.this, R.raw.alert).start();
-                        ((Vibrator) getSystemService(Context.VIBRATOR_SERVICE)).vibrate(500);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
-
-                mLastRestTimerValue = currentRestLeft;
-				mUiHandler.postDelayed(this, REST_PROGRESS_UPDATE_RATE);
-			}
-		}
-	};
+    public void updateRestTimer(int restLeft){
+        mCircularProgress.setRestProgressValue(restLeft < 0 ? 0
+                : restLeft);
+        mCircularProgress.setTimer(Math.abs(restLeft));
+    }
 
 	/*
 	 * Gets the results from activities started from this activity.
