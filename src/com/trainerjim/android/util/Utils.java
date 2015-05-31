@@ -19,6 +19,11 @@ public class Utils {
     public static final int UI_TIMER_UPDATE_RATE = 300;
 
     /**
+     * The get ready interval in seconds.
+     */
+    public static final int GET_READY_INTERVAL = 5;
+
+    /**
      * Object for (de)seralization of json data. Date format is set to include timezone information.
      */
     private static Gson sGson = new GsonBuilder().setDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").create();

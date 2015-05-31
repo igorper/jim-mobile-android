@@ -47,6 +47,7 @@ import com.trainerjim.android.network.ServerCommunicationService;
 import com.trainerjim.android.storage.PermanentSettings;
 import com.trainerjim.android.storage.TrainingContentProvider.CompletedTraining;
 import com.trainerjim.android.storage.TrainingContentProvider.TrainingPlan;
+import com.trainerjim.android.timers.GetReadyTimer;
 import com.trainerjim.android.timers.UpdateRestTimer;
 import com.trainerjim.android.ui.CircularProgressControl;
 import com.trainerjim.android.ui.ExerciseAdapter;
@@ -111,27 +112,15 @@ public class TrainingActivity extends Activity {
 	 */
 	private int mSelectedTrainingId = -1;
 
-	/**
-	 * The get ready interval in seconds. TODO: this value could be moved to the
-	 * training plan (and set on the web or somehow made configurable).
-	 */
-	private int mGetReadyInterval = 5;
-
-	/**
-	 * Holds the start timestamp for the get ready interval. This one is not
-	 * stored inside the training plan, as if the activity restarts in the
-	 * middle of the training plan the get ready timer simply cancels and has to
-	 * be started again by the user. NOTE: Value -1 means the get reads timer
-	 * was not started yet.
-	 */
-	private long mGetReadyStartTimestamp = -1;
-
     /**
      * This runnable updates the screen during the rest state.It calls itself
      * recursively until externally stopped or until there are no more exercises
      * left.
      */
-    private Runnable mUpdateRestTimer = null;
+    private UpdateRestTimer mUpdateRestTimer = null;
+
+
+    private GetReadyTimer mGetReadyTimer = null;
 
     @Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -169,6 +158,7 @@ public class TrainingActivity extends Activity {
         mDrawerExercisesList = (ListView)findViewById(R.id.exercises_list);
 
         mUpdateRestTimer = new UpdateRestTimer(this);
+        mGetReadyTimer = new GetReadyTimer(this);
 
 		updateTrainingSelector(-1);
 		loadCurrentTraining();
@@ -550,14 +540,7 @@ public class TrainingActivity extends Activity {
 			}
 
 		} else if (mCurrentTraining.isCurrentRest()) {
-			// rest -> exrcise
-			if (mGetReadyStartTimestamp == -1) {
-				// initiate the get ready timer
-				mGetReadyStartTimestamp = System.currentTimeMillis();
-			} else {
-				// or cancel it
-				mGetReadyStartTimestamp = -1;
-			}
+			mGetReadyTimer.toggleGetReadyStartTimestamp();
 		} else {
 			// exercise -> rest
 
@@ -723,29 +706,30 @@ public class TrainingActivity extends Activity {
                 mCircularProgress.setTimerMessage("RESTING");
 
 				// get ready timer was not started yet so show the rest timer
-				if (mGetReadyStartTimestamp == -1) {
-					int currentRest = curSeries.getRestTime();
-					mCircularProgress.setRestMaxProgress(currentRest);
-					mCircularProgress.setRestMinProgress(0);
+				if (mGetReadyTimer.isStarted()) {
+                    mCircularProgress.setRestMaxProgress(Utils.GET_READY_INTERVAL);
+                    mCircularProgress.setRestMinProgress(0);
+                    mCircularProgress.setTimerMessage("GET READY");
 
-					// also start the periodic timer to update the rest screen
-					mUiHandler.postDelayed(mUpdateRestTimer, 0);
+                    mUiHandler.postDelayed(mGetReadyTimer, 0);
+
+                    mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
+
+				} else {
+                    int currentRest = curSeries.getRestTime();
+                    mCircularProgress.setRestMaxProgress(currentRest);
+                    mCircularProgress.setRestMinProgress(0);
+
+                    // also start the periodic timer to update the rest screen
+                    mUiHandler.postDelayed(mUpdateRestTimer, 0);
 
                     // only in this state the user should be allowed to see the list of exercises
                     // update the training plan based on the current state
                     ExerciseAdapter adapter = new ExerciseAdapter(getApplicationContext(), new ArrayList<Exercise>(mCurrentTraining.getExercisesLeft()));
                     adapter.setSelectedExercisePosition(mCurrentTraining.getSelectedExercisePosition());
-                    
+
                     mDrawerExercisesList.setAdapter(adapter);
                     mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
-				} else {
-					mCircularProgress.setRestMaxProgress(mGetReadyInterval);
-					mCircularProgress.setRestMinProgress(0);
-					mCircularProgress.setTimerMessage("GET READY");
-
-					mUiHandler.postDelayed(mGetReadyTimer, 0);
-
-                    mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
 				}
 			} else {
 				// otherwise show exercising UI
@@ -800,50 +784,38 @@ public class TrainingActivity extends Activity {
 		//mViewDuringExercise.setVisibility(View.VISIBLE);
 	}
 
-	private Runnable mGetReadyTimer = new Runnable() {
-
-		@Override
-		public void run() {
-			int secLeft = Math.round(mGetReadyInterval
-					- (float) (System.currentTimeMillis() - mGetReadyStartTimestamp)
-					/ 1000);
-
-			if (secLeft > 0) {
-				mCircularProgress.setRestProgressValue(secLeft);
-				mCircularProgress.setTimer(secLeft);
-
-				mUiHandler.postDelayed(this, Utils.UI_TIMER_UPDATE_RATE);
-			} else {
-				// mark the the timer is over
-				mGetReadyStartTimestamp = -1;
-
-				// time is up, start the exercise animation
-				mCurrentTraining.startExercise();
-
-                showExerciseRateView();
-
-                if(getResources().getBoolean(R.bool.sample_acceleration)) {
-                    // do acceleration sampling
-                    try {
-                        mAccelerationRecorder.startAccelerationSampling(
-                                mCurrentTraining.getTrainingStartTimestamp(),
-                                mCurrentTraining.getRawFile(getApplicationContext()));
-                    } catch (IOException e) {
-                        Log.e(TAG,
-                                "Unable to start acceleration sampling: "
-                                        + e.getMessage());
-                    }
-                }
-
-				updateScreen();
-			}
-		}
-	};
+    public void updateGetReadyTimer(int secondsLeft){
+        mCircularProgress.setRestProgressValue(secondsLeft);
+        mCircularProgress.setTimer(secondsLeft);
+    }
 
     public void updateRestTimer(int restLeft){
         mCircularProgress.setRestProgressValue(restLeft < 0 ? 0
                 : restLeft);
         mCircularProgress.setTimer(Math.abs(restLeft));
+    }
+
+    public void getReadyTimerOver(){
+
+        // time is up, start the exercise animation
+        mCurrentTraining.startExercise();
+
+        showExerciseRateView();
+
+        if(getResources().getBoolean(R.bool.sample_acceleration)) {
+            // do acceleration sampling
+            try {
+                mAccelerationRecorder.startAccelerationSampling(
+                        mCurrentTraining.getTrainingStartTimestamp(),
+                        mCurrentTraining.getRawFile(getApplicationContext()));
+            } catch (IOException e) {
+                Log.e(TAG,
+                        "Unable to start acceleration sampling: "
+                                + e.getMessage());
+            }
+        }
+
+        updateScreen();
     }
 
 	/*
