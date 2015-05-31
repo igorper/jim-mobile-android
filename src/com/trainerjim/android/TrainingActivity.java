@@ -18,6 +18,7 @@ import android.graphics.Matrix;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Vibrator;
 import android.preference.PreferenceManager;
 import android.support.v4.widget.DrawerLayout;
 import android.util.Log;
@@ -34,7 +35,6 @@ import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.ViewFlipper;
 
 import com.trainerjim.android.entities.Exercise;
 import com.trainerjim.android.entities.Series;
@@ -49,7 +49,6 @@ import com.trainerjim.android.storage.TrainingContentProvider.CompletedTraining;
 import com.trainerjim.android.storage.TrainingContentProvider.TrainingPlan;
 import com.trainerjim.android.ui.CircularProgressControl;
 import com.trainerjim.android.ui.ExerciseAdapter;
-import com.trainerjim.android.ui.RepetitionAnimation;
 import com.trainerjim.android.ui.RepetitionAnimationListener;
 import com.trainerjim.android.ui.CircularProgressControl.CircularProgressState;
 import com.trainerjim.android.util.Utils;
@@ -133,10 +132,10 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
 
 
     /**
-     * Holds the last value of the running exercise timer. This field is used
-     * when playing a notification during an exercise timer.
+     * Holds the last value of the running rest timer. This field is used
+     * when playing a notification at the end of rest interval.
      */
-    private long mLastExerciseTimerValue;
+    private long mLastRestTimerValue;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -834,13 +833,6 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
 				// mark the the timer is over
 				mGetReadyStartTimestamp = -1;
 
-                try {
-                    MediaPlayer mPlayer = MediaPlayer.create(TrainingActivity.this, R.raw.alert);
-                    mPlayer.start();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-
 				// time is up, start the exercise animation
 				mCurrentTraining.startExercise();
 
@@ -886,6 +878,17 @@ public class TrainingActivity extends Activity implements RepetitionAnimationLis
 				// currentRest,
 				// currentRestLeft));
 
+                // play a sound if the rest interval got to 0
+                if(!mCurrentTraining.isFirstSeries() && currentRestLeft == 0 && currentRestLeft != mLastRestTimerValue) {
+                    try {
+                        MediaPlayer.create(TrainingActivity.this, R.raw.alert).start();
+                        ((Vibrator) getSystemService(Context.VIBRATOR_SERVICE)).vibrate(500);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                mLastRestTimerValue = currentRestLeft;
 				mUiHandler.postDelayed(this, REST_PROGRESS_UPDATE_RATE);
 			}
 		}

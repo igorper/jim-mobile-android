@@ -172,7 +172,7 @@ public class Training {
 		long now = System.currentTimeMillis();
 
         // if this is the first exercises we should not count down any rest
-		long diff = (mSeriesExecutions.size() == 0 ? 0 : getCurrentExercise().getCurrentSeries().getRestTime())
+		long diff = (isFirstSeries() ? 0 : getCurrentExercise().getCurrentSeries().getRestTime())
 				* 1000 - (now - mLastPauseStart);
 		return Math.round((float) diff / 1000);
 	}
@@ -182,6 +182,15 @@ public class Training {
         long diff = getCurrentExercise().getCurrentSeries().getNumberTotalRepetitions()
                 * 1000 - (now - mExerciseStart);
         return Math.round((float) diff / 1000);
+    }
+
+    /**
+     * This method tells if no series have yet been performed for this training plan and the plan is
+     * still empty.
+     * @return <code>true</code> if no series have yet been executed, otherwise <code>false</code>.
+     */
+    public boolean isFirstSeries(){
+        return mSeriesExecutions.size() == 0;
     }
 	
 	/**
