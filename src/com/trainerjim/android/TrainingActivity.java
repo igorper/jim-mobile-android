@@ -160,6 +160,8 @@ public class TrainingActivity extends Activity {
         mUpdateRestTimer = new UpdateRestTimer(this);
         mGetReadyTimer = new GetReadyTimer(this);
 
+        getActionBar().show();
+
 		updateTrainingSelector(-1);
 		loadCurrentTraining();
 

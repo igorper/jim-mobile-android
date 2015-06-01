@@ -14,8 +14,7 @@
     <application
         android:allowBackup="true"
         android:icon="@drawable/jim_launcher"
-        android:label="@string/app_name"
-        android:theme="@style/AppTheme" >
+        android:label="@string/app_name" >
         <provider
             android:name="com.trainerjim.android.storage.TrainingContentProvider"
             android:authorities="com.trainerjim.android.storage.TrainingContentProvider"
