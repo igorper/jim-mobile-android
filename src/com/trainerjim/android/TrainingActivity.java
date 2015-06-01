@@ -427,6 +427,15 @@ public class TrainingActivity extends Activity {
 	// TODO: delete this
 	int menuToggle = 1;
 
+    private void cancelCurrentTraining() {
+        mUiHandler.removeCallbacks(mUpdateRestTimer);
+        mUiHandler.removeCallbacks(mGetReadyTimer);
+
+        mCurrentTraining = null;
+
+        saveCurrentTraining();
+    }
+
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
@@ -441,20 +450,16 @@ public class TrainingActivity extends Activity {
 			break;
 		}
         case MENU_CANCEL:{
-            mUiHandler.removeCallbacks(mUpdateRestTimer);
-            mUiHandler.removeCallbacks(mGetReadyTimer);
+            cancelCurrentTraining();
 
-            mCurrentTraining = null;
-
-            saveCurrentTraining();
             updateScreen();
             break;
         }
 		case MENU_LOGOUT: {
+            cancelCurrentTraining();
+
 			mSettings.saveUsername("");
 			mSettings.savePassword("");
-
-			// TODO: should also delete everything from the local database
 
 			finish();
 
