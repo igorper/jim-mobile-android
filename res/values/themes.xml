@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- the theme applied to the application or activity -->
+    <style name="JimTheme"
+        parent="@android:style/Theme.Holo.Light">
+        <item name="android:windowActionBar">false</item>
+        <item name="android:windowTitleSize">0dp</item>
+        <item name="android:actionBarStyle">@style/JimActionBar</item>
+    </style>
+
+    <!-- ActionBar styles -->
+    <style name="JimActionBar"
+        parent="@android:style/Widget.Holo.Light.ActionBar.Solid.Inverse">
+        <item name="android:displayOptions"></item>
+        <item name="displayOptions"></item>
+        <item name="android:icon">@android:color/transparent</item>
+        <item name="android:background">@color/login_background</item>
+    </style>
+</resources>

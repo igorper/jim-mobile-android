@@ -15,11 +15,13 @@ import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
+import android.graphics.drawable.ColorDrawable;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Vibrator;
 import android.preference.PreferenceManager;
+import android.support.v4.app.ActionBarDrawerToggle;
 import android.support.v4.widget.DrawerLayout;
 import android.util.Log;
 import android.view.ContextMenu;
@@ -27,6 +29,7 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.Window;
 import android.widget.AdapterView;
 import android.widget.CheckBox;
 import android.widget.ImageView;
@@ -93,6 +96,8 @@ public class TrainingActivity extends Activity {
     private DrawerLayout mDrawerLayout;
     private ListView mDrawerExercisesList;
 
+    private ActionBarDrawerToggle mDrawerToggle;
+
 	private AccelerationRecorder mAccelerationRecorder;
 
 	/**
@@ -125,7 +130,23 @@ public class TrainingActivity extends Activity {
     @Override
 	protected void onCreate(Bundle savedInstanceState) {
 
+        super.onCreate(savedInstanceState);
+
         EventBus.getDefault().register(this);
+
+
+        // TODO: We should move this to event bus
+        IntentFilter filter = new IntentFilter(
+                ServerCommunicationService.ACTION_FETCH_TRAINNGS_COMPLETED);
+        filter.addAction(ServerCommunicationService.ACTION_GET_TRAINNGS_LIST_COMPLETED);
+        filter.addAction(ServerCommunicationService.ACTION_REPORT_PROGRESS);
+        filter.addAction(ServerCommunicationService.ACTION_UPLOAD_TRAININGS_STARTED);
+        filter.addAction(ServerCommunicationService.ACTION_TRAININGS_ITEM_UPLOADED);
+        filter.addAction(ServerCommunicationService.ACTION_UPLOAD_TRAINNGS_COMPLETED);
+
+        filter.addCategory(Intent.CATEGORY_DEFAULT);
+        mBroadcastReceiver = new ResponseReceiver();
+        registerReceiver(mBroadcastReceiver, filter);
 
         mSettings = PermanentSettings.create(PreferenceManager
 				.getDefaultSharedPreferences(this));
@@ -133,11 +154,17 @@ public class TrainingActivity extends Activity {
 		// if we are not logged in yet show the login activity first
 		if (mSettings.getUsername().equals("")) {
 			startActivity(new Intent(TrainingActivity.this, LoginActivity.class));
-			finish();
-		}
+            finish();
+            return;
+        }
 
-		super.onCreate(savedInstanceState);
-		setContentView(R.layout.activity_training);
+        // used this pattern for displaying the action bar in this activity
+        // http://stackoverflow.com/questions/8500283/how-to-hide-action-bar-before-activity-is-created-and-then-show-it-again
+        getWindow().requestFeature(Window.FEATURE_ACTION_BAR);
+        getActionBar().hide();
+        getActionBar().setDisplayHomeAsUpEnabled(false);
+
+        setContentView(R.layout.activity_training);
 
         mCircularProgress = (CircularProgressControl) findViewById(R.id.circularProgress);
 		mTrainingSelector = (LinearLayout) findViewById(R.id.trainingSelector);
@@ -160,9 +187,36 @@ public class TrainingActivity extends Activity {
         mUpdateRestTimer = new UpdateRestTimer(this);
         mGetReadyTimer = new GetReadyTimer(this);
 
-        getActionBar().show();
+        mDrawerToggle = new ActionBarDrawerToggle(
+                this,
+                mDrawerLayout,
+                R.drawable.jim_launcher,
+                R.string.app_name,  /* "open drawer" description */
+                R.string.app_name /* "close drawer" description */
+        ) {
 
-		updateTrainingSelector(-1);
+            /** Called when a drawer has settled in a completely closed state. */
+            public void onDrawerClosed(View view) {
+                super.onDrawerClosed(view);
+
+                // don't hide the action bar if we are in the training select screen
+                // TODO: add convenience methods for determining the current screen
+                if(mCurrentTraining != null) {
+                    getActionBar().hide();
+                }
+            }
+
+            /** Called when a drawer has settled in a completely open state. */
+            public void onDrawerOpened(View drawerView) {
+                super.onDrawerOpened(drawerView);
+                getActionBar().show();
+            }
+        };
+
+        // Set the drawer toggle as the DrawerListener
+        mDrawerLayout.setDrawerListener(mDrawerToggle);
+
+        updateTrainingSelector(-1);
 		loadCurrentTraining();
 
         updateScreen();
@@ -191,23 +245,6 @@ public class TrainingActivity extends Activity {
 
 		mAccelerationRecorder = AccelerationRecorder
 				.create(getApplicationContext());
-
-		// TODO: We could create a class called JimActivity which could handle
-		// all the
-		// communication logic (ResponseReciver for different intents) and
-		// define all (e.g.
-		// DetectiorSettings, TAG, etc)
-		IntentFilter filter = new IntentFilter(
-				ServerCommunicationService.ACTION_FETCH_TRAINNGS_COMPLETED);
-		filter.addAction(ServerCommunicationService.ACTION_GET_TRAINNGS_LIST_COMPLETED);
-		filter.addAction(ServerCommunicationService.ACTION_REPORT_PROGRESS);
-		filter.addAction(ServerCommunicationService.ACTION_UPLOAD_TRAININGS_STARTED);
-		filter.addAction(ServerCommunicationService.ACTION_TRAININGS_ITEM_UPLOADED);
-		filter.addAction(ServerCommunicationService.ACTION_UPLOAD_TRAINNGS_COMPLETED);
-
-		filter.addCategory(Intent.CATEGORY_DEFAULT);
-		mBroadcastReceiver = new ResponseReceiver();
-		registerReceiver(mBroadcastReceiver, filter);
 
 		// try to fetch trainings if not available
 		if (isUserLoggedIn() && !areTrainingsAvailable()) {
@@ -438,6 +475,11 @@ public class TrainingActivity extends Activity {
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
+
+        if (mDrawerToggle.onOptionsItemSelected(item)) {
+            return true;
+        }
+
 		switch (item.getItemId()) {
 		case MENU_SYNC: {
 			runTrainingsSync();
@@ -594,22 +636,26 @@ public class TrainingActivity extends Activity {
                 mTextRectOneLine.setVisibility(View.VISIBLE);
             }
 
-
             mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
 			mInfoButton.setVisibility(View.INVISIBLE);
 
 			mBottomContainer.setVisibility(View.VISIBLE);
 			mSeriesInformation.setVisibility(View.INVISIBLE);
 
+            // show the action bar
+            getActionBar().show();
+
 		} else if (mCurrentTraining.getCurrentExercise() == null) {
 			if (!mCurrentTraining.isTrainingEnded()) {
                 // no more exercises, show the done button
+
 				mCircularProgress.setCurrentState(CircularProgressState.STOP);
 				mSeriesInfoText.setText("hold to finish");
 				mBottomContainer.setVisibility(View.INVISIBLE);
 
 			} else if (mCurrentTraining.getTrainingRating() == -1) {
 				// show training rating screen
+
                 // TODO: mightr be better to decouple the training here (and not pass it,
                 // but rather pass a minimum set of parameters)
                 EventBus.getDefault().post(new StartRateTraining(mCurrentTraining, getApplicationContext()));
@@ -636,6 +682,8 @@ public class TrainingActivity extends Activity {
 			mInfoButton.setVisibility(View.INVISIBLE);
 			mSeriesInformation.setVisibility(View.VISIBLE);
 			mImageArrowSeriesInfo.setVisibility(View.GONE);
+
+            getActionBar().hide();
 		} else {
 			// in general, show no timer message
 			mCircularProgress.setTimerMessage("");
@@ -719,7 +767,6 @@ public class TrainingActivity extends Activity {
                     mCircularProgress.setTimerMessage("GET READY");
 
                     mUiHandler.postDelayed(mGetReadyTimer, 0);
-
                     mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
 
 				} else {
@@ -768,6 +815,8 @@ public class TrainingActivity extends Activity {
 			mTrainingSelector.setVisibility(View.VISIBLE);
 			// TODO: mSwipeControl.setVisibility(View.VISIBLE);
 			mImageArrowSeriesInfo.setVisibility(View.VISIBLE);
+
+            getActionBar().hide();
 		}
 
         invalidateOptionsMenu();

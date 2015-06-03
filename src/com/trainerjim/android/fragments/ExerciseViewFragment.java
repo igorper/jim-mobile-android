@@ -4,6 +4,7 @@ import android.app.Fragment;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -21,6 +22,7 @@ import com.trainerjim.android.entities.SeriesExecution;
 import com.trainerjim.android.entities.Training;
 import com.trainerjim.android.events.EndExerciseEvent;
 import com.trainerjim.android.events.StartExerciseEvent;
+import com.trainerjim.android.util.Utils;
 
 import de.greenrobot.event.EventBus;
 
@@ -297,6 +299,8 @@ public class ExerciseViewFragment extends Fragment implements View.OnClickListen
             getView().setVisibility(View.GONE);
         }
 
+        mUiHandler.removeCallbacks(mUpdateExerciseTimer);
+
         EventBus.getDefault().post(new EndExerciseEvent());
     }
 
@@ -335,6 +339,7 @@ public class ExerciseViewFragment extends Fragment implements View.OnClickListen
 
                 mLastExerciseTimerValue = currentDurationLeft;
                 mUiHandler.postDelayed(this, UI_TIMER_UPDATE_RATE);
+                Log.d(Utils.getApplicationTag(), String.format("%02d:%02d", minutes, seconds));
             }
         }
     };
