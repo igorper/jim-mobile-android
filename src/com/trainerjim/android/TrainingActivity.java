@@ -15,11 +15,8 @@ import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
-import android.graphics.drawable.ColorDrawable;
-import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Vibrator;
 import android.preference.PreferenceManager;
 import android.support.v4.app.ActionBarDrawerToggle;
 import android.support.v4.widget.DrawerLayout;
@@ -54,7 +51,6 @@ import com.trainerjim.android.timers.GetReadyTimer;
 import com.trainerjim.android.timers.UpdateRestTimer;
 import com.trainerjim.android.ui.CircularProgressControl;
 import com.trainerjim.android.ui.ExerciseAdapter;
-import com.trainerjim.android.ui.RepetitionAnimationListener;
 import com.trainerjim.android.ui.CircularProgressControl.CircularProgressState;
 import com.trainerjim.android.util.Utils;
 
@@ -446,23 +442,15 @@ public class TrainingActivity extends Activity {
 
 	@Override
 	public boolean onCreateOptionsMenu(android.view.Menu menu) {
-		// add sync option only if the user is logged in (or even better,
-		// disable sync if no user is logged in)
-		if (mCurrentTraining == null && !mSettings.getUsername().equals("")) {
-			menu.add(1, MENU_SYNC, 1, "Sync");
-			menu.add(1, MENU_UPLOAD, 1, "Upload");
-		}
+        MenuInflater inflater = getMenuInflater();
 
-        if(mCurrentTraining != null){
-            menu.add(1, MENU_CANCEL, 1, "Cancel");
+        if(mCurrentTraining == null) {
+            inflater.inflate(R.menu.inactive_training_actions, menu);
+        } else {
+            inflater.inflate(R.menu.active_training_actions, menu);
         }
-
-		menu.add(1, MENU_LOGOUT, 3, "Logout");
-		return true;
+        return super.onCreateOptionsMenu(menu);
 	};
-
-	// TODO: delete this
-	int menuToggle = 1;
 
     private void cancelCurrentTraining() {
         mUiHandler.removeCallbacks(mUpdateRestTimer);
@@ -481,23 +469,19 @@ public class TrainingActivity extends Activity {
         }
 
 		switch (item.getItemId()) {
-		case MENU_SYNC: {
+		case R.id.action_sync: {
+            runUploadTrainings();
 			runTrainingsSync();
 
 			break;
 		}
-		case MENU_UPLOAD: {
-			runUploadTrainings();
-
-			break;
-		}
-        case MENU_CANCEL:{
+        case R.id.action_cancel:{
             cancelCurrentTraining();
 
             updateScreen();
             break;
         }
-		case MENU_LOGOUT: {
+		case R.id.action_logout: {
             cancelCurrentTraining();
 
 			mSettings.saveUsername("");

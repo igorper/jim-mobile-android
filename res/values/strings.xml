@@ -14,6 +14,10 @@
     <string name="rate_exercise_title_text">Rate to end!</string>
     <string name="checkbox_edit_details_text">Check to edit details</string>
 
+    <string name="action_sync">Sync</string>
+    <string name="action_logout">Logout</string>
+    <string name="action_cancel">Cancel</string>
+
     <!-- REST SERVICES URLS AND PARAMETERS -->
     <string name="server_url">http://www.trainerjim.com</string>
     <string name="server_path_training_list">/mapi/training/list</string>
