@@ -5,10 +5,12 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.database.Cursor;
@@ -476,9 +478,17 @@ public class TrainingActivity extends Activity {
 			break;
 		}
         case R.id.action_cancel:{
-            cancelCurrentTraining();
+            new AlertDialog.Builder(this)
+                    .setTitle("Cancel training")
+                    .setMessage("Are you sure you would like to cancel the training?")
+                    .setIcon(android.R.drawable.ic_dialog_alert)
+                    .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
 
-            updateScreen();
+                        public void onClick(DialogInterface dialog, int whichButton) {
+                            cancelCurrentTraining();
+                            updateScreen();
+                        }})
+                    .setNegativeButton(android.R.string.no, null).show();
             break;
         }
 		case R.id.action_logout: {
