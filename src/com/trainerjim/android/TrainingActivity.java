@@ -473,7 +473,6 @@ public class TrainingActivity extends Activity {
 		switch (item.getItemId()) {
 		case R.id.action_sync: {
             runUploadTrainings();
-			runTrainingsSync();
 
 			break;
 		}
@@ -1018,6 +1017,9 @@ public class TrainingActivity extends Activity {
 				if (mProgressDialog != null && mProgressDialog.isShowing()) {
 					mProgressDialog.dismiss();
 				}
+
+                // once trainings are uploaded, sync new trainings as well
+                runTrainingsSync();
 
 				Toast.makeText(
 						getApplicationContext(),
