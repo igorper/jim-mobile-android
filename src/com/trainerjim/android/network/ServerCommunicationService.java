@@ -5,14 +5,23 @@ import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
+import android.preference.PreferenceManager;
 import android.util.Log;
 
 import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import com.squareup.okhttp.OkHttpClient;
 import com.trainerjim.android.R;
 import com.trainerjim.android.entities.Exercise;
+import com.trainerjim.android.entities.ExercisePhoto;
 import com.trainerjim.android.entities.ExerciseType;
+import com.trainerjim.android.entities.LoginData;
+import com.trainerjim.android.entities.LoginResponseData;
 import com.trainerjim.android.entities.Training;
 import com.trainerjim.android.entities.TrainingDescription;
+import com.trainerjim.android.events.EndExerciseEvent;
+import com.trainerjim.android.events.LoginEvent;
+import com.trainerjim.android.storage.PermanentSettings;
 import com.trainerjim.android.storage.TrainingContentProvider.CompletedTraining;
 import com.trainerjim.android.storage.TrainingContentProvider.TrainingPlan;
 import com.trainerjim.android.util.Utils;
@@ -27,14 +36,22 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.CookieManager;
+import java.net.CookiePolicy;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
+import de.greenrobot.event.EventBus;
+import retrofit.RequestInterceptor;
 import retrofit.RestAdapter;
+import retrofit.RetrofitError;
+import retrofit.client.OkClient;
 import retrofit.client.Response;
+import retrofit.client.Header;
+import retrofit.converter.GsonConverter;
 import retrofit.mime.TypedFile;
 import retrofit.mime.TypedString;
 
@@ -170,6 +187,11 @@ public class ServerCommunicationService extends IntentService {
 	 */
 	public static final String INTENT_KEY_PASSWORD = "password";
 
+    /**
+     * This ID marks the authenticated user id.
+     */
+    public static final String INTENT_KEY_USER_ID = "user-id";
+
 	/**
 	 * This ID marks the upload completed trainings action.
 	 */
@@ -200,9 +222,8 @@ public class ServerCommunicationService extends IntentService {
      */
     private TrainerJimService service;
 
-	public ServerCommunicationService() {
+    public ServerCommunicationService() {
 		super("DataUploaderService");
-
     }
 
 	/*
@@ -218,9 +239,8 @@ public class ServerCommunicationService extends IntentService {
 		String password = intent.getExtras().getString(INTENT_KEY_PASSWORD);
 
         // initialize rest communication channel
-        restAdapter = new RestAdapter.Builder().setEndpoint(getResources().getString(R.string.server_url)).build();
+        restAdapter = new RestAdapter.Builder().setEndpoint(getResources().getString(R.string.server_url)).setRequestInterceptor(ApiHeaders.getInstance(this)).build();
         service = restAdapter.create(TrainerJimService.class);
-
 
         // this one will hold the status of the service task (each action should
 		// return a status)
@@ -239,10 +259,10 @@ public class ServerCommunicationService extends IntentService {
 		} else if (action.equals(ACTION_CHECK_CREDENTIALS)) {
             String statusMessage = null;
 
-            boolean loginSuccessful = false;
+            int userId = -1;
             try {
-                loginSuccessful = checkCredentials(username, password);
-                if(!loginSuccessful){
+                userId = checkCredentials(username, password);
+                if(userId < 0){
                     statusMessage = "Wrong username or password.";
                 }
 
@@ -251,13 +271,12 @@ public class ServerCommunicationService extends IntentService {
                 statusMessage = "Unable to connect to trainerjim server.";
             }
 
-            // prepare the status intent
-			statusIntent.setAction(ACTION_LOGIN_COMPLETED);
-			statusIntent.putExtra(PARAM_ACTION_SUCCESSFUL, loginSuccessful);
-            statusIntent.putExtra(PARAM_ACTION_MSG, statusMessage);
+            EventBus.getDefault().post(new LoginEvent(userId, statusMessage));
 
-		} else if (action.equals(ACTION_FETCH_TRAININGS)) {
-			boolean getTrainingsSucessful = fetchTrainings(username, password);
+        } else if (action.equals(ACTION_FETCH_TRAININGS)) {
+            int userId = intent.getExtras().getInt(INTENT_KEY_USER_ID);
+
+			boolean getTrainingsSucessful = fetchTrainings(userId, username, password);
 
 			// send status intent
 			statusIntent.setAction(ACTION_FETCH_TRAINNGS_COMPLETED);
@@ -394,7 +413,7 @@ public class ServerCommunicationService extends IntentService {
 	 * @param password
 	 * @return
 	 */
-	private boolean fetchTrainings(String username, String password) {
+	private boolean fetchTrainings(int userId, String username, String password) {
 
         List<TrainingDescription> trainingsManifest = service.getTrainingsList(username, password);
 
@@ -430,6 +449,25 @@ public class ServerCommunicationService extends IntentService {
             } catch (IOException e) {
                 e.printStackTrace();
                 // TODO: implement logging
+            }
+
+
+            try{
+                // TODO: think about how to implement downloading images
+                // we might need to use a database to store the link between exercises and exercise images
+                // (or just encode them in exercise names)
+                List<ExercisePhoto> cred1 = service.getExercisePhotos(userId, trainingDescription.getId());
+
+                int ij = 0;
+                ij++;
+            } catch(RetrofitError er) {
+                if (er.getResponse().getStatus() == 401) {
+                    int z = 0;
+                    z++;
+                    // unauthorized, try to authroize, and repeat the operation, if fails report an error
+                }
+                int k = 0;
+                k++;
             }
 
             // collect all unique exercise types to fetch images later
@@ -619,7 +657,27 @@ public class ServerCommunicationService extends IntentService {
 	 * 
 	 * @return <code>true</code> if they are, otherwise <code>false</code>.
 	 */
-	private boolean checkCredentials(String username, String password) {
-		return service.checkCredentials(username, password);
+	private int checkCredentials(String username, String password) {
+        try {
+            LoginData loginData = new LoginData();
+            loginData.email = username;
+            loginData.password = password;
+            Response cred = service.login(loginData);
+            for (Header header : cred.getHeaders()){
+                if(header.getName().equals("Set-Cookie") && header.getValue().startsWith("_trainerjim_session")){
+                    // TODO: think about encapsulating shared preferences access into the apiheaders class
+                    ApiHeaders.getInstance(this).setSessionId(header.getValue());
+                }
+            }
+
+            LoginResponseData loginResponseData = (LoginResponseData)new GsonConverter(Utils.getGsonObject()).fromBody(cred.getBody(), LoginResponseData.class);
+            return loginResponseData.id;
+        }catch (Exception ex){
+            int ij = 0;
+            ij++;
+        }
+
+
+		return -1;//service.checkCredentials(username, password);
 	}
 }

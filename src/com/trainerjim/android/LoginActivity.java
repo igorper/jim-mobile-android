@@ -1,5 +1,6 @@
 package com.trainerjim.android;
 
+import com.trainerjim.android.events.LoginEvent;
 import com.trainerjim.android.network.ServerCommunicationService;
 import com.trainerjim.android.storage.PermanentSettings;
 
@@ -16,6 +17,8 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import de.greenrobot.event.EventBus;
+
 public class LoginActivity extends Activity {
 
 	private PermanentSettings mSettings;
@@ -23,8 +26,6 @@ public class LoginActivity extends Activity {
 	private EditText mPasswordEditText;
 	private EditText mUsernameEditText;
 	private ProgressDialog mLoginProgress;
-
-	private ResponseReceiver mBroadcastReceiver;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -52,15 +53,15 @@ public class LoginActivity extends Activity {
 			}
 		});
 
-		IntentFilter filter = new IntentFilter(ServerCommunicationService.ACTION_LOGIN_COMPLETED);
+        EventBus.getDefault().register(this);
+
+        IntentFilter filter = new IntentFilter(ServerCommunicationService.ACTION_LOGIN_COMPLETED);
 		filter.addCategory(Intent.CATEGORY_DEFAULT);
-		mBroadcastReceiver = new ResponseReceiver();
-		registerReceiver(mBroadcastReceiver, filter);
 	}
 
 	@Override
 	protected void onDestroy() {
-		unregisterReceiver(mBroadcastReceiver);
+        EventBus.getDefault().unregister(this);
 		super.onDestroy();
 	}
 
@@ -80,31 +81,27 @@ public class LoginActivity extends Activity {
 		mLoginProgress.show();
 	}
 
-	private class ResponseReceiver extends BroadcastReceiver {
+    public void onEvent(LoginEvent loginEvent){
+        int userId = loginEvent.getUserId();
 
-		@Override
-		public void onReceive(Context context, Intent intent) {
-			boolean loginSuccessful = intent.getExtras().getBoolean(
-					ServerCommunicationService.PARAM_ACTION_SUCCESSFUL);
-            String statusMessage = intent.getExtras().getString(
-                    ServerCommunicationService.PARAM_ACTION_MSG);
+        mLoginProgress.dismiss();
 
-			mLoginProgress.dismiss();
+        if (userId >= 0) {
+            mSettings.saveUserId(userId);
 
-			if (loginSuccessful) {
-				mSettings.saveUsername(mUsernameEditText.getText().toString());
-				mSettings.savePassword(mPasswordEditText.getText().toString());
+            // TODO: remove this with implementation of new API (userId will be used for all
+            // subsequent queries)
+            mSettings.saveUsername(mUsernameEditText.getText().toString());
+            mSettings.savePassword(mPasswordEditText.getText().toString());
 
-				startActivity(new Intent(LoginActivity.this,
-						TrainingActivity.class));
-				finish();
-			} else {
-				Toast.makeText(
-						getApplicationContext(),
-						statusMessage,
-						Toast.LENGTH_SHORT).show();
-			}
-
-		}
-	}
+            startActivity(new Intent(LoginActivity.this,
+                    TrainingActivity.class));
+            finish();
+        } else {
+            Toast.makeText(
+                    getApplicationContext(),
+                    loginEvent.getStatusMessage(),
+                    Toast.LENGTH_SHORT).show();
+        }
+    }
 }

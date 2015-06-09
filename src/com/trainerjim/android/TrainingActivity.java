@@ -532,6 +532,11 @@ public class TrainingActivity extends Activity {
 				mSettings.getUsername());
 		intent.putExtra(ServerCommunicationService.INTENT_KEY_PASSWORD,
 				mSettings.getPassword());
+
+        // TODO: think about where to make sure this is not negative (invalid) - we will also have
+        // to check the if the session cookie is set
+        intent.putExtra(ServerCommunicationService.INTENT_KEY_USER_ID,
+                mSettings.getUserId());
 		startService(intent);
 
 		mProgressDialog = new ProgressDialog(this);

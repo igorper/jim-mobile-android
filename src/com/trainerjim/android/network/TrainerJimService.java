@@ -1,11 +1,15 @@
 package com.trainerjim.android.network;
 
+import com.trainerjim.android.entities.ExercisePhoto;
 import com.trainerjim.android.entities.ExerciseType;
+import com.trainerjim.android.entities.LoginData;
 import com.trainerjim.android.entities.TrainingDescription;
 
 import java.util.List;
 
 import retrofit.client.Response;
+import retrofit.http.Body;
+import retrofit.http.Field;
 import retrofit.http.GET;
 import retrofit.http.Multipart;
 import retrofit.http.POST;
@@ -38,4 +42,10 @@ public interface  TrainerJimService {
     @Multipart
     @POST("/mapi/training/upload")
     Response uploadTraining(@Part("email") TypedString email, @Part("password") TypedString password, @Part("trainingData") TypedFile trainingData);
+
+    @POST("/api/v1/auth/login.json")
+    Response login(@Body LoginData loginData);
+
+    @GET("/api/v1/users/{user_id}/trainings/{training_id}/exercise_photos.json")
+    List<ExercisePhoto> getExercisePhotos(@Path("user_id") int userId, @Path("training_id") int trainingId);
 }
