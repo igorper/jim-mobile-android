@@ -77,4 +77,12 @@ public class ExerciseType {
     public static long extractTimestampFromFileName(String fileName){
         return Long.parseLong(splitFileName(fileName)[1]);
     }
+
+    public void setImageUrl(String url){
+        this.medium_image_url = url;
+    }
+
+    public String getImageUrl(){
+        return medium_image_url;
+    }
 }

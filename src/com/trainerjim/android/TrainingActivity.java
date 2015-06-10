@@ -38,6 +38,9 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.squareup.picasso.NetworkPolicy;
+import com.squareup.picasso.Picasso;
+import com.squareup.picasso.Transformation;
 import com.trainerjim.android.entities.Exercise;
 import com.trainerjim.android.entities.Series;
 import com.trainerjim.android.entities.Training;
@@ -145,6 +148,8 @@ public class TrainingActivity extends Activity {
         filter.addCategory(Intent.CATEGORY_DEFAULT);
         mBroadcastReceiver = new ResponseReceiver();
         registerReceiver(mBroadcastReceiver, filter);
+
+        Picasso.with(getApplicationContext()).setIndicatorsEnabled(true);
 
         mSettings = PermanentSettings.create(PreferenceManager
 				.getDefaultSharedPreferences(this));
@@ -399,10 +404,10 @@ public class TrainingActivity extends Activity {
 				*/
 
         // show the image view only if there is an image available
-        if(mExerciseImage.getDrawable() != null) {
+        //if(mExerciseImage.getDrawable() != null) {
             mExerciseImage.setVisibility(visible ? View.VISIBLE : View.GONE);
             mDrawerLayout.setDrawerLockMode(visible ? DrawerLayout.LOCK_MODE_LOCKED_CLOSED : DrawerLayout.LOCK_MODE_UNLOCKED);
-        }
+        //}
 	}
 
     /**
@@ -690,26 +695,46 @@ public class TrainingActivity extends Activity {
 			// there are still some exercises to be performed
 			if (mCurrentTraining.isCurrentRest()) {
                 // TODO: encapsulate this or find a better way to do it
+                Picasso.with(this)
+                        .load(String.format("%s%s",
+                                getResources().getString(R.string.server_url),
+                                curExercise.getExerciseType().getImageUrl()))
+                        .networkPolicy(NetworkPolicy.OFFLINE)
+                        .transform(new Transformation() {
 
-                Matrix matrix = new Matrix();
+                            @Override
+                            public Bitmap transform(Bitmap source) {
+                                /**
+                                 * This code rotates the image if it's height is bigger than width
+                                 * (as the app is used in the portrait orientation only)
+                                 */
+                                int targetWidth = source.getWidth();
+                                int targetHeight = source.getHeight();
 
-                // we presume that all images will be in landscape mode and thus rotate it.
-                // A more intelligent algorithm could be implemented in the future - e.g.
-                // checking the dimensions of the image
-                matrix.postRotate(90);
+                                if (targetHeight < targetWidth) {
+                                    Matrix matrix = new Matrix();
 
-                String localImageFileName = curExercise.getExerciseType().getLocalImageFileName();
+                                    matrix.postRotate(90);
 
-                if(localImageFileName != null) {
-                    Bitmap scaledBitmap = BitmapFactory.decodeFile(new File(Utils.getDataFolderFile(getApplicationContext()),
-                            localImageFileName).getAbsolutePath());
 
-                    Bitmap rotatedBitmap = Bitmap.createBitmap(scaledBitmap , 0, 0, scaledBitmap .getWidth(), scaledBitmap .getHeight(), matrix, true);
+                                    Bitmap rotatedBitmap = Bitmap.createBitmap(source, 0, 0, source.getWidth(), source.getHeight(), matrix, true);
 
-                    mExerciseImage.setImageBitmap(rotatedBitmap);
-                } else {
-                    mExerciseImage.setImageDrawable(null);
-                }
+                                    if (rotatedBitmap != source) {
+                                        source.recycle();
+                                    }
+
+                                    return rotatedBitmap;
+                                }
+
+                                return source;
+                            }
+
+                            @Override
+                            public String key() {
+                                return "transformation" + " desiredWidth";
+                            }
+                        })
+                        .into(mExerciseImage);
 
                 mCircularProgress.setInfoChairLevel(mCurrentTraining
 						.getCurrentExercise().getMachineSetting());

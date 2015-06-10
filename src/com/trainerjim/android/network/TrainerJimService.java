@@ -23,16 +23,6 @@ import retrofit.mime.TypedString;
  * Created by igor on 23.04.15.
  */
 public interface  TrainerJimService {
-
-    @GET("/mapi/users/authenticate")
-    Boolean checkCredentials(@Query("email") String email, @Query("password") String password);
-
-    @GET("/mapi/training/list")
-    List<TrainingDescription> getTrainingsList(@Query("email") String email, @Query("password") String password);
-
-    @GET("/mapi/training/get")
-    Response getTraining(@Query("email") String email, @Query("password") String password, @Query("id") int id);
-
     @GET("/training/exercise_types.json")
     List<ExerciseType> getExerciseTypes();
 
@@ -48,4 +38,13 @@ public interface  TrainerJimService {
 
     @GET("/api/v1/users/{user_id}/trainings/{training_id}/exercise_photos.json")
     List<ExercisePhoto> getExercisePhotos(@Path("user_id") int userId, @Path("training_id") int trainingId);
+
+    @GET("/api/v1/trainings.json")
+    List<TrainingDescription> getTrainingsList();
+
+    // TODO: make this function return a domain object (to achieve this we have to change how the
+    // trainings are saved to the db (currently a json representation is saved, however think
+    // about using an alternative option - check activeandroid?)
+    @GET("/api/v1/trainings/{training_id}.json")
+    Response getTraining(@Path("training_id") int trainingId);
 }

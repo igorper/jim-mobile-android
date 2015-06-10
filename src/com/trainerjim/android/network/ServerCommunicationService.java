@@ -5,12 +5,13 @@ import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.Matrix;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
-import com.squareup.okhttp.OkHttpClient;
+import com.squareup.picasso.Picasso;
+import com.squareup.picasso.Transformation;
 import com.trainerjim.android.R;
 import com.trainerjim.android.entities.Exercise;
 import com.trainerjim.android.entities.ExercisePhoto;
@@ -276,7 +277,7 @@ public class ServerCommunicationService extends IntentService {
         } else if (action.equals(ACTION_FETCH_TRAININGS)) {
             int userId = intent.getExtras().getInt(INTENT_KEY_USER_ID);
 
-			boolean getTrainingsSucessful = fetchTrainings(userId, username, password);
+			boolean getTrainingsSucessful = fetchTrainings(userId);
 
 			// send status intent
 			statusIntent.setAction(ACTION_FETCH_TRAINNGS_COMPLETED);
@@ -409,13 +410,11 @@ public class ServerCommunicationService extends IntentService {
     }
 
     /**
-	 * @param username
-	 * @param password
 	 * @return
 	 */
-	private boolean fetchTrainings(int userId, String username, String password) {
+	private boolean fetchTrainings(int userId) {
 
-        List<TrainingDescription> trainingsManifest = service.getTrainingsList(username, password);
+        List<TrainingDescription> trainingsManifest = service.getTrainingsList();
 
         // nothing to do if we were unable to get the manifest
         if(trainingsManifest == null)
@@ -440,7 +439,7 @@ public class ServerCommunicationService extends IntentService {
             reportProgress(trainingDescription.getName(), i, trainingsManifest.size());
 
             // fetch individual training
-            Response trainingResponse = service.getTraining(username, password, trainingDescription.getId());
+            Response trainingResponse = service.getTraining(trainingDescription.getId());
             String training = null;
 
             // and convert it to a JSON string
@@ -451,12 +450,24 @@ public class ServerCommunicationService extends IntentService {
                 // TODO: implement logging
             }
 
-
+            HashMap<Integer, String> exercisePhotoLookup = new HashMap<Integer, String>();
             try{
                 // TODO: think about how to implement downloading images
                 // we might need to use a database to store the link between exercises and exercise images
                 // (or just encode them in exercise names)
-                List<ExercisePhoto> cred1 = service.getExercisePhotos(userId, trainingDescription.getId());
+                List<ExercisePhoto> exercisePhotos = service.getExercisePhotos(userId, trainingDescription.getId());
+                for (ExercisePhoto photo : exercisePhotos){
+                    Picasso.with(getApplicationContext()).invalidate(String.format("%s%s",
+                            getResources().getString(R.string.server_url),
+                            photo.medium_image_url));
+
+                    Picasso.with(this)
+                            .load(String.format("%s%s",
+                                    getResources().getString(R.string.server_url),
+                                    photo.medium_image_url))
+                            .fetch();
+                    exercisePhotoLookup.put(photo.exercise_type_id, photo.medium_image_url);
+                }
 
                 int ij = 0;
                 ij++;
@@ -474,10 +485,11 @@ public class ServerCommunicationService extends IntentService {
             Training trainingInstance = Utils.getGsonObject().fromJson(training, Training.class);
             for(Exercise exercise : trainingInstance.getExercises()){
                 ExerciseType exerciseType = exercise.getExerciseType();
-                if(!exerciseTypes.containsKey(exerciseType.getId())) {
-                    exerciseTypes.put(exerciseType.getId(), exerciseType);
+                if(exercisePhotoLookup.containsKey(exerciseType.getId())) {
+                    exerciseType.setImageUrl(exercisePhotoLookup.get(exerciseType.getId()));
                 }
             }
+            training = Utils.getGsonObject().toJson(trainingInstance);
 
             // save the JSON encoded training to the database
             if (training != null) {
@@ -678,6 +690,6 @@ public class ServerCommunicationService extends IntentService {
         }
 
 
-		return -1;//service.checkCredentials(username, password);
+		return -1;
 	}
 }
