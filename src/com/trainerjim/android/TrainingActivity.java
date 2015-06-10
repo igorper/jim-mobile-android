@@ -22,6 +22,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.support.v4.app.ActionBarDrawerToggle;
+import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
 import android.util.Log;
 import android.view.ContextMenu;
@@ -56,6 +57,7 @@ import com.trainerjim.android.storage.TrainingContentProvider.TrainingPlan;
 import com.trainerjim.android.timers.GetReadyTimer;
 import com.trainerjim.android.timers.UpdateRestTimer;
 import com.trainerjim.android.ui.CircularProgressControl;
+import com.trainerjim.android.ui.CustomPagerAdapter;
 import com.trainerjim.android.ui.ExerciseAdapter;
 import com.trainerjim.android.ui.CircularProgressControl.CircularProgressState;
 import com.trainerjim.android.util.Utils;
@@ -126,8 +128,11 @@ public class TrainingActivity extends Activity {
      */
     private UpdateRestTimer mUpdateRestTimer = null;
 
-
     private GetReadyTimer mGetReadyTimer = null;
+
+    private CustomPagerAdapter mCustomPagerAdapter;
+
+    private ViewPager mViewPager;
 
     @Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -187,6 +192,7 @@ public class TrainingActivity extends Activity {
         mExerciseImage = (ImageView)findViewById(R.id.exerciseImage);
         mDrawerLayout = (DrawerLayout)findViewById(R.id.drawer_layout);
         mDrawerExercisesList = (ListView)findViewById(R.id.exercises_list);
+        mViewPager = (ViewPager) findViewById(R.id.pager);
 
         mUpdateRestTimer = new UpdateRestTimer(this);
         mGetReadyTimer = new GetReadyTimer(this);
@@ -395,21 +401,19 @@ public class TrainingActivity extends Activity {
 	 * @param visible
 	 */
 	private void toggleInfoButtonVisible(boolean visible) {
-		// This code was used before showing the full screen image (to show the exercise info
-        // circle view).
-		/*
-		mCircularProgress.setInfoVisible(visible);
 
-		mInfoButton.setImageResource(visible ? R.drawable.chair_ico_selected
-				: R.drawable.chair_ico);
-				*/
-
-        // show the image view only if there is an image available
-        //if(mExerciseImage.getDrawable() != null) {
-            mExerciseImage.setVisibility(visible ? View.VISIBLE : View.GONE);
-            mDrawerLayout.setDrawerLockMode(visible ? DrawerLayout.LOCK_MODE_LOCKED_CLOSED : DrawerLayout.LOCK_MODE_UNLOCKED);
-        //}
+        mViewPager.setVisibility(visible ? View.VISIBLE : View.GONE);
+        mDrawerLayout.setDrawerLockMode(visible ? DrawerLayout.LOCK_MODE_LOCKED_CLOSED : DrawerLayout.LOCK_MODE_UNLOCKED);
 	}
+
+    @Override
+    public void onBackPressed() {
+        if(mViewPager.getVisibility() == View.VISIBLE){
+            toggleInfoButtonVisible(false);
+        } else {
+            super.onBackPressed();
+        }
+    }
 
     /**
      * This event is called when a user ends performing a particular exercise.
@@ -699,46 +703,10 @@ public class TrainingActivity extends Activity {
 
                 List<String> photoImages = curExercise.getExerciseType().getPhotoImages();
 
-                Picasso.with(this)
-                        .load(String.format("%s%s",
-                                getResources().getString(R.string.server_url),
-                                curExercise.getExerciseType().getImageUrl()))
-                        .networkPolicy(NetworkPolicy.OFFLINE)
-                        .transform(new Transformation() {
+                mCustomPagerAdapter = new CustomPagerAdapter(this, photoImages);
 
-                            @Override
-                            public Bitmap transform(Bitmap source) {
-                                /**
-                                 * This code rotates the image if it's height is bigger than width
-                                 * (as the app is used in the portrait orientation only)
-                                 */
-                                int targetWidth = source.getWidth();
-                                int targetHeight = source.getHeight();
-
-                                if (targetHeight < targetWidth) {
-                                    Matrix matrix = new Matrix();
-
-                                    matrix.postRotate(90);
-
-
-                                    Bitmap rotatedBitmap = Bitmap.createBitmap(source, 0, 0, source.getWidth(), source.getHeight(), matrix, true);
-
-                                    if (rotatedBitmap != source) {
-                                        source.recycle();
-                                    }
-
-                                    return rotatedBitmap;
-                                }
-
-                                return source;
-                            }
-
-                            @Override
-                            public String key() {
-                                return "transformation" + " desiredWidth";
-                            }
-                        })
-                        .into(mExerciseImage);
+                // TODO: do we need to remove previous adapter?
+                mViewPager.setAdapter(mCustomPagerAdapter);
 
                 mCircularProgress.setInfoChairLevel(mCurrentTraining
 						.getCurrentExercise().getMachineSetting());
