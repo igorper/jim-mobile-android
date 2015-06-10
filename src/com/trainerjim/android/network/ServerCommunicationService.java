@@ -306,110 +306,6 @@ public class ServerCommunicationService extends IntentService {
     }
 
     /**
-     * Downloads the image based on the imageUrl in the exerciseType and stores it to persistent storage.
-     * @param exerciseType
-     */
-    private void downloadImage(ExerciseType exerciseType) {
-
-        String imageUrl = String.format("%s%s",
-                getResources().getString(R.string.server_url),
-                exerciseType.getServerImageFileName());
-
-        InputStream input = null;
-        FileOutputStream output = null;
-
-        try {
-        URL url = new URL(imageUrl);
-
-            input = url.openConnection().getInputStream();
-            output = new FileOutputStream(new File(Utils.getDataFolderFile(getApplicationContext()), exerciseType.getLocalImageFileName()));
-
-            int read;
-            byte[] data = new byte[1024];
-            while ((read = input.read(data)) != -1)
-                output.write(data, 0, read);
-        } catch (Exception e) {
-            // TODO: log that the image was not downloaded successfuly
-
-        } finally {
-            try {
-                if (output != null)
-                    output.close();
-                if (input != null)
-                    input.close();
-
-            } catch (Exception finallyEx){
-                // TODO: log this one as well
-            }
-        }
-    }
-
-
-    /**
-     * This methods fetches all medium sized images exposed by the backend through
-     * 'training/exercise_types.json' API. The images are just saved to the persisted storage.
-     */
-    private void fetchImages(HashMap<Integer, ExerciseType> exerciseTypes){
-        // Get a list of local images. Exercises that are present in current training plans will
-        // be removed from this list. In the end exercises that will be left in this list will be
-        // removed from local storage, as they are not used by current training plans.
-        HashMap<Integer, File> existingImages = getLocalImageFiles();
-
-        List<ExerciseType> exercisesToDownload = new ArrayList<ExerciseType>();
-        for(ExerciseType exerciseType : exerciseTypes.values()){
-            String localImageFileName = exerciseType.getLocalImageFileName();
-
-            // image should be downloaded if it does not exist yet or if the time stamp has changed
-            if(localImageFileName != null && (!new File(Utils.getDataFolderFile(getApplicationContext()), localImageFileName).exists()
-                    || ExerciseType.extractTimestampFromFileName(existingImages.get(exerciseType.getId()).getName())
-                    < exerciseType.getImageUpdatedDate().getTime())) {
-                exercisesToDownload.add(exerciseType);
-            }
-
-            // Remove exercise types from existing images. This means the exercise is present in
-            // current training plans and its image should not be deleted from local storage,
-            existingImages.remove(exerciseType.getId());
-        }
-
-        // get list of exercises (images)
-        reportProgress("training images", 0, 100);
-
-        // download images that are not yet present in local storage
-        int imagesToDownload = exercisesToDownload.size();
-        for(int i=0; i < imagesToDownload; i++){
-            ExerciseType exerciseType = exercisesToDownload.get(i);
-            reportProgress(exerciseType.getShortName(), i + 1, imagesToDownload);
-            downloadImage(exerciseType);
-        }
-
-        // remove images not present in current training plans
-        for(File image : existingImages.values()){
-            image.delete();
-        }
-    }
-
-    /**
-     * Returns a manifest of exercise types local image files.
-     * @return a hashmap of exercise type ids and local file pairs.
-     */
-    private HashMap<Integer, File> getLocalImageFiles() {
-        // Get all the exercise images (to delete those that are not used in this training plan).
-        // Exercises are retreived based on the predefined file extension.
-        List<File> existingExerciseImages = Arrays.asList(Utils.getDataFolderFile(getApplicationContext()).listFiles(new FilenameFilter() {
-            public boolean accept(File dir, String name) {
-                return name.toLowerCase().endsWith(ExerciseType.IMAGE_EXTENSION);
-            }
-        }));
-
-        // create a hashmap of exercise name + file pairs
-        HashMap<Integer, File> existingImages = new HashMap<Integer, File>();
-        for(File f : existingExerciseImages){
-            existingImages.put(ExerciseType.extractIdFromFileName(f.getName()), f);
-        }
-        return existingImages;
-    }
-
-    /**
 	 * @return
 	 */
 	private boolean fetchTrainings(int userId) {
@@ -439,16 +335,7 @@ public class ServerCommunicationService extends IntentService {
             reportProgress(trainingDescription.getName(), i, trainingsManifest.size());
 
             // fetch individual training
-            Response trainingResponse = service.getTraining(trainingDescription.getId());
-            String training = null;
-
-            // and convert it to a JSON string
-            try {
-                training = extractStringFromStream(trainingResponse.getBody().in());
-            } catch (IOException e) {
-                e.printStackTrace();
-                // TODO: implement logging
-            }
+            Training training = service.getTraining(trainingDescription.getId());
 
             HashMap<Integer, List<String>> exercisePhotoLookup = new HashMap<Integer, List<String>>();
             try{
@@ -457,10 +344,6 @@ public class ServerCommunicationService extends IntentService {
                 // (or just encode them in exercise names)
                 List<ExercisePhoto> exercisePhotos = service.getExercisePhotos(userId, trainingDescription.getId());
                 for (ExercisePhoto photo : exercisePhotos){
-                    Picasso.with(getApplicationContext()).invalidate(String.format("%s%s",
-                            getResources().getString(R.string.server_url),
-                            photo.medium_image_url));
-
                     Picasso.with(this)
                             .load(String.format("%s%s",
                                     getResources().getString(R.string.server_url),
@@ -475,41 +358,28 @@ public class ServerCommunicationService extends IntentService {
                     exercisePhotoLookup.get(photo.exercise_type_id).add(photo.medium_image_url);
                 }
 
-                int ij = 0;
-                ij++;
             } catch(RetrofitError er) {
                 if (er.getResponse().getStatus() == 401) {
-                    int z = 0;
-                    z++;
+                    // TODO: do something here!
                     // unauthorized, try to authroize, and repeat the operation, if fails report an error
                 }
-                int k = 0;
-                k++;
             }
 
             // collect all unique exercise types to fetch images later
-            Training trainingInstance = Utils.getGsonObject().fromJson(training, Training.class);
-            for(Exercise exercise : trainingInstance.getExercises()){
+            for(Exercise exercise : training.getExercises()){
                 ExerciseType exerciseType = exercise.getExerciseType();
                 if(exercisePhotoLookup.containsKey(exerciseType.getId())) {
                     exerciseType.setPhotoImages(exercisePhotoLookup.get(exerciseType.getId()));
                 }
             }
-            training = Utils.getGsonObject().toJson(trainingInstance);
-
-            // save the JSON encoded training to the database
-            if (training != null) {
                 ContentValues trainingPlan = new ContentValues();
                 trainingPlan.put(TrainingPlan._ID, trainingDescription.getId());
                 trainingPlan.put(TrainingPlan.NAME, trainingDescription.getName());
-                trainingPlan.put(TrainingPlan.DATA, training);
+                trainingPlan.put(TrainingPlan.DATA, Utils.getGsonObject().toJson(training));
 
                 getContentResolver().insert(TrainingPlan.CONTENT_URI,
                         trainingPlan);
-            }
         }
-
-        fetchImages(exerciseTypes);
 
         return true;
 	}

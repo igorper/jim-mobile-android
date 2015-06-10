@@ -3,6 +3,7 @@ package com.trainerjim.android.network;
 import com.trainerjim.android.entities.ExercisePhoto;
 import com.trainerjim.android.entities.ExerciseType;
 import com.trainerjim.android.entities.LoginData;
+import com.trainerjim.android.entities.Training;
 import com.trainerjim.android.entities.TrainingDescription;
 
 import java.util.List;
@@ -26,9 +27,6 @@ public interface  TrainerJimService {
     @GET("/training/exercise_types.json")
     List<ExerciseType> getExerciseTypes();
 
-    @GET("/{imageUrl}")
-    Response getExerciseTypeImage(@Path(value="imageUrl", encode=false) String imageUrl);
-
     @Multipart
     @POST("/mapi/training/upload")
     Response uploadTraining(@Part("email") TypedString email, @Part("password") TypedString password, @Part("trainingData") TypedFile trainingData);
@@ -46,5 +44,5 @@ public interface  TrainerJimService {
     // trainings are saved to the db (currently a json representation is saved, however think
     // about using an alternative option - check activeandroid?)
     @GET("/api/v1/trainings/{training_id}.json")
-    Response getTraining(@Path("training_id") int trainingId);
+    Training getTraining(@Path("training_id") int trainingId);
 }

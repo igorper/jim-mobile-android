@@ -17,13 +17,13 @@ import com.trainerjim.android.R;
 
 import java.util.List;
 
-public class CustomPagerAdapter extends PagerAdapter {
+public class ExerciseImagesPagerAdapter extends PagerAdapter {
 
     Context mContext;
     LayoutInflater mLayoutInflater;
     private List<String> mExerciseImages;
 
-    public CustomPagerAdapter(Context context, List<String> exerciseImages) {
+    public ExerciseImagesPagerAdapter(Context context, List<String> exerciseImages) {
         mContext = context;
         mLayoutInflater = (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         mExerciseImages = exerciseImages;

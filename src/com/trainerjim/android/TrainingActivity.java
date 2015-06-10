@@ -1,6 +1,5 @@
 package com.trainerjim.android;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -15,9 +14,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.database.Cursor;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Matrix;
 import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
@@ -40,9 +36,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.squareup.picasso.NetworkPolicy;
 import com.squareup.picasso.Picasso;
-import com.squareup.picasso.Transformation;
 import com.trainerjim.android.entities.Exercise;
 import com.trainerjim.android.entities.Series;
 import com.trainerjim.android.entities.Training;
@@ -57,7 +51,7 @@ import com.trainerjim.android.storage.TrainingContentProvider.TrainingPlan;
 import com.trainerjim.android.timers.GetReadyTimer;
 import com.trainerjim.android.timers.UpdateRestTimer;
 import com.trainerjim.android.ui.CircularProgressControl;
-import com.trainerjim.android.ui.CustomPagerAdapter;
+import com.trainerjim.android.ui.ExerciseImagesPagerAdapter;
 import com.trainerjim.android.ui.ExerciseAdapter;
 import com.trainerjim.android.ui.CircularProgressControl.CircularProgressState;
 import com.trainerjim.android.util.Utils;
@@ -130,7 +124,7 @@ public class TrainingActivity extends Activity {
 
     private GetReadyTimer mGetReadyTimer = null;
 
-    private CustomPagerAdapter mCustomPagerAdapter;
+    private ExerciseImagesPagerAdapter mExerciseImagesPagerAdapter;
 
     private ViewPager mViewPager;
 
@@ -703,10 +697,10 @@ public class TrainingActivity extends Activity {
 
                 List<String> photoImages = curExercise.getExerciseType().getPhotoImages();
 
-                mCustomPagerAdapter = new CustomPagerAdapter(this, photoImages);
+                mExerciseImagesPagerAdapter = new ExerciseImagesPagerAdapter(this, photoImages);
 
                 // TODO: do we need to remove previous adapter?
-                mViewPager.setAdapter(mCustomPagerAdapter);
+                mViewPager.setAdapter(mExerciseImagesPagerAdapter);
 
                 mCircularProgress.setInfoChairLevel(mCurrentTraining
 						.getCurrentExercise().getMachineSetting());
