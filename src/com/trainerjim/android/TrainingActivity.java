@@ -3,6 +3,7 @@ package com.trainerjim.android;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -695,6 +696,9 @@ public class TrainingActivity extends Activity {
 			// there are still some exercises to be performed
 			if (mCurrentTraining.isCurrentRest()) {
                 // TODO: encapsulate this or find a better way to do it
+
+                List<String> photoImages = curExercise.getExerciseType().getPhotoImages();
+
                 Picasso.with(this)
                         .load(String.format("%s%s",
                                 getResources().getString(R.string.server_url),

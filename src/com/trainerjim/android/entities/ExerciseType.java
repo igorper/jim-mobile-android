@@ -1,6 +1,7 @@
 package com.trainerjim.android.entities;
 
 import java.util.Date;
+import java.util.List;
 
 /** Contains information about exercise type.
  * @author Igor
@@ -22,6 +23,7 @@ public class ExerciseType {
 	private String name;
     private String short_name;
     private String medium_image_url;
+    private List<String> photoImages;
     private Date image_updated_at;
 	
 	/**
@@ -84,5 +86,13 @@ public class ExerciseType {
 
     public String getImageUrl(){
         return medium_image_url;
+    }
+
+    public void setPhotoImages(List<String> photoImages){
+        this.photoImages = photoImages;
+    }
+
+    public List<String> getPhotoImages(){
+        return photoImages;
     }
 }

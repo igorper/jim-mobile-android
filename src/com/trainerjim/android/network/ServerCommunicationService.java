@@ -450,7 +450,7 @@ public class ServerCommunicationService extends IntentService {
                 // TODO: implement logging
             }
 
-            HashMap<Integer, String> exercisePhotoLookup = new HashMap<Integer, String>();
+            HashMap<Integer, List<String>> exercisePhotoLookup = new HashMap<Integer, List<String>>();
             try{
                 // TODO: think about how to implement downloading images
                 // we might need to use a database to store the link between exercises and exercise images
@@ -466,7 +466,13 @@ public class ServerCommunicationService extends IntentService {
                                     getResources().getString(R.string.server_url),
                                     photo.medium_image_url))
                             .fetch();
-                    exercisePhotoLookup.put(photo.exercise_type_id, photo.medium_image_url);
+
+                    if(!exercisePhotoLookup.containsKey(photo.exercise_type_id)){
+                        exercisePhotoLookup.put(photo.exercise_type_id, new ArrayList<String>());
+                    }
+
+                    // add photo urls to the list
+                    exercisePhotoLookup.get(photo.exercise_type_id).add(photo.medium_image_url);
                 }
 
                 int ij = 0;
@@ -486,7 +492,7 @@ public class ServerCommunicationService extends IntentService {
             for(Exercise exercise : trainingInstance.getExercises()){
                 ExerciseType exerciseType = exercise.getExerciseType();
                 if(exercisePhotoLookup.containsKey(exerciseType.getId())) {
-                    exerciseType.setImageUrl(exercisePhotoLookup.get(exerciseType.getId()));
+                    exerciseType.setPhotoImages(exercisePhotoLookup.get(exerciseType.getId()));
                 }
             }
             training = Utils.getGsonObject().toJson(trainingInstance);
