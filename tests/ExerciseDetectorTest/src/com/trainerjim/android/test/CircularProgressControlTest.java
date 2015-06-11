@@ -1,8 +1,8 @@
-package com.trainerjim.android.test;
+package com.trainerjim.mobile.android.test;
 
 import junit.framework.TestCase;
 
-import com.trainerjim.android.ui.CircularProgressControl;
+import com.trainerjim.mobile.android.ui.CircularProgressControl;
 
 public class CircularProgressControlTest extends TestCase {
 

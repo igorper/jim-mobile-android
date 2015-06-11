@@ -19,7 +19,7 @@
             <!-- RATE TRAINING SCREEN -->
 
             <fragment
-                android:name="com.trainerjim.android.fragments.RateTrainingFragment"
+                android:name="com.trainerjim.mobile.android.fragments.RateTrainingFragment"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:id="@+id/rate_training_fragment">
@@ -40,7 +40,7 @@
                         android:layout_height="wrap_content" >
 
                         <!-- CIRCULAR PROGRESS CONTROL -->
-                        <com.trainerjim.android.ui.CircularProgressControl
+                        <com.trainerjim.mobile.android.ui.CircularProgressControl
                             android:id="@+id/circularProgress"
                             android:layout_width="match_parent"
                             android:layout_height="0dp"
@@ -215,7 +215,7 @@
                 <!-- START: THE VIEW SHOWN DURING THE EXERCISE -->
 
                 <fragment
-                    android:name="com.trainerjim.android.fragments.ExerciseViewFragment"
+                    android:name="com.trainerjim.mobile.android.fragments.ExerciseViewFragment"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:id="@+id/exercise_view_fragment">
