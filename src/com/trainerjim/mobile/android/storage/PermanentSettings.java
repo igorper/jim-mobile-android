@@ -29,7 +29,9 @@ public class PermanentSettings {
 
     private static final String KEY_AUTH_USER_ID = "auth_user_id";
 
-    private static final String KEY_AUTH_SESSION_COOKIE = "auhtor_session_cookie";
+    private static final String KEY_AUTH_SESSION_COOKIE = "author_session_cookie";
+
+    private static final String KEY_SELECTED_TRAINING_ID = "selected_training_id";
 
 	/**
 	 * Handle to the {@link SharedPreferences}.
@@ -135,5 +137,15 @@ public class PermanentSettings {
 
     public String getSessionCookie() {
         return mPreferences.getString(KEY_AUTH_SESSION_COOKIE, "");
+    }
+
+    public void saveSelectedTrainingId(int selectedTrainingId){
+        SharedPreferences.Editor editor = mPreferences.edit();
+        editor.putInt(KEY_SELECTED_TRAINING_ID, selectedTrainingId);
+        editor.commit();
+    }
+
+    public int getSelectedTrainingId() {
+        return mPreferences.getInt(KEY_SELECTED_TRAINING_ID, -1);
     }
 }

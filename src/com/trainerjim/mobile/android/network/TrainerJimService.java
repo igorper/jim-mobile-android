@@ -3,6 +3,7 @@ package com.trainerjim.mobile.android.network;
 import com.trainerjim.mobile.android.entities.ExercisePhoto;
 import com.trainerjim.mobile.android.entities.ExerciseType;
 import com.trainerjim.mobile.android.entities.LoginData;
+import com.trainerjim.mobile.android.entities.Measurement;
 import com.trainerjim.mobile.android.entities.Training;
 import com.trainerjim.mobile.android.entities.TrainingDescription;
 
@@ -40,9 +41,10 @@ public interface  TrainerJimService {
     @GET("/api/v1/trainings.json")
     List<TrainingDescription> getTrainingsList();
 
-    // TODO: make this function return a domain object (to achieve this we have to change how the
-    // trainings are saved to the db (currently a json representation is saved, however think
-    // about using an alternative option - check activeandroid?)
     @GET("/api/v1/trainings/{training_id}.json")
     Training getTraining(@Path("training_id") int trainingId);
+
+    @POST("/api/v1/measurements.json")
+    Response uploadMeasurement(@Body Measurement measurement);
+
 }

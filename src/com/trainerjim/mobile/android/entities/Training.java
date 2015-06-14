@@ -45,6 +45,7 @@ public class Training {
 	/************************
 	 * Fields deserialized from local data.
 	 ************************/
+    private int traineeId;
 
 	/**
 	 * Rating for the current series execution.
@@ -107,6 +108,22 @@ public class Training {
     public List<Exercise> getExercisesLeft(){ return mExercisesLeft; }
 
     public List<Exercise> getExercises(){ return exercises; }
+
+    public Date getTrainingStarted() {
+        return  mTrainingStarted;
+    }
+
+    public Date getTrainingEnded(){
+        return  mTrainingEnded;
+    }
+
+    public List<SeriesExecution> getSeriesExecutions(){
+        return mSeriesExecutions;
+    }
+
+    public int getTrainingId(){
+        return id;
+    }
 
 	/**
 	 * This method is called to start a new training. It initializes all
@@ -218,9 +235,7 @@ public class Training {
                 currentSeries.getNumberTotalRepetitions();
 
 		// create series execution
-		SeriesExecution currentSeriesExecution = null;
-		if (timestamps == null) {
-			currentSeriesExecution = SeriesExecution
+		SeriesExecution currentSeriesExecution = SeriesExecution
 					.create(currentSeries.getId(),
                             executedRepetitions,
 							currentSeries.getWeight(),
@@ -230,19 +245,6 @@ public class Training {
 									exerciseEnd),
 							mCurrentSeriesExecutionRating);
 
-		} else {
-			currentSeriesExecution = SeriesExecution
-					.create(timestamps.getStartTimestamp(),
-							timestamps.getEndTimestamp(),
-							currentSeries.getId(),
-                            executedRepetitions,
-							currentSeries.getWeight(),
-							calculateDurationInSeconds(mLastPauseStart,
-									mExerciseStart),
-							calculateDurationInSeconds(mExerciseStart,
-									exerciseEnd),
-							mCurrentSeriesExecutionRating);
-		}
 
 		// reset the series execution rating for the next exercise
 		mCurrentSeriesExecutionRating = -1;
@@ -452,10 +454,8 @@ public class Training {
 	 * 
 	 * @return
 	 */
-	private Measurement extractMeasurement() {
-		Measurement retVal = Measurement.create(mTrainingComment,
-				mTrainingStarted, mTrainingEnded, mTrainingRating,
-				mSeriesExecutions, id);
+	public Measurement extractMeasurement(int traineeId) {
+		Measurement retVal = Measurement.create(this, traineeId);
 
 		return retVal;
 	}
@@ -533,8 +533,8 @@ public class Training {
 			ZipOutputStream out = new ZipOutputStream(new BufferedOutputStream(
 					new FileOutputStream(getZipFile(context))));
 
-			byte trainingData[] = Utils.getGsonObject().toJson(extractMeasurement())
-					.getBytes();
+			byte trainingData[] = null;/*Utils.getGsonObject().toJson(extractMeasurement())
+					.getBytes();*/
 
 
 			ZipEntry entry = new ZipEntry(trainingManifestPartName);

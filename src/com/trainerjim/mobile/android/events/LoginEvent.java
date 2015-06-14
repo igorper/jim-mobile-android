@@ -5,20 +5,27 @@ package com.trainerjim.mobile.android.events;
  */
 public class LoginEvent {
 
-    private int mUserId;
+    private boolean status;
+    private int userId = -1;
+    private String statusMessage;
 
-    private String mStatusMessage;
-
-    public LoginEvent(int userId, String statusMessage){
-        mUserId = userId;
-        mStatusMessage = statusMessage;
+    public LoginEvent(boolean status, int userId){
+        this.status = status;
+        this.userId = userId;
     }
 
+    public LoginEvent(boolean status, String statusMessage){
+        this.status = status;
+        this.statusMessage = statusMessage;
+    }
+
+    public boolean getStatus() { return status; }
+
     public int getUserId(){
-        return mUserId;
+        return userId;
     }
 
     public String getStatusMessage(){
-        return mStatusMessage;
+        return statusMessage;
     }
 }

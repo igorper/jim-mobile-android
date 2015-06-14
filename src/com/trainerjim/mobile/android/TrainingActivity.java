@@ -20,6 +20,7 @@ import android.preference.PreferenceManager;
 import android.support.v4.app.ActionBarDrawerToggle;
 import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.ContextMenu;
 import android.view.Menu;
@@ -37,17 +38,22 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.squareup.picasso.Picasso;
+import com.trainerjim.mobile.android.database.CompletedTraining;
+import com.trainerjim.mobile.android.database.TrainingPlan;
 import com.trainerjim.mobile.android.entities.Exercise;
 import com.trainerjim.mobile.android.entities.Series;
 import com.trainerjim.mobile.android.entities.Training;
+import com.trainerjim.mobile.android.events.DismissProgressEvent;
+import com.trainerjim.mobile.android.events.EndDownloadTrainingsEvent;
 import com.trainerjim.mobile.android.events.EndExerciseEvent;
 import com.trainerjim.mobile.android.events.EndRateTraining;
+import com.trainerjim.mobile.android.events.EndUploadCompletedTrainings;
+import com.trainerjim.mobile.android.events.ReportProgressEvent;
 import com.trainerjim.mobile.android.events.StartRateTraining;
 import com.trainerjim.mobile.android.events.StartExerciseEvent;
+import com.trainerjim.mobile.android.events.TrainingSelectedEvent;
 import com.trainerjim.mobile.android.network.ServerCommunicationService;
 import com.trainerjim.mobile.android.storage.PermanentSettings;
-import com.trainerjim.mobile.android.storage.TrainingContentProvider.CompletedTraining;
-import com.trainerjim.mobile.android.storage.TrainingContentProvider.TrainingPlan;
 import com.trainerjim.mobile.android.timers.GetReadyTimer;
 import com.trainerjim.mobile.android.timers.UpdateRestTimer;
 import com.trainerjim.mobile.android.ui.CircularProgressControl;
@@ -70,7 +76,6 @@ public class TrainingActivity extends Activity {
 	private static final int ACTIVITY_REQUEST_TRAININGS_LIST = 0;
 
 	private PermanentSettings mSettings;
-	private ResponseReceiver mBroadcastReceiver;
 
 	/**
 	 * References to the XML defined UI controls.
@@ -109,12 +114,6 @@ public class TrainingActivity extends Activity {
 	 */
 	private Handler mUiHandler = new Handler();
 
-	/**
-	 * Holds ID of the training plan currently selected in the training
-	 * selector.
-	 */
-	private int mSelectedTrainingId = -1;
-
     /**
      * This runnable updates the screen during the rest state.It calls itself
      * recursively until externally stopped or until there are no more exercises
@@ -135,7 +134,6 @@ public class TrainingActivity extends Activity {
 
         EventBus.getDefault().register(this);
 
-
         // TODO: We should move this to event bus
         IntentFilter filter = new IntentFilter(
                 ServerCommunicationService.ACTION_FETCH_TRAINNGS_COMPLETED);
@@ -146,8 +144,6 @@ public class TrainingActivity extends Activity {
         filter.addAction(ServerCommunicationService.ACTION_UPLOAD_TRAINNGS_COMPLETED);
 
         filter.addCategory(Intent.CATEGORY_DEFAULT);
-        mBroadcastReceiver = new ResponseReceiver();
-        registerReceiver(mBroadcastReceiver, filter);
 
         Picasso.with(getApplicationContext()).setIndicatorsEnabled(true);
 
@@ -191,6 +187,10 @@ public class TrainingActivity extends Activity {
         mUpdateRestTimer = new UpdateRestTimer(this);
         mGetReadyTimer = new GetReadyTimer(this);
 
+        mProgressDialog = new ProgressDialog(this);
+        mProgressDialog.setIndeterminate(false);
+        mProgressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+
         mDrawerToggle = new ActionBarDrawerToggle(
                 this,
                 mDrawerLayout,
@@ -220,7 +220,6 @@ public class TrainingActivity extends Activity {
         // Set the drawer toggle as the DrawerListener
         mDrawerLayout.setDrawerListener(mDrawerToggle);
 
-        updateTrainingSelector(-1);
 		loadCurrentTraining();
 
         updateScreen();
@@ -251,7 +250,8 @@ public class TrainingActivity extends Activity {
 				.create(getApplicationContext());
 
 		// try to fetch trainings if not available
-		if (isUserLoggedIn() && !areTrainingsAvailable()) {
+		// TODO: DB
+        if (isUserLoggedIn() && TrainingPlan.getAll().size() == 0) {
 			runTrainingsSync();
 		}
 	}
@@ -281,7 +281,6 @@ public class TrainingActivity extends Activity {
 	@Override
 	protected void onDestroy() {
         EventBus.getDefault().unregister(this);
-        unregisterReceiver(mBroadcastReceiver);
 
 		// remove all periodical tasks
 		mUiHandler.removeCallbacks(mUpdateRestTimer);
@@ -347,14 +346,15 @@ public class TrainingActivity extends Activity {
 				: Utils.getGsonObject().toJson(mCurrentTraining));
 	}
 
-	private boolean areTrainingsAvailable() {
+    // TODO: DB
+	/*private boolean areTrainingsAvailable() {
 		String[] projection = { TrainingPlan._ID };
 		Cursor trainings = managedQuery(TrainingPlan.CONTENT_URI, projection,
 				null, null, null);
 
 		return trainings.moveToNext();
 
-	}
+	}*/
 
 	/**
 	 * This method updates the training selector text to the first training plan
@@ -366,27 +366,23 @@ public class TrainingActivity extends Activity {
 	/**
 	 * @param trainingPlanID
 	 */
-	private void updateTrainingSelector(long trainingPlanID) {
-		String[] projection = { TrainingPlan._ID, TrainingPlan.NAME };
-		String selection = trainingPlanID == -1 ? null : String.format(
-				"%s == %d", TrainingPlan._ID, trainingPlanID);
-		Cursor trainings = managedQuery(TrainingPlan.CONTENT_URI, projection,
-				selection, null, null);
+	/*private void updateTrainingSelector(long trainingPlanID) {
+		List<TrainingPlan> trainingPlans = TrainingPlan.getAll();
 
-		if (trainings.moveToNext()) {
-			mSelectedTrainingId = trainings.getInt(trainings
-					.getColumnIndex(TrainingPlan._ID));
-			String trainingName = trainings.getString(trainings
-					.getColumnIndex(TrainingPlan.NAME));
-			mTrainingSelectorText.setText(trainingName);
+        if(trainingPlans.size() > 0){
+            TrainingPlan currentTrainingPlan = trainingPlans.get(0);
+            // for now just select the first training, later we should store the currently selected
+            // training to always show the one that was recently selected by the trainer
+            mSelectedTrainingId = currentTrainingPlan.getTrainingId();
+            mTrainingSelectorText.setText(currentTrainingPlan.getName());
             mTrainingSelector.setVisibility(View.VISIBLE);
             mTextRectOneLine.setVisibility(View.GONE);
-		} else {
+        } else {
             mTrainingSelector.setVisibility(View.GONE);
             mTextRectOneLine.setText("NO TRAININGS.");
             mTextRectOneLine.setVisibility(View.VISIBLE);
         }
-	}
+	}*/
 
 	/**
 	 * Toggles the visibility of additional info circular button overlay and
@@ -542,12 +538,6 @@ public class TrainingActivity extends Activity {
         intent.putExtra(ServerCommunicationService.INTENT_KEY_USER_ID,
                 mSettings.getUserId());
 		startService(intent);
-
-		mProgressDialog = new ProgressDialog(this);
-		mProgressDialog.setIndeterminate(false);
-		mProgressDialog.setMessage("Fetching training list ...");
-		mProgressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-		mProgressDialog.show();
 	}
 
 	private void changeTrainingPlanState() {
@@ -559,17 +549,14 @@ public class TrainingActivity extends Activity {
 			toggleInfoButtonVisible(false);
 		} else if (mCurrentTraining == null) {
 			// start button was clicked
-            Cursor trainings = getAvailableTrainings();
 
-			if (trainings.moveToNext()) {
-				String jsonEncodedTraining = trainings.getString(trainings
-						.getColumnIndex(TrainingPlan.DATA));
+            // should always return a valid training
+            TrainingPlan selectedTrainingPlan = TrainingPlan.getByTrainingId(mSettings.getSelectedTrainingId());
 
-				// load to memory
-				mCurrentTraining = Utils.getGsonObject().fromJson(jsonEncodedTraining,
-						Training.class);
-				mCurrentTraining.startTraining();
-            }
+            // load to memory
+            mCurrentTraining = Utils.getGsonObject().fromJson(selectedTrainingPlan.getData(),
+                    Training.class);
+            mCurrentTraining.startTraining();
 		} else if (mCurrentTraining.getCurrentExercise() == null) {
 			if (!mCurrentTraining.isTrainingEnded()) {
 				// I'm done was clicked
@@ -578,14 +565,7 @@ public class TrainingActivity extends Activity {
 				// overview button was clicked
 
 				// store training to the database
-				ContentValues completedTraining = new ContentValues();
-				completedTraining.put(CompletedTraining.NAME,
-						mCurrentTraining.getTrainingName());
-				completedTraining.put(CompletedTraining.DATA,
-						Utils.getGsonObject().toJson(mCurrentTraining));
-
-				getContentResolver().insert(CompletedTraining.CONTENT_URI,
-						completedTraining);
+                new CompletedTraining(mCurrentTraining.getTrainingName(), Utils.getGsonObject().toJson(mCurrentTraining.extractMeasurement(mSettings.getUserId()))).save();
 
 				mCurrentTraining = null;
 			}
@@ -606,13 +586,15 @@ public class TrainingActivity extends Activity {
      * This method queries the database to return a cursor with available trainings.
      * @return
      */
+    // TODO: DB
+    /*
     private Cursor getAvailableTrainings() {
         String[] projection = { TrainingPlan._ID, TrainingPlan.DATA };
         String selection = String.format("%s == %d", TrainingPlan._ID,
                 mSelectedTrainingId);
         return managedQuery(TrainingPlan.CONTENT_URI,
                 projection, selection, null, null);
-    }
+    }*/
 
     /**
 	 * This is the sole method responsible for setting the activity UI (apart
@@ -620,11 +602,18 @@ public class TrainingActivity extends Activity {
 	 * responsible for periodic screen changes)
 	 */
 	private void updateScreen() {
+        // deregister current exercise list adapter as we will register an updated one
+        mDrawerExercisesList.setAdapter(null);
+
 		if (mCurrentTraining == null) {
 			// no training started yet, show the start button
 			mCircularProgress.setCurrentState(CircularProgressState.START);
 
-            if(getAvailableTrainings().getCount() > 0){
+            //// TODO: DB if(getAvailableTrainings().getCount() > 0){
+            if(TrainingPlan.getAll().size() > 0){
+                // saved selected training plan ID should always be a valid ID.
+                TrainingPlan selectedTrainingPlan = TrainingPlan.getByTrainingId(mSettings.getSelectedTrainingId());
+                mTrainingSelectorText.setText(selectedTrainingPlan.getName());
                 mTextRectUpperLine.setText("Workout selected:");
                 mTextRectUpperLine.setVisibility(View.VISIBLE);
                 mTrainingSelector.setVisibility(View.VISIBLE);
@@ -863,6 +852,27 @@ public class TrainingActivity extends Activity {
         updateScreen();
     }
 
+    public void onEvent(final TrainingSelectedEvent event){
+        mUiHandler.post(new Runnable() {
+
+            @Override
+            public void run() {
+                selectTraining(event.getSelectedTrainingId());
+                updateScreen();
+            }
+        });
+    }
+
+    /**
+     * This function saves the currently selected training id to persistent storage. It makes sure
+     * that selected training id is a legal (existing). If the input training id is not valid training
+     * id from the first database training is used.
+     * @param trainingId
+     */
+    private void selectTraining(int trainingId){
+        mSettings.saveSelectedTrainingId(trainingId == -1 ? TrainingPlan.getAll().get(0).getTrainingId() : trainingId);
+    }
+
 	/*
 	 * Gets the results from activities started from this activity.
 	 * 
@@ -873,7 +883,7 @@ public class TrainingActivity extends Activity {
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 		switch (requestCode) {
 		case ACTIVITY_REQUEST_TRAININGS_LIST: {
-			// on training selected from list of trainings
+			// on training selected from the list of trainings
 			if (data != null
 					&& resultCode == RESULT_OK
 					&& data.hasExtra(TrainingSelectionList.INTENT_EXTRA_SELECTED_TRAINING_KEY)) {
@@ -887,7 +897,9 @@ public class TrainingActivity extends Activity {
 
 					@Override
 					public void run() {
-						updateTrainingSelector(trainingId);
+                        // TODO: DB
+						//updateTrainingSelector(trainingId);
+                        updateScreen();
 					}
 				});
 			}
@@ -899,130 +911,59 @@ public class TrainingActivity extends Activity {
 		}
 	}
 
-	/**
-	 * This class is used to listen to broadcasts from other services and
-	 * activities.
-	 * 
-	 * @author Igor
-	 * 
-	 */
-	private class ResponseReceiver extends BroadcastReceiver {
 
-		@Override
-		public void onReceive(Context context, Intent intent) {
-			if (intent.getAction().equals(
-					ServerCommunicationService.ACTION_FETCH_TRAINNGS_COMPLETED)) {
-				// on finished fetching trainings
+    public void onEvent(final ReportProgressEvent event){
+        mUiHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                mProgressDialog.setMessage(event.message);
+                mProgressDialog.setMax(event.maxProgress);
+                mProgressDialog.setProgress(event.currentProgress);
+                mProgressDialog.show();
+            }
+        }, 0);
+    }
 
-				mProgressDialog.dismiss();
+    public void onEvent(final EndUploadCompletedTrainings event){
+        mUiHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                    Toast.makeText(
+                            getApplicationContext(),
+                            event.getStatus() ? "Upload ok" : "Upload failed",
+                            Toast.LENGTH_SHORT).show();
+            }
+        }, 0);
 
-				boolean getTrainingSuccessful = intent.getExtras().getBoolean(
-						ServerCommunicationService.PARAM_ACTION_SUCCESSFUL);
+        runTrainingsSync();
+    }
 
-				if (getTrainingSuccessful) {
-					updateTrainingSelector(-1);
-                    updateScreen();
-				}
-			} else if (intent
-					.getAction()
-					.equals(ServerCommunicationService.ACTION_GET_TRAINNGS_LIST_COMPLETED)) {
-				// on list with training names fetched
+    public void onEvent(final DismissProgressEvent event){
+        mUiHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                mProgressDialog.hide();
+            }
+        }, 0);
+    }
 
-				// calculate progress bar information and set progress
-				int totalNumberOfTrainings = intent
-						.getExtras()
-						.getInt(ServerCommunicationService.PARAM_REPORT_PROGRESS_TOTAL);
-				int progress = Math.round(1f / totalNumberOfTrainings * 100f);
-				mProgressDialog.setProgress(progress);
-			} else if (intent
-					.getAction()
-					.equals(ServerCommunicationService.ACTION_REPORT_PROGRESS)) {
-				// on individual training item downloaded
+    public void onEvent(final EndDownloadTrainingsEvent event){
+        if(event.getStatus()){
+            selectTraining(-1);
+            mUiHandler.postDelayed(new Runnable() {
+               @Override
+               public void run() {
+                   updateScreen();
+               }
+           }, 0);
+        } else {
+            mUiHandler.postDelayed(new Runnable() {
+               @Override
+               public void run() {
+                   Toast.makeText(getApplicationContext(), "Download trainings: " + event.getErrorMessage(), Toast.LENGTH_LONG).show();
+               }
+           }, 0);
 
-				// calculate progress bar information and set progress with
-				// training name
-				int totalNumberOfTrainings = intent
-						.getExtras()
-						.getInt(ServerCommunicationService.PARAM_REPORT_PROGRESS_TOTAL);
-				int trainingCount = intent
-						.getExtras()
-						.getInt(ServerCommunicationService.PARAM_REPORT_PROGRESS_CURRENT);
-				String trainingName = intent
-						.getExtras()
-						.getString(
-								ServerCommunicationService.PARAM_REPORT_PROGRESS_TEXT);
-				int progress = Math.round((1f + trainingCount)
-						/ totalNumberOfTrainings * 100f);
-				mProgressDialog.setMessage("Fetching " + trainingName);
-				mProgressDialog.setProgress(progress);
-			} else if (intent.getAction().equals(
-					ServerCommunicationService.ACTION_UPLOAD_TRAININGS_STARTED)) {
-				// started upload the trainings
-
-				mProgressDialog = new ProgressDialog(TrainingActivity.this);
-				mProgressDialog.setIndeterminate(false);
-				mProgressDialog.setMessage("Uploading completed trainings ...");
-				mProgressDialog
-						.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-				mProgressDialog.show();
-
-				// calculate progress bar information and set progress
-				int totalNumberOfTrainings = intent
-						.getExtras()
-						.getInt(ServerCommunicationService.PARAM_UPLOAD_TRAINING_NUM_ALL_ITEMS);
-				int progress = Math.round(1f / totalNumberOfTrainings * 100f);
-				mProgressDialog.setProgress(progress);
-			} else if (intent.getAction().equals(
-					ServerCommunicationService.ACTION_TRAININGS_ITEM_UPLOADED)) {
-				// on individual completed training
-
-				// calculate progress bar information and set progress with
-				// training name
-				int totalNumberOfTrainings = intent
-						.getExtras()
-						.getInt(ServerCommunicationService.PARAM_UPLOAD_TRAINING_NUM_ALL_ITEMS);
-				int trainingCount = intent
-						.getExtras()
-						.getInt(ServerCommunicationService.PARAM_UPLOAD_TRAINING_CUR_ITEM_CNT);
-				String trainingName = intent
-						.getExtras()
-						.getString(
-								ServerCommunicationService.PARAM_UPLOAD_TRAINING_ITEM_NAME);
-				boolean uploadStatus = intent
-						.getExtras()
-						.getBoolean(
-								ServerCommunicationService.PARAM_UPLOAD_TRAINING_ITEM_STATUS);
-				int progress = Math.round((1f + trainingCount)
-						/ totalNumberOfTrainings * 100f);
-				mProgressDialog.setMessage("Uploading " + trainingName + " "
-						+ (uploadStatus ? "OK" : "FAILED"));
-				mProgressDialog.setProgress(progress);
-			} else if (intent
-					.getAction()
-					.equals(ServerCommunicationService.ACTION_UPLOAD_TRAINNGS_COMPLETED)) {
-				// after the all the completed trainings were uploaded (or at
-				// least attempted to upload)
-
-				int successfulItems = intent
-						.getExtras()
-						.getInt(ServerCommunicationService.PARAM_UPLOAD_TRAINING_SUCESS_CNT);
-				int totalNumberOfTrainings = intent
-						.getExtras()
-						.getInt(ServerCommunicationService.PARAM_UPLOAD_TRAINING_NUM_ALL_ITEMS);
-
-				if (mProgressDialog != null && mProgressDialog.isShowing()) {
-					mProgressDialog.dismiss();
-				}
-
-                // once trainings are uploaded, sync new trainings as well
-                runTrainingsSync();
-
-				Toast.makeText(
-						getApplicationContext(),
-						String.format("Uploaded %d of %d items.",
-								successfulItems, totalNumberOfTrainings),
-						Toast.LENGTH_SHORT).show();
-			}
-		}
+        }
 	}
 }

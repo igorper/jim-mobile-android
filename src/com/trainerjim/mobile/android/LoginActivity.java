@@ -1,6 +1,7 @@
 package com.trainerjim.mobile.android;
 
 import com.trainerjim.mobile.android.events.LoginEvent;
+import com.trainerjim.mobile.android.events.ReportProgressEvent;
 import com.trainerjim.mobile.android.network.ServerCommunicationService;
 import com.trainerjim.mobile.android.storage.PermanentSettings;
 
@@ -11,6 +12,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
+import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.view.KeyEvent;
 import android.view.View;
@@ -26,6 +28,11 @@ public class LoginActivity extends Activity {
 	private EditText mPasswordEditText;
 	private EditText mUsernameEditText;
 	private ProgressDialog mLoginProgress;
+
+    /**
+     * UI thread handler.
+     */
+    private Handler mUiHandler = new Handler();
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -81,13 +88,11 @@ public class LoginActivity extends Activity {
 		mLoginProgress.show();
 	}
 
-    public void onEvent(LoginEvent loginEvent){
-        int userId = loginEvent.getUserId();
-
+    public void onEvent(final LoginEvent loginEvent){
         mLoginProgress.dismiss();
 
-        if (userId >= 0) {
-            mSettings.saveUserId(userId);
+        if (loginEvent.getUserId() >= 0) {
+            mSettings.saveUserId(loginEvent.getUserId());
 
             // TODO: remove this with implementation of new API (userId will be used for all
             // subsequent queries)
@@ -98,10 +103,15 @@ public class LoginActivity extends Activity {
                     TrainingActivity.class));
             finish();
         } else {
-            Toast.makeText(
-                    getApplicationContext(),
-                    loginEvent.getStatusMessage(),
-                    Toast.LENGTH_SHORT).show();
+            mUiHandler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    Toast.makeText(
+                            getApplicationContext(),
+                            loginEvent.getStatusMessage(),
+                            Toast.LENGTH_SHORT).show();
+                }
+            }, 0);
         }
     }
 }

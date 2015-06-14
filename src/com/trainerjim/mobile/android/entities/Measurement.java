@@ -14,6 +14,8 @@ public class Measurement {
 	/***********************
 	 * Fields deserialized from server data;
 	 ***********************/
+    private int trainee_id;
+    private Integer trainer_id;
 	private int training_id;
 	private Date start_time;
 	private Date end_time;
@@ -21,17 +23,15 @@ public class Measurement {
 	private String comment;
 	private List<SeriesExecution> series_executions;
 
-	public static Measurement create(String trainingComment,
-			Date trainingStartedTime, Date trainingEndedTime,
-			int trainingRating, List<SeriesExecution> seriesExecutions,
-			int trainingId) {
+	public static Measurement create(Training training, int traineeId) {
 		Measurement retVal = new Measurement();
-		retVal.comment = trainingComment;
-		retVal.start_time = trainingStartedTime;
-		retVal.end_time = trainingEndedTime;
-		retVal.rating = trainingRating;
-		retVal.series_executions = seriesExecutions;
-		retVal.training_id = trainingId;
+		retVal.comment = training.getTrainingComment();
+		retVal.start_time = training.getTrainingStarted();
+		retVal.end_time = training.getTrainingEnded();
+		retVal.rating = training.getTrainingRating();
+		retVal.series_executions = training.getSeriesExecutions();
+		retVal.training_id = training.getTrainingId();
+        retVal.trainee_id = traineeId;
 
 		return retVal;
 
