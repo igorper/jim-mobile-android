@@ -140,7 +140,7 @@ public class TrainingActivity extends Activity {
 				.getDefaultSharedPreferences(this));
 
 		// if we are not logged in yet show the login activity first
-		if (mSettings.getUsername().equals("")) {
+		if (!isUserLoggedIn()) {
 			startActivity(new Intent(TrainingActivity.this, LoginActivity.class));
             finish();
             return;
@@ -257,7 +257,7 @@ public class TrainingActivity extends Activity {
 	 * @return
 	 */
 	private boolean isUserLoggedIn() {
-		return !mSettings.getUsername().equals("");
+		return mSettings.getUserId() != -1;
 	}
 
 
@@ -449,8 +449,7 @@ public class TrainingActivity extends Activity {
 		case R.id.action_logout: {
             cancelCurrentTraining();
 
-			mSettings.saveUsername("");
-			mSettings.savePassword("");
+			mSettings.saveUserId(-1);
 
 			finish();
 
@@ -473,10 +472,6 @@ public class TrainingActivity extends Activity {
 		Intent intent = new Intent(this, ServerCommunicationService.class);
 		intent.putExtra(ServerCommunicationService.INTENT_KEY_ACTION,
 				ServerCommunicationService.ACTION_UPLOAD_COMPLETED_TRAININGS);
-		intent.putExtra(ServerCommunicationService.INTENT_KEY_USERNAME,
-				mSettings.getUsername());
-		intent.putExtra(ServerCommunicationService.INTENT_KEY_PASSWORD,
-				mSettings.getPassword());
 		startService(intent);
 	}
 
@@ -489,10 +484,6 @@ public class TrainingActivity extends Activity {
 		Intent intent = new Intent(this, ServerCommunicationService.class);
 		intent.putExtra(ServerCommunicationService.INTENT_KEY_ACTION,
 				ServerCommunicationService.ACTION_FETCH_TRAININGS);
-		intent.putExtra(ServerCommunicationService.INTENT_KEY_USERNAME,
-				mSettings.getUsername());
-		intent.putExtra(ServerCommunicationService.INTENT_KEY_PASSWORD,
-				mSettings.getPassword());
 
         // TODO: think about where to make sure this is not negative (invalid) - we will also have
         // to check the if the session cookie is set

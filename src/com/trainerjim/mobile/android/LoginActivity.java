@@ -94,11 +94,6 @@ public class LoginActivity extends Activity {
         if (loginEvent.getUserId() >= 0) {
             mSettings.saveUserId(loginEvent.getUserId());
 
-            // TODO: remove this with implementation of new API (userId will be used for all
-            // subsequent queries)
-            mSettings.saveUsername(mUsernameEditText.getText().toString());
-            mSettings.savePassword(mPasswordEditText.getText().toString());
-
             startActivity(new Intent(LoginActivity.this,
                     TrainingActivity.class));
             finish();
