@@ -428,7 +428,7 @@ public class TrainingActivity extends Activity {
 
 		switch (item.getItemId()) {
 		case R.id.action_sync: {
-            runUploadTrainings();
+            runTrainingsSync();
 
 			break;
 		}
@@ -447,11 +447,18 @@ public class TrainingActivity extends Activity {
             break;
         }
 		case R.id.action_logout: {
-            cancelCurrentTraining();
+            new AlertDialog.Builder(this)
+                    .setTitle("Log out")
+                    .setMessage("Are you sure you would like to log out?")
+                    .setIcon(android.R.drawable.ic_dialog_alert)
+                    .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
 
-			mSettings.saveUserId(-1);
-
-			finish();
+                        public void onClick(DialogInterface dialog, int whichButton) {
+                            cancelCurrentTraining();
+                            mSettings.saveUserId(-1);
+                            finish();
+                        }})
+                    .setNegativeButton(android.R.string.no, null).show();
 
 			break;
 		}
@@ -869,8 +876,6 @@ public class TrainingActivity extends Activity {
                 setProgressBarIndeterminateVisibility(false);
             }
         }, 0);
-
-        runTrainingsSync();
     }
 
     public void onEvent(final DismissProgressEvent event){
@@ -897,5 +902,8 @@ public class TrainingActivity extends Activity {
            }
         }, 0);
 
+
+        // after training were downloaded run the upload as well
+        runUploadTrainings();
 	}
 }
