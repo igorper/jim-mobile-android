@@ -13,7 +13,7 @@ public class SeriesExecution {
 	public int num_repetitions;
 	public int weight;
 	public int rest_time;
-	private int duration;
+	private int duration_seconds;
 	public int rating;
 
 	private SeriesExecution() {
@@ -27,18 +27,18 @@ public class SeriesExecution {
 	 * @param numRepetitions
 	 * @param weight
 	 * @param restTime
-	 * @param duration
+	 * @param duration_seconds
 	 * @param rating
 	 * @return
 	 */
 	public static SeriesExecution create(int seriesId, int numRepetitions,
-			int weight, int restTime, int duration, int rating) {
+			int weight, int restTime, int duration_seconds, int rating) {
 		SeriesExecution retVal = new SeriesExecution();
 		retVal.series_id = seriesId;
 		retVal.num_repetitions = numRepetitions;
 		retVal.weight = weight;
 		retVal.rest_time = restTime;
-		retVal.duration = duration;
+		retVal.duration_seconds = duration_seconds;
 		retVal.rating = rating;
 
 		return retVal;
@@ -49,8 +49,8 @@ public class SeriesExecution {
 	 * 
 	 * @return
 	 */
-	public int getDuration() {
-		return duration;
+	public int getDurationSeconds() {
+		return duration_seconds;
 	}
 	
 	public void setWeight(int weight){

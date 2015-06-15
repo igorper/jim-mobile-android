@@ -433,7 +433,7 @@ public class Training {
 	public int getActiveTrainingDuration() {
 		int activeDuration = 0;
 		for (SeriesExecution se : mSeriesExecutions) {
-			activeDuration += se.getDuration();
+			activeDuration += se.getDurationSeconds();
 		}
 
 		return activeDuration;
