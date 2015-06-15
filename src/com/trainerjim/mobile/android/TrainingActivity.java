@@ -134,17 +134,6 @@ public class TrainingActivity extends Activity {
 
         EventBus.getDefault().register(this);
 
-        // TODO: We should move this to event bus
-        IntentFilter filter = new IntentFilter(
-                ServerCommunicationService.ACTION_FETCH_TRAINNGS_COMPLETED);
-        filter.addAction(ServerCommunicationService.ACTION_GET_TRAINNGS_LIST_COMPLETED);
-        filter.addAction(ServerCommunicationService.ACTION_REPORT_PROGRESS);
-        filter.addAction(ServerCommunicationService.ACTION_UPLOAD_TRAININGS_STARTED);
-        filter.addAction(ServerCommunicationService.ACTION_TRAININGS_ITEM_UPLOADED);
-        filter.addAction(ServerCommunicationService.ACTION_UPLOAD_TRAINNGS_COMPLETED);
-
-        filter.addCategory(Intent.CATEGORY_DEFAULT);
-
         Picasso.with(getApplicationContext()).setIndicatorsEnabled(true);
 
         mSettings = PermanentSettings.create(PreferenceManager
@@ -160,6 +149,8 @@ public class TrainingActivity extends Activity {
         // used this pattern for displaying the action bar in this activity
         // http://stackoverflow.com/questions/8500283/how-to-hide-action-bar-before-activity-is-created-and-then-show-it-again
         getWindow().requestFeature(Window.FEATURE_ACTION_BAR);
+        getWindow().requestFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
+
         getActionBar().hide();
         getActionBar().setDisplayHomeAsUpEnabled(false);
 
@@ -254,6 +245,9 @@ public class TrainingActivity extends Activity {
         if (isUserLoggedIn() && TrainingPlan.getAll().size() == 0) {
 			runTrainingsSync();
 		}
+
+        // always upload the trainings on start
+        runUploadTrainings();
 	}
 
 	/**
@@ -346,44 +340,6 @@ public class TrainingActivity extends Activity {
 				: Utils.getGsonObject().toJson(mCurrentTraining));
 	}
 
-    // TODO: DB
-	/*private boolean areTrainingsAvailable() {
-		String[] projection = { TrainingPlan._ID };
-		Cursor trainings = managedQuery(TrainingPlan.CONTENT_URI, projection,
-				null, null, null);
-
-		return trainings.moveToNext();
-
-	}*/
-
-	/**
-	 * This method updates the training selector text to the first training plan
-	 * in the database or to the plan corresponding with the @param
-	 * trainingPlanID. NOTE: Additionally, this method is responsible for
-	 * settings the mSelectedTrainingId variable, which holds the ID of the
-	 * currently selected training.
-	 */
-	/**
-	 * @param trainingPlanID
-	 */
-	/*private void updateTrainingSelector(long trainingPlanID) {
-		List<TrainingPlan> trainingPlans = TrainingPlan.getAll();
-
-        if(trainingPlans.size() > 0){
-            TrainingPlan currentTrainingPlan = trainingPlans.get(0);
-            // for now just select the first training, later we should store the currently selected
-            // training to always show the one that was recently selected by the trainer
-            mSelectedTrainingId = currentTrainingPlan.getTrainingId();
-            mTrainingSelectorText.setText(currentTrainingPlan.getName());
-            mTrainingSelector.setVisibility(View.VISIBLE);
-            mTextRectOneLine.setVisibility(View.GONE);
-        } else {
-            mTrainingSelector.setVisibility(View.GONE);
-            mTextRectOneLine.setText("NO TRAININGS.");
-            mTextRectOneLine.setVisibility(View.VISIBLE);
-        }
-	}*/
-
 	/**
 	 * Toggles the visibility of additional info circular button overlay and
 	 * sets the appropriate icon.
@@ -442,8 +398,8 @@ public class TrainingActivity extends Activity {
 		toggleInfoButtonVisible(!mCircularProgress.isInfoVisible());
 	}
 
-	@Override
-	public boolean onCreateOptionsMenu(android.view.Menu menu) {
+    @Override
+    public boolean onCreateOptionsMenu(android.view.Menu menu) {
         MenuInflater inflater = getMenuInflater();
 
         if(mCurrentTraining == null) {
@@ -452,7 +408,7 @@ public class TrainingActivity extends Activity {
             inflater.inflate(R.menu.active_training_actions, menu);
         }
         return super.onCreateOptionsMenu(menu);
-	};
+    };
 
     private void cancelCurrentTraining() {
         mUiHandler.removeCallbacks(mUpdateRestTimer);
@@ -511,6 +467,9 @@ public class TrainingActivity extends Activity {
 	 * Initiates the upload of completed trainings.
 	 */
 	private void runUploadTrainings() {
+        // show the progress bar
+        setProgressBarIndeterminateVisibility(true);
+
 		Intent intent = new Intent(this, ServerCommunicationService.class);
 		intent.putExtra(ServerCommunicationService.INTENT_KEY_ACTION,
 				ServerCommunicationService.ACTION_UPLOAD_COMPLETED_TRAININGS);
@@ -525,6 +484,8 @@ public class TrainingActivity extends Activity {
 	 * Initiates the training sync process.
 	 */
 	private void runTrainingsSync() {
+        setProgressBarIndeterminateVisibility(true);
+
 		Intent intent = new Intent(this, ServerCommunicationService.class);
 		intent.putExtra(ServerCommunicationService.INTENT_KEY_ACTION,
 				ServerCommunicationService.ACTION_FETCH_TRAININGS);
@@ -581,20 +542,6 @@ public class TrainingActivity extends Activity {
 
 		updateScreen();
 	}
-
-    /**
-     * This method queries the database to return a cursor with available trainings.
-     * @return
-     */
-    // TODO: DB
-    /*
-    private Cursor getAvailableTrainings() {
-        String[] projection = { TrainingPlan._ID, TrainingPlan.DATA };
-        String selection = String.format("%s == %d", TrainingPlan._ID,
-                mSelectedTrainingId);
-        return managedQuery(TrainingPlan.CONTENT_URI,
-                projection, selection, null, null);
-    }*/
 
     /**
 	 * This is the sole method responsible for setting the activity UI (apart
@@ -928,10 +875,7 @@ public class TrainingActivity extends Activity {
         mUiHandler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                    Toast.makeText(
-                            getApplicationContext(),
-                            event.getStatus() ? "Upload ok" : "Upload failed",
-                            Toast.LENGTH_SHORT).show();
+                setProgressBarIndeterminateVisibility(false);
             }
         }, 0);
 
@@ -948,22 +892,19 @@ public class TrainingActivity extends Activity {
     }
 
     public void onEvent(final EndDownloadTrainingsEvent event){
-        if(event.getStatus()){
-            selectTraining(-1);
-            mUiHandler.postDelayed(new Runnable() {
-               @Override
-               public void run() {
+
+        mUiHandler.postDelayed(new Runnable() {
+           @Override
+           public void run() {
+               setProgressBarIndeterminateVisibility(false);
+               if(event.getStatus()) {
+                   selectTraining(-1);
                    updateScreen();
-               }
-           }, 0);
-        } else {
-            mUiHandler.postDelayed(new Runnable() {
-               @Override
-               public void run() {
+               } else {
                    Toast.makeText(getApplicationContext(), "Download trainings: " + event.getErrorMessage(), Toast.LENGTH_LONG).show();
                }
-           }, 0);
+           }
+        }, 0);
 
-        }
 	}
 }
