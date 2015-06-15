@@ -244,8 +244,6 @@ public class ServerCommunicationService extends IntentService {
     @Override
     protected void onHandleIntent(Intent intent) {
         String action = intent.getExtras().getString(INTENT_KEY_ACTION);
-        String username = intent.getExtras().getString(INTENT_KEY_USERNAME);
-        String password = intent.getExtras().getString(INTENT_KEY_PASSWORD);
 
         // initialize rest communication channel
         restAdapter = new RestAdapter.Builder().setEndpoint(getResources().getString(R.string.server_url))
@@ -253,46 +251,22 @@ public class ServerCommunicationService extends IntentService {
                 .setRequestInterceptor(ApiHeaders.getInstance(this)).build();
         service = restAdapter.create(TrainerJimService.class);
 
-        // this one will hold the status of the service task (each action should
-        // return a status)
-        Intent statusIntent = new Intent();
-        statusIntent.addCategory(Intent.CATEGORY_DEFAULT);
-
         if (action.equals(ACTION_UPLOAD_COMPLETED_TRAININGS)) {
             EventBus.getDefault().post(uploadCompletedTrainings());
         } else if (action.equals(ACTION_CHECK_CREDENTIALS)) {
+
+            String username = intent.getExtras().getString(INTENT_KEY_USERNAME);
+            String password = intent.getExtras().getString(INTENT_KEY_PASSWORD);
+
 
             EventBus.getDefault().post(checkCredentials(username, password));
 
         } else if (action.equals(ACTION_FETCH_TRAININGS)) {
             int userId = intent.getExtras().getInt(INTENT_KEY_USER_ID);
-
-            EndDownloadTrainingsEvent event = fetchTrainings(userId);
-
-            EventBus.getDefault().post(event);
+            EventBus.getDefault().post(fetchTrainings(userId));
         }
 
-        sendBroadcast(statusIntent);
     }
-
-    /**
-     * This function reports progress information from the service to interested listener. Each
-     * progress messages contains all required information (text, current and total progress).
-     *
-     * @param text            is the message to describe the progress
-     * @param currentProgress is the current progress value
-     * @param totalProgress   is the total progress value
-     */
-    private void reportProgress(String text, int currentProgress, int totalProgress) {
-        Intent broadcastIntent = new Intent();
-        broadcastIntent.setAction(ACTION_REPORT_PROGRESS);
-        broadcastIntent.addCategory(Intent.CATEGORY_DEFAULT);
-        broadcastIntent.putExtra(PARAM_REPORT_PROGRESS_TEXT, text);
-        broadcastIntent.putExtra(PARAM_REPORT_PROGRESS_CURRENT, currentProgress);
-        broadcastIntent.putExtra(PARAM_REPORT_PROGRESS_TOTAL, totalProgress);
-        sendBroadcast(broadcastIntent);
-    }
-
 
     /**
      * @return
@@ -301,7 +275,7 @@ public class ServerCommunicationService extends IntentService {
         ActiveAndroid.beginTransaction();
         try {
 
-            // fetch server trainings and create a lookup
+            // fetch server trainings and create a lookup table
             List<TrainingDescription> trainingsManifest = service.getTrainingsList();
             Map<Integer, TrainingDescription> trainingsManifestLookup = new HashMap<Integer, TrainingDescription>();
             for (TrainingDescription trainingDescription : trainingsManifest) {
@@ -315,21 +289,19 @@ public class ServerCommunicationService extends IntentService {
                 int localTrainingId = localTraining.getTrainingId();
                 if (trainingsManifestLookup.containsKey(localTrainingId) &&
                         trainingsManifestLookup.get(localTrainingId).getUpdatedDate().getTime() == localTraining.getUpdatedTimestamp()) {
-                    // remote training has a newer timestamp than local, replace it
+                    // remote training has the same timestamp, no need to download it
                     trainingsManifestLookup.remove(localTrainingId);
                 } else {
                     localTraining.delete();
                 }
             }
 
-            // store only the trainings that have been changed
+            // fetch only the trainings that are new or have been changed
             trainingsManifest = new ArrayList<TrainingDescription>(trainingsManifestLookup.values());
-
             for (int i = 0; i < trainingsManifest.size(); i++) {
                 TrainingDescription trainingDescription = trainingsManifest.get(i);
 
                 // notify that we are fetching a specific training
-                //reportProgress(trainingDescription.getName(), i, trainingsManifest.size());
                 EventBus.getDefault().post(new ReportProgressEvent(i, trainingsManifest.size(), "Fetching training " + trainingDescription.getName()));
 
                 // fetch individual training
@@ -337,9 +309,9 @@ public class ServerCommunicationService extends IntentService {
 
                 HashMap<Integer, List<String>> exercisePhotoLookup = new HashMap<Integer, List<String>>();
                 try {
-                    // TODO: think about how to implement downloading images
-                    // we might need to use a database to store the link between exercises and exercise images
-                    // (or just encode them in exercise names)
+                    // download exercise photos. we do this by precaching them using the picasso library.
+                    // later, when we use the images, we set a flag saying they should always be loaded
+                    // from cache (thus the images are not transferred and no data transfer should happen)
                     List<ExercisePhoto> exercisePhotos = service.getExercisePhotos(userId, trainingDescription.getId());
                     for (ExercisePhoto photo : exercisePhotos) {
                         Picasso.with(this)
@@ -348,6 +320,7 @@ public class ServerCommunicationService extends IntentService {
                                         photo.medium_image_url))
                                 .fetch();
 
+                        // create an empty list for each exercise type
                         if (!exercisePhotoLookup.containsKey(photo.exercise_type_id)) {
                             exercisePhotoLookup.put(photo.exercise_type_id, new ArrayList<String>());
                         }
@@ -364,9 +337,10 @@ public class ServerCommunicationService extends IntentService {
                     }
 
                 } catch (RetrofitError er) {
+                    // this is the unauthorized status
                     if (er.getResponse().getStatus() == 401) {
-                        // TODO: do something here!
-                        // unauthorized, try to authroize, and repeat the operation, if fails report an error
+                        // TODO: we should think what shall happen it the user is not authorized
+                        // (we need a mechanizm that will be used through the application)
                     }
                 }
 
@@ -392,7 +366,6 @@ public class ServerCommunicationService extends IntentService {
      */
     private EndUploadCompletedTrainings uploadCompletedTrainings() {
         List<CompletedTraining> completedTrainings = CompletedTraining.getAll();
-        int counter=0;
 
         for(CompletedTraining training : completedTrainings){
             Measurement measurement = Utils.getGsonObject().fromJson(training.getData(), Measurement.class);
@@ -400,58 +373,16 @@ public class ServerCommunicationService extends IntentService {
                 Response response = service.uploadMeasurement(measurement);
                 if(response.getStatus()==200){
                     training.delete();
-                    counter++;
-
                 }
             }catch (Exception ex){
-                // TODO: log?
-                // this might fail in the middle (some uploads might succeed, others fail)
+                // this might fail in the middle (some uploads might succeed, others fail).
+                // in such cases the user should just try to run this once more
                 new EndUploadCompletedTrainings(false);
             }
 
         }
 
 		return new EndUploadCompletedTrainings(true);
-    }
-
-    /**
-     * This method extracts an array of bytes from the input stream.
-     *
-     * @param content
-     * @return
-     * @throws IOException
-     */
-    private static byte[] extractBytesFromStream(InputStream content) throws IOException {
-        int BYTE_COPY_BUFFER = 5000;
-        BufferedInputStream bis = new BufferedInputStream(content);
-
-        // Read bytes to the Buffer until there is nothing more to read(-1).
-        ByteArrayBuffer baf = new ByteArrayBuffer(BYTE_COPY_BUFFER);
-        int current = 0;
-        while ((current = bis.read()) != -1) {
-            baf.append((byte) current);
-        }
-
-        return baf.toByteArray();
-    }
-
-    /**
-     * This method extracts a JSON string from stream.
-     *
-     * @param content
-     * @return
-     * @throws IOException could happen while reading the from stream.
-     */
-    private static String extractStringFromStream(InputStream content)
-            throws IOException {
-        BufferedReader reader = new BufferedReader(new InputStreamReader(
-                content));
-        String line;
-        StringBuilder builder = new StringBuilder();
-        while ((line = reader.readLine()) != null) {
-            builder.append(line);
-        }
-        return builder.toString();
     }
 
     /**
@@ -468,7 +399,6 @@ public class ServerCommunicationService extends IntentService {
             Response cred = service.login(loginData);
             for (Header header : cred.getHeaders()) {
                 if (header.getName().equals("Set-Cookie") && header.getValue().startsWith("_trainerjim_session")) {
-                    // TODO: think about encapsulating shared preferences access into the apiheaders class
                     ApiHeaders.getInstance(this).setSessionId(header.getValue());
                 }
             }

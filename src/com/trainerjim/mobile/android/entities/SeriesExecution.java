@@ -9,12 +9,12 @@ public class SeriesExecution {
 	/***********************
 	 * Fields deserialized from server data;
 	 ***********************/
-	public int series_id;
-	public int num_repetitions;
-	public int weight;
-	public int rest_time;
+	private int series_id;
+    private int num_repetitions;
+    private int weight;
+    private int rest_time;
 	private int duration_seconds;
-	public int rating;
+    private int rating;
 
 	private SeriesExecution() {
 
