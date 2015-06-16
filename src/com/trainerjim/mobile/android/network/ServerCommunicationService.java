@@ -252,12 +252,13 @@ public class ServerCommunicationService extends IntentService {
         service = restAdapter.create(TrainerJimService.class);
 
         if (action.equals(ACTION_UPLOAD_COMPLETED_TRAININGS)) {
-            EventBus.getDefault().post(uploadCompletedTrainings());
+            int userId = intent.getExtras().getInt(INTENT_KEY_USER_ID);
+
+            EventBus.getDefault().post(uploadCompletedTrainings(userId));
         } else if (action.equals(ACTION_CHECK_CREDENTIALS)) {
 
             String username = intent.getExtras().getString(INTENT_KEY_USERNAME);
             String password = intent.getExtras().getString(INTENT_KEY_PASSWORD);
-
 
             EventBus.getDefault().post(checkCredentials(username, password));
 
@@ -284,7 +285,7 @@ public class ServerCommunicationService extends IntentService {
 
             // keep only a list of remote trainings that have changed (to be fetched), remove trainings
             // from the local database that are not present in the list of remote trainings
-            List<TrainingPlan> localTrainings = TrainingPlan.getAll();
+            List<TrainingPlan> localTrainings = TrainingPlan.getAll(userId);
             for (TrainingPlan localTraining : localTrainings) {
                 int localTrainingId = localTraining.getTrainingId();
                 if (trainingsManifestLookup.containsKey(localTrainingId) &&
@@ -345,7 +346,7 @@ public class ServerCommunicationService extends IntentService {
                 }
 
                 // save training to db
-                new TrainingPlan(trainingDescription.getName(), Utils.getGsonObject().toJson(training), trainingDescription.getId(), trainingDescription.getUpdatedDate().getTime()).save();
+                new TrainingPlan(trainingDescription.getName(), Utils.getGsonObject().toJson(training), trainingDescription.getId(), trainingDescription.getUpdatedDate().getTime(), userId).save();
             }
             EventBus.getDefault().post(new DismissProgressEvent());
             ActiveAndroid.setTransactionSuccessful();
@@ -364,8 +365,8 @@ public class ServerCommunicationService extends IntentService {
      *
      * @return
      */
-    private EndUploadCompletedTrainings uploadCompletedTrainings() {
-        List<CompletedTraining> completedTrainings = CompletedTraining.getAll();
+    private EndUploadCompletedTrainings uploadCompletedTrainings(int userId) {
+        List<CompletedTraining> completedTrainings = CompletedTraining.getAll(userId);
 
         for(CompletedTraining training : completedTrainings){
             Measurement measurement = Utils.getGsonObject().fromJson(training.getData(), Measurement.class);

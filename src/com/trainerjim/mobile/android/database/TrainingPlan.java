@@ -22,16 +22,20 @@ public class TrainingPlan extends Model {
     @Column(name = "updated_timestamp")
     public long updatedTimestamp;
 
+    @Column(name = "user_id", index = true)
+    public int userId;
+
     public TrainingPlan() {
         super();
     }
 
-    public TrainingPlan(String name, String data, int trainingId, long updatedTimestamp) {
+    public TrainingPlan(String name, String data, int trainingId, long updatedTimestamp, int userId) {
         super();
         this.name = name;
         this.data = data;
         this.trainingId = trainingId;
         this.updatedTimestamp = updatedTimestamp;
+        this.userId = userId;
     }
 
     public String getName() { return name; }
@@ -44,10 +48,19 @@ public class TrainingPlan extends Model {
 
     public long getUpdatedTimestamp() { return  updatedTimestamp; }
 
+    public int getUserId() { return userId; }
+
     public void update(String name, long updateTimestamp, String data) {
         this.name = name;
         this.updatedTimestamp = updateTimestamp;
         this.data = data;
+    }
+
+    public static List<TrainingPlan> getAll(int userId) {
+        return new Select()
+                .from(TrainingPlan.class)
+                .where("user_id = ?", userId)
+                .execute();
     }
 
     public static List<TrainingPlan> getAll() {

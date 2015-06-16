@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.CursorAdapter;
@@ -16,6 +17,7 @@ import android.widget.Toast;
 import com.trainerjim.mobile.android.database.TrainingPlan;
 import com.trainerjim.mobile.android.events.ReportProgressEvent;
 import com.trainerjim.mobile.android.events.TrainingSelectedEvent;
+import com.trainerjim.mobile.android.storage.PermanentSettings;
 import com.trainerjim.mobile.android.ui.TrainingAdapter;
 
 import java.util.ArrayList;
@@ -29,16 +31,10 @@ public class TrainingSelectionList extends ListActivity {
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
-        // TODO: DB
-		/*
-		String[] projection = { TrainingPlan._ID, TrainingPlan.NAME};
-	    String[] uiBindFrom = { TrainingPlan.NAME };
-	    int[] uiBindTo = { R.id.textTrainingName };
-	    Cursor trainings = managedQuery(
-	            TrainingPlan.CONTENT_URI, projection, null, null, null);
-	    CursorAdapter adapter = new SimpleCursorAdapter(getApplicationContext(), R.layout.list_row, trainings,
-	            uiBindFrom, uiBindTo);*/
-	    setListAdapter(new TrainingAdapter(getApplicationContext(), new ArrayList<TrainingPlan>(TrainingPlan.getAll())));
+        PermanentSettings settings = PermanentSettings.create(PreferenceManager
+                .getDefaultSharedPreferences(this));
+
+	    setListAdapter(new TrainingAdapter(getApplicationContext(), new ArrayList<TrainingPlan>(TrainingPlan.getAll(settings.getUserId()))));
 	}
 
 	@Override

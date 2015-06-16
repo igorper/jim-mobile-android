@@ -242,7 +242,7 @@ public class TrainingActivity extends Activity {
 
 		// try to fetch trainings if not available
 		// TODO: DB
-        if (isUserLoggedIn() && TrainingPlan.getAll().size() == 0) {
+        if (isUserLoggedIn() && TrainingPlan.getAll(mSettings.getUserId()).size() == 0) {
 			runTrainingsSync();
 		}
 
@@ -479,6 +479,11 @@ public class TrainingActivity extends Activity {
 		Intent intent = new Intent(this, ServerCommunicationService.class);
 		intent.putExtra(ServerCommunicationService.INTENT_KEY_ACTION,
 				ServerCommunicationService.ACTION_UPLOAD_COMPLETED_TRAININGS);
+
+        // TODO: think about where to make sure this is not negative (invalid) - we will also have
+        // to check the if the session cookie is set
+        intent.putExtra(ServerCommunicationService.INTENT_KEY_USER_ID,
+                mSettings.getUserId());
 		startService(intent);
 	}
 
@@ -524,7 +529,8 @@ public class TrainingActivity extends Activity {
 				// overview button was clicked
 
 				// store training to the database
-                new CompletedTraining(mCurrentTraining.getTrainingName(), Utils.getGsonObject().toJson(mCurrentTraining.extractMeasurement(mSettings.getUserId()))).save();
+                int userId = mSettings.getUserId();
+                new CompletedTraining(mCurrentTraining.getTrainingName(), Utils.getGsonObject().toJson(mCurrentTraining.extractMeasurement(userId)), userId).save();
 
 				mCurrentTraining = null;
 			}
@@ -555,7 +561,7 @@ public class TrainingActivity extends Activity {
 			mCircularProgress.setCurrentState(CircularProgressState.START);
 
             //// TODO: DB if(getAvailableTrainings().getCount() > 0){
-            if(TrainingPlan.getAll().size() > 0){
+            if(TrainingPlan.getAll(mSettings.getUserId()).size() > 0){
                 // saved selected training plan ID should always be a valid ID.
                 TrainingPlan selectedTrainingPlan = TrainingPlan.getByTrainingId(mSettings.getSelectedTrainingId());
                 mTrainingSelectorText.setText(selectedTrainingPlan.getName());
@@ -815,7 +821,7 @@ public class TrainingActivity extends Activity {
      * @param trainingId
      */
     private void selectTraining(int trainingId){
-        mSettings.saveSelectedTrainingId(trainingId == -1 ? TrainingPlan.getAll().get(0).getTrainingId() : trainingId);
+        mSettings.saveSelectedTrainingId(trainingId == -1 ? TrainingPlan.getAll(mSettings.getUserId()).get(0).getTrainingId() : trainingId);
     }
 
 	/*

@@ -1,5 +1,7 @@
 package com.trainerjim.mobile.android;
 
+import com.trainerjim.mobile.android.database.CompletedTraining;
+import com.trainerjim.mobile.android.database.TrainingPlan;
 import com.trainerjim.mobile.android.events.LoginEvent;
 import com.trainerjim.mobile.android.events.ReportProgressEvent;
 import com.trainerjim.mobile.android.network.ServerCommunicationService;
@@ -18,6 +20,8 @@ import android.view.KeyEvent;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
+
+import java.util.List;
 
 import de.greenrobot.event.EventBus;
 
