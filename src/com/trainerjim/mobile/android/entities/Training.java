@@ -40,6 +40,8 @@ public class Training {
 	private int id;
 	private String name;
 	private List<Exercise> exercises;
+    // TODO: this is not yet implemented on server an thus false all the time
+    private boolean mCircular;
 
 	/************************
 	 * Fields deserialized from local data.
@@ -280,7 +282,20 @@ public class Training {
 		if (current != null && !current.moveToNextSeries()) {
             removeExercise(mSelectedExercisePosition);
 		}
-	}
+
+        if(mCircular){
+            /**
+             * If circular training move forward the next exercise and loop back to the first once at
+             * the last one is finished. The logic:
+             * - if there is only one exericse -> just select it (to prevent divide by 0)
+             * - if looped back to the first exercise 0 should be added, otherwise 1
+             */
+            mSelectedExercisePosition = mExercisesLeft.size() == 1 ? 0 :
+                    (mSelectedExercisePosition % (mExercisesLeft.size() - 1) +
+                    (mSelectedExercisePosition == (mExercisesLeft.size() - 1) ? 0 : 1));
+        }
+
+    }
 
 
     public void removeExercise(int position) {
