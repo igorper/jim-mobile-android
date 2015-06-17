@@ -16,7 +16,6 @@ import java.util.zip.ZipOutputStream;
 import android.content.Context;
 import android.util.Log;
 
-import com.trainerjim.mobile.android.AccelerationRecorder.AccelerationRecordingTimestamps;
 import com.trainerjim.mobile.android.util.Utils;
 
 /**
@@ -222,34 +221,32 @@ public class Training {
 	 * 
 	 * @return
 	 */
-	public void endExercise(AccelerationRecordingTimestamps timestamps) {
+	public void endExercise() {
 		long exerciseEnd = System.currentTimeMillis();
 		Exercise currentExercise = mExercisesLeft.get(mSelectedExercisePosition);
 		Series currentSeries = currentExercise.getCurrentSeries();
 
-        // if the exercise was tempo guided, count the number of completed tempo guidance
-        // repetitions, otherwise use the number of planned repetitions
+        int duration = calculateDurationInSeconds(mExerciseStart,
+                        exerciseEnd);
+
+        // if the exercise was manual
         int executedRepetitions = currentExercise.getGuidanceType().equals(
-                Exercise.GUIDANCE_TYPE_TEMPO) ?
-                currentSeries.getCurrentRepetition() :
-                currentSeries.getNumberTotalRepetitions();
+                Exercise.GUIDANCE_TYPE_MANUAL) ?
+                currentSeries.getNumberTotalRepetitions() :
+                duration;
 
 		// create series execution
-		SeriesExecution currentSeriesExecution = SeriesExecution
-					.create(currentSeries.getId(),
-                            executedRepetitions,
-							currentSeries.getWeight(),
-							calculateDurationInSeconds(mLastPauseStart,
-									mExerciseStart),
-							calculateDurationInSeconds(mExerciseStart,
-									exerciseEnd),
-							mCurrentSeriesExecutionRating);
-
+        mSeriesExecutions.add(SeriesExecution
+                .create(currentSeries.getId(),
+                        executedRepetitions,
+                        currentSeries.getWeight(),
+                        calculateDurationInSeconds(mLastPauseStart,
+                                mExerciseStart),
+                        duration,
+                        mCurrentSeriesExecutionRating));
 
 		// reset the series execution rating for the next exercise
 		mCurrentSeriesExecutionRating = -1;
-
-		mSeriesExecutions.add(currentSeriesExecution);
 
 		// start new rest
 		mLastPauseStart = System.currentTimeMillis();

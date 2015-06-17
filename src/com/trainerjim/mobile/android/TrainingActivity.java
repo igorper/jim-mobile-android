@@ -101,8 +101,6 @@ public class TrainingActivity extends Activity {
 
     private ActionBarDrawerToggle mDrawerToggle;
 
-	private AccelerationRecorder mAccelerationRecorder;
-
 	/**
 	 * Holds the currently active training or {@code null} if no training is
 	 * active;
@@ -237,9 +235,6 @@ public class TrainingActivity extends Activity {
 
         registerForContextMenu(mDrawerExercisesList);
 
-		mAccelerationRecorder = AccelerationRecorder
-				.create(getApplicationContext());
-
 		// try to fetch trainings if not available
 		// TODO: DB
         if (isUserLoggedIn() && TrainingPlan.getAll(mSettings.getUserId()).size() == 0) {
@@ -368,12 +363,8 @@ public class TrainingActivity extends Activity {
     public void onEvent(EndExerciseEvent event){
         mUiHandler.removeCallbacks(mUpdateRestTimer);
 
-        // stop acceleration sampling and get acceleration timestamps only if acceleration sampling is enabled
-        AccelerationRecorder.AccelerationRecordingTimestamps timestamps = getResources().getBoolean(R.bool.sample_acceleration) ? mAccelerationRecorder
-                .stopAccelerationSampling() : null;
-
         // end this exercise (series)
-        mCurrentTraining.endExercise(timestamps);
+        mCurrentTraining.endExercise();
 
         // advance to the next activity
         mCurrentTraining.nextActivity();
@@ -786,19 +777,6 @@ public class TrainingActivity extends Activity {
         mCurrentTraining.startExercise();
 
         showExerciseRateView();
-
-        if(getResources().getBoolean(R.bool.sample_acceleration)) {
-            // do acceleration sampling
-            try {
-                mAccelerationRecorder.startAccelerationSampling(
-                        mCurrentTraining.getTrainingStartTimestamp(),
-                        mCurrentTraining.getRawFile(getApplicationContext()));
-            } catch (IOException e) {
-                Log.e(TAG,
-                        "Unable to start acceleration sampling: "
-                                + e.getMessage());
-            }
-        }
 
         updateScreen();
     }
