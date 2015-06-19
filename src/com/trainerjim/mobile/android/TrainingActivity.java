@@ -729,7 +729,8 @@ public class TrainingActivity extends Activity {
 			mCircularProgress.setExerciseProgressValue(curExercise
 					.getAllSeriesCount() - curExercise.getSeriesLeftCount());
 
-			mInfoButton.setVisibility(View.VISIBLE);
+            // show the info button only if the get ready timer is not running
+            mInfoButton.setVisibility(mGetReadyTimer.isStarted() ? View.INVISIBLE : View.VISIBLE);
 			mBottomContainer.setVisibility(View.VISIBLE);
 			mSeriesInformation.setVisibility(View.VISIBLE);
 			mTrainingSelector.setVisibility(View.VISIBLE);
