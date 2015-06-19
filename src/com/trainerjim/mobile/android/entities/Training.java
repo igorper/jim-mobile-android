@@ -40,8 +40,7 @@ public class Training {
 	private int id;
 	private String name;
 	private List<Exercise> exercises;
-    // TODO: this is not yet implemented on server an thus false all the time
-    private boolean mCircular;
+    private boolean is_circular;
 
 	/************************
 	 * Fields deserialized from local data.
@@ -279,20 +278,40 @@ public class Training {
 	 */
 	public void nextActivity() {
 		Exercise current = getCurrentExercise();
-		if (current != null && !current.moveToNextSeries()) {
+
+        // no more exercises, nothing to do
+        if(current == null){
+            return;
+        }
+
+        boolean hasNextSeries = current.moveToNextSeries();
+
+        // remove current exercise if it does not have any more series
+		if (!hasNextSeries) {
             removeExercise(mSelectedExercisePosition);
 		}
 
-        if(mCircular){
+        if(is_circular){
             /**
-             * If circular training move forward the next exercise and loop back to the first once at
+             * If circular training move forward the next exercise and loop back to the first once
              * the last one is finished. The logic:
              * - if there is only one exericse -> just select it (to prevent divide by 0)
-             * - if looped back to the first exercise 0 should be added, otherwise 1
+             * - if the exercise does not have any more series we don't need to do anything (the next
+             * exercise becomes the current), except if the current exercise was at the last position
+             * (in that case we need to loop through - to do first one)
+             * - otherwise just increase the selected exercise count by one (or fall through to the
+             * first position)
              */
-            mSelectedExercisePosition = mExercisesLeft.size() == 1 ? 0 :
-                    (mSelectedExercisePosition % (mExercisesLeft.size() - 1) +
-                    (mSelectedExercisePosition == (mExercisesLeft.size() - 1) ? 0 : 1));
+            if(mExercisesLeft.size() == 1){
+                mSelectedExercisePosition = 0;
+            } else {
+                boolean isLastExercise = mSelectedExercisePosition == (mExercisesLeft.size() -1);
+                if(hasNextSeries || isLastExercise){
+                    mSelectedExercisePosition =  (mSelectedExercisePosition % (mExercisesLeft.size() - 1) +
+                            (isLastExercise ? 0 : 1));
+                }
+
+            }
         }
 
     }
