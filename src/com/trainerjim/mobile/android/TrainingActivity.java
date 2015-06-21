@@ -37,6 +37,9 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.analytics.GoogleAnalytics;
+import com.google.android.gms.analytics.HitBuilders;
+import com.google.android.gms.analytics.Tracker;
 import com.squareup.picasso.Picasso;
 import com.trainerjim.mobile.android.database.CompletedTraining;
 import com.trainerjim.mobile.android.database.TrainingPlan;
@@ -112,6 +115,7 @@ public class TrainingActivity extends Activity {
 	 */
 	private Handler mUiHandler = new Handler();
 
+
     /**
      * This runnable updates the screen during the rest state.It calls itself
      * recursively until externally stopped or until there are no more exercises
@@ -125,10 +129,21 @@ public class TrainingActivity extends Activity {
 
     private ViewPager mViewPager;
 
+    private static GoogleAnalytics mAnalytics;
+    private static Tracker mTracker;
+
     @Override
 	protected void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
+
+        mAnalytics = GoogleAnalytics.getInstance(this);
+        mAnalytics.setLocalDispatchPeriod(100);
+
+        mTracker = mAnalytics.newTracker("UA-64326228-1"); // Replace with actual tracker/property Id
+        mTracker.enableExceptionReporting(true);
+        mTracker.enableAdvertisingIdCollection(true);
+        mTracker.enableAutoActivityTracking(true);
 
         EventBus.getDefault().register(this);
 
@@ -192,6 +207,12 @@ public class TrainingActivity extends Activity {
             public void onDrawerClosed(View view) {
                 super.onDrawerClosed(view);
 
+                mTracker.send(new HitBuilders.EventBuilder()
+                        .setCategory("training")
+                        .setAction("exercises menu")
+                        .setLabel("hide")
+                        .build());
+
                 // don't hide the action bar if we are in the training select screen
                 // TODO: add convenience methods for determining the current screen
                 if(mCurrentTraining != null) {
@@ -202,6 +223,14 @@ public class TrainingActivity extends Activity {
             /** Called when a drawer has settled in a completely open state. */
             public void onDrawerOpened(View drawerView) {
                 super.onDrawerOpened(drawerView);
+
+
+                mTracker.send(new HitBuilders.EventBuilder()
+                        .setCategory("training")
+                        .setAction("exercises menu")
+                        .setLabel("show")
+                        .build());
+
                 getActionBar().show();
             }
         };
@@ -226,6 +255,12 @@ public class TrainingActivity extends Activity {
         mDrawerExercisesList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+
+                mTracker.send(new HitBuilders.EventBuilder()
+                        .setCategory("training")
+                        .setAction("exercises changed")
+                        .build());
+
                 // move to a particular exercise in the training plan
                 mCurrentTraining.selectExercise(i);
                 mDrawerLayout.closeDrawers();
@@ -291,6 +326,11 @@ public class TrainingActivity extends Activity {
 
         switch (item.getItemId()){
             case R.id.skip_exercise:{
+                mTracker.send(new HitBuilders.EventBuilder()
+                        .setCategory("training")
+                        .setAction("skip")
+                        .build());
+
                 // TODO: think about a better way to consistently remove the update timer callback
                 mUiHandler.removeCallbacks(mUpdateRestTimer);
                 mCurrentTraining.removeExercise(info.position);
@@ -342,6 +382,12 @@ public class TrainingActivity extends Activity {
 	 * @param visible
 	 */
 	private void toggleInfoButtonVisible(boolean visible) {
+
+        mTracker.send(new HitBuilders.EventBuilder()
+                .setCategory("training")
+                .setAction("exercise image")
+                .setLabel(visible ? "show" : "hide")
+                .build());
 
         mViewPager.setVisibility(visible ? View.VISIBLE : View.GONE);
         mDrawerLayout.setDrawerLockMode(visible ? DrawerLayout.LOCK_MODE_LOCKED_CLOSED : DrawerLayout.LOCK_MODE_UNLOCKED);
