@@ -400,6 +400,8 @@ public class ServerCommunicationService extends IntentService {
             loginData.password = password;
             Response cred = service.login(loginData);
             for (Header header : cred.getHeaders()) {
+                // TODO: this has to be made more robust. maybe a better approach would be implementing
+                // a persistent cookie store
                 if (header.getName().equals("Set-Cookie") && header.getValue().startsWith("_trainerjim_session")) {
                     ApiHeaders.getInstance(this).setSessionId(header.getValue());
                 }
