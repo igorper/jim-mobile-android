@@ -63,6 +63,7 @@ import com.trainerjim.mobile.android.ui.CircularProgressControl;
 import com.trainerjim.mobile.android.ui.ExerciseImagesPagerAdapter;
 import com.trainerjim.mobile.android.ui.ExerciseAdapter;
 import com.trainerjim.mobile.android.ui.CircularProgressControl.CircularProgressState;
+import com.trainerjim.mobile.android.util.Analytics;
 import com.trainerjim.mobile.android.util.Utils;
 
 import de.greenrobot.event.EventBus;
@@ -129,21 +130,14 @@ public class TrainingActivity extends Activity {
 
     private ViewPager mViewPager;
 
-    private static GoogleAnalytics mAnalytics;
-    private static Tracker mTracker;
+    private Analytics mAnalytics;
 
     @Override
 	protected void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
 
-        mAnalytics = GoogleAnalytics.getInstance(this);
-        mAnalytics.setLocalDispatchPeriod(100);
-
-        mTracker = mAnalytics.newTracker("UA-64326228-1"); // Replace with actual tracker/property Id
-        mTracker.enableExceptionReporting(true);
-        mTracker.enableAdvertisingIdCollection(true);
-        mTracker.enableAutoActivityTracking(true);
+        mAnalytics = Analytics.getInstance(getApplicationContext());
 
         EventBus.getDefault().register(this);
 
@@ -207,12 +201,6 @@ public class TrainingActivity extends Activity {
             public void onDrawerClosed(View view) {
                 super.onDrawerClosed(view);
 
-                mTracker.send(new HitBuilders.EventBuilder()
-                        .setCategory("training")
-                        .setAction("exercises menu")
-                        .setLabel("hide")
-                        .build());
-
                 // don't hide the action bar if we are in the training select screen
                 // TODO: add convenience methods for determining the current screen
                 if(mCurrentTraining != null) {
@@ -224,12 +212,7 @@ public class TrainingActivity extends Activity {
             public void onDrawerOpened(View drawerView) {
                 super.onDrawerOpened(drawerView);
 
-
-                mTracker.send(new HitBuilders.EventBuilder()
-                        .setCategory("training")
-                        .setAction("exercises menu")
-                        .setLabel("show")
-                        .build());
+                mAnalytics.logMenuShow();
 
                 getActionBar().show();
             }
@@ -256,10 +239,7 @@ public class TrainingActivity extends Activity {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
 
-                mTracker.send(new HitBuilders.EventBuilder()
-                        .setCategory("training")
-                        .setAction("exercises changed")
-                        .build());
+                mAnalytics.logExerciseChanged();
 
                 // move to a particular exercise in the training plan
                 mCurrentTraining.selectExercise(i);
@@ -326,10 +306,7 @@ public class TrainingActivity extends Activity {
 
         switch (item.getItemId()){
             case R.id.skip_exercise:{
-                mTracker.send(new HitBuilders.EventBuilder()
-                        .setCategory("training")
-                        .setAction("skip")
-                        .build());
+                mAnalytics.logExerciseSkipped();
 
                 // TODO: think about a better way to consistently remove the update timer callback
                 mUiHandler.removeCallbacks(mUpdateRestTimer);
@@ -383,11 +360,9 @@ public class TrainingActivity extends Activity {
 	 */
 	private void toggleInfoButtonVisible(boolean visible) {
 
-        mTracker.send(new HitBuilders.EventBuilder()
-                .setCategory("training")
-                .setAction("exercise image")
-                .setLabel(visible ? "show" : "hide")
-                .build());
+        if(visible){
+            mAnalytics.logShowExerciseImage();
+        }
 
         mViewPager.setVisibility(visible ? View.VISIBLE : View.GONE);
         mDrawerLayout.setDrawerLockMode(visible ? DrawerLayout.LOCK_MODE_LOCKED_CLOSED : DrawerLayout.LOCK_MODE_UNLOCKED);
