@@ -34,6 +34,7 @@ import com.trainerjim.mobile.android.events.ReportProgressEvent;
 import com.trainerjim.mobile.android.storage.PermanentSettings;
 import com.trainerjim.mobile.android.util.Utils;
 
+import org.apache.http.HttpStatus;
 import org.apache.http.util.ByteArrayBuffer;
 
 import java.io.BufferedInputStream;
@@ -406,6 +407,14 @@ public class ServerCommunicationService extends IntentService {
 
             LoginResponseData loginResponseData = (LoginResponseData) new GsonConverter(Utils.getGsonObject()).fromBody(cred.getBody(), LoginResponseData.class);
             return new LoginEvent(true, loginResponseData.id);
+        } catch (RetrofitError ex) {
+            if(ex.getKind() == RetrofitError.Kind.NETWORK){
+                return new LoginEvent(false, "Network error");
+            } else if(ex.getResponse().getStatus() == HttpStatus.SC_INTERNAL_SERVER_ERROR){
+                return new LoginEvent(false, "Wrong email or password");
+            } else {
+                return new LoginEvent(false, "Login: " + ex.getMessage());
+            }
         } catch (Exception ex) {
             // TODO: add more descriptive error messages
             return new LoginEvent(false, "Login: " + ex.getMessage());
