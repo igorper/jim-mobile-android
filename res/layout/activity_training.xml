@@ -229,7 +229,7 @@
     <ListView
         android:cacheColorHint="#00000000"
         android:id="@+id/exercises_list"
-        android:layout_width="320dp"
+        android:layout_width="280dp"
         android:layout_height="match_parent"
         android:layout_gravity="start"
         android:background="@color/exercise_menu_background"
