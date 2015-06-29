@@ -14,10 +14,12 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.database.Cursor;
+import android.media.Image;
 import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.support.v4.app.ActionBarDrawerToggle;
+import android.support.v4.view.GravityCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
 import android.text.TextUtils;
@@ -94,7 +96,8 @@ public class TrainingActivity extends Activity {
     private TextView mTextRectLowerLine;
     private TextView mTextRectOneLine;
 	private RelativeLayout mBottomContainer;
-	private ImageView mInfoButton;
+    private ImageView mInfoButton;
+    private ImageView mExercisesListButton;
 	private LinearLayout mSeriesInformation;
 	private TextView mSeriesInfoText;
 	private ImageView mImageArrowSeriesInfo;
@@ -173,6 +176,7 @@ public class TrainingActivity extends Activity {
         mTextRectOneLine = (TextView)findViewById(R.id.text_rect_one_line);
 		mBottomContainer = (RelativeLayout) findViewById(R.id.bottomContainer);
 		mInfoButton = (ImageView) findViewById(R.id.info_button);
+        mExercisesListButton = (ImageView) findViewById(R.id.exercises_button);
 		mSeriesInformation = (LinearLayout) findViewById(R.id.seriesInformation);
 		mSeriesInfoText = (TextView) findViewById(R.id.nextSeriesText);
 		mImageArrowSeriesInfo = (ImageView) findViewById(R.id.imageArrowSeriesInfo);
@@ -410,6 +414,11 @@ public class TrainingActivity extends Activity {
 		toggleInfoButtonVisible(!mCircularProgress.isInfoVisible());
 	}
 
+    public void onExercisesButtonClick(View v){
+        mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_OPEN);
+        mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
+    }
+
     @Override
     public boolean onCreateOptionsMenu(android.view.Menu menu) {
         MenuInflater inflater = getMenuInflater();
@@ -592,6 +601,7 @@ public class TrainingActivity extends Activity {
 
             mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
 			mInfoButton.setVisibility(View.INVISIBLE);
+            mExercisesListButton.setVisibility(View.INVISIBLE);
 
 			mBottomContainer.setVisibility(View.VISIBLE);
 			mSeriesInformation.setVisibility(View.INVISIBLE);
@@ -634,6 +644,7 @@ public class TrainingActivity extends Activity {
 
             mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
 			mInfoButton.setVisibility(View.INVISIBLE);
+            mExercisesListButton.setVisibility(View.INVISIBLE);
 			mSeriesInformation.setVisibility(View.VISIBLE);
 			mImageArrowSeriesInfo.setVisibility(View.GONE);
 
@@ -752,6 +763,7 @@ public class TrainingActivity extends Activity {
 
             // show the info button only if the get ready timer is not running
             mInfoButton.setVisibility(mGetReadyTimer.isStarted() ? View.INVISIBLE : View.VISIBLE);
+            mExercisesListButton.setVisibility(mGetReadyTimer.isStarted() ? View.INVISIBLE : View.VISIBLE);
 			mBottomContainer.setVisibility(View.VISIBLE);
 			mSeriesInformation.setVisibility(View.VISIBLE);
 			mTrainingSelector.setVisibility(View.VISIBLE);

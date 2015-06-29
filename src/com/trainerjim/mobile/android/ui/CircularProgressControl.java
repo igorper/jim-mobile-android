@@ -362,7 +362,7 @@ public class CircularProgressControl extends View {
 
 	private Typeface mOpenSansRegular;
 
-	private String mStartButtonStrongText = "PUSH";
+	private String mStartButtonStrongText = "HOLD";
 
 	private String mStartButtonThinText = "TO START";
 
