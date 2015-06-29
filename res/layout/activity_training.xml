@@ -235,6 +235,6 @@
         android:background="@color/exercise_menu_background"
         android:choiceMode="singleChoice"
         android:divider="@color/exercise_menu_divder"
-        android:dividerHeight="2dp" />
+        android:dividerHeight="2dp"/>
 
 </android.support.v4.widget.DrawerLayout>

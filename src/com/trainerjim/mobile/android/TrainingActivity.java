@@ -604,7 +604,7 @@ public class TrainingActivity extends Activity {
                 // no more exercises, show the done button
 
 				mCircularProgress.setCurrentState(CircularProgressState.STOP);
-				mSeriesInfoText.setText("hold to finish");
+				mSeriesInfoText.setText("hold circle to finish");
 				mBottomContainer.setVisibility(View.INVISIBLE);
 
 			} else if (mCurrentTraining.getTrainingRating() == -1) {
@@ -625,7 +625,7 @@ public class TrainingActivity extends Activity {
 				mCircularProgress
 						.setCurrentState(CircularProgressState.OVERVIEW);
 
-				mSeriesInfoText.setText("hold to close");
+				mSeriesInfoText.setText("hold circle to close");
 				mBottomContainer.setVisibility(View.VISIBLE);
 				// TODO: mSwipeControl.setVisibility(View.VISIBLE);
 				mTrainingSelector.setVisibility(View.INVISIBLE);
