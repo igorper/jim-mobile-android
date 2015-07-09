@@ -25,9 +25,11 @@ import android.support.v4.widget.DrawerLayout;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.ContextMenu;
+import android.view.GestureDetector;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
 import android.widget.AdapterView;
@@ -248,6 +250,49 @@ public class TrainingActivity extends Activity {
                 mCurrentTraining.selectExercise(i);
                 mDrawerLayout.closeDrawers();
                 updateScreen();
+            }
+        });
+
+        // since view pager ignores click event we had to implement a tap gesture detector to recognize
+        // the tap gesture and perform the appropriate action (in this case moving to next page of the
+        // view pager)
+        final GestureDetector tapGestureDetector = new GestureDetector(this, new GestureDetector.OnGestureListener() {
+            @Override
+            public boolean onDown(MotionEvent motionEvent) {
+                return false;
+            }
+
+            @Override
+            public void onShowPress(MotionEvent motionEvent) {
+
+            }
+
+            @Override
+            public boolean onSingleTapUp(MotionEvent motionEvent) {
+                mViewPager.setCurrentItem((mViewPager.getCurrentItem() + 1) % mViewPager.getAdapter().getCount());
+                return false;
+            }
+
+            @Override
+            public boolean onScroll(MotionEvent motionEvent, MotionEvent motionEvent2, float v, float v2) {
+                return false;
+            }
+
+            @Override
+            public void onLongPress(MotionEvent motionEvent) {
+
+            }
+
+            @Override
+            public boolean onFling(MotionEvent motionEvent, MotionEvent motionEvent2, float v, float v2) {
+                return false;
+            }
+        });
+
+        mViewPager.setOnTouchListener(new View.OnTouchListener() {
+            public boolean onTouch(View v, MotionEvent event) {
+                tapGestureDetector.onTouchEvent(event);
+                return false;
             }
         });
 
