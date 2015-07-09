@@ -694,8 +694,9 @@ public class TrainingActivity extends Activity {
 
             getActionBar().hide();
 		} else {
-			// in general, show no timer message
+			// in general, show no messages
 			mCircularProgress.setTimerMessage("");
+            mCircularProgress.setNotificationMessage("");
 
 			Exercise curExercise = mCurrentTraining.getCurrentExercise();
 			// there are still some exercises to be performed
@@ -846,6 +847,12 @@ public class TrainingActivity extends Activity {
     public void updateRestTimer(int restLeft){
         mCircularProgress.setRestProgressValue(restLeft < 0 ? 0
                 : restLeft);
+
+        // if time has run out notify the user that he should
+        if(restLeft < 0){
+            mCircularProgress.setTimerMessage("");
+            mCircularProgress.setNotificationMessage("Tap to exercise");
+        }
         mCircularProgress.setTimer(Math.abs(restLeft));
     }
 

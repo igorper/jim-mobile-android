@@ -48,6 +48,7 @@
     <dimen name="cpc_timer_counter_text">90dp</dimen>
     <dimen name="cpc_timer_unit_text">50dp</dimen>
     <dimen name="cpc_timer_message_text">40dp</dimen>
+    <dimen name="cpc_notification_message_text">30dp</dimen>
     <dimen name="cpc_current_repetition_text">130dp</dimen>
     <dimen name="cpc_total_repetitions_text">60dp</dimen>
     <dimen name="cpc_current_series_text">40dp</dimen>

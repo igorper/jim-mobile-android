@@ -10,14 +10,10 @@ import android.graphics.Paint;
 import android.graphics.RectF;
 import android.graphics.Typeface;
 import android.graphics.Paint.Style;
-import android.net.NetworkInfo.State;
 import android.util.AttributeSet;
 import android.util.Log;
-import android.util.TypedValue;
 import android.view.MotionEvent;
 import android.view.View;
-import android.widget.Button;
-import android.widget.Toast;
 
 /**
  * A circular progress control. NOTE: At this point this button ignores the
@@ -150,6 +146,11 @@ public class CircularProgressControl extends View {
 	 */
 	private Paint mTextTimerMessagePaint;
 
+    /**
+     * Paint for the uper message text.
+     */
+    private Paint mTextNotificationMessagePaint;
+
 	/**
 	 * Paint for the current repetition text in the exercise state.
 	 */
@@ -266,6 +267,11 @@ public class CircularProgressControl extends View {
 	 * Y value of message visible in screens with timer (rest and countdown).
 	 */
 	private float mTimerMessageTextY;
+
+    /**
+     * Y value of upper notification message visible.
+     */
+    private float mNotificationMessageTextY;
 
 	/**
 	 * Training circle radius.
@@ -545,30 +551,56 @@ public class CircularProgressControl extends View {
 	}
 
 	/**
-	 * Contains the timer message.
+	 * Contains the notification message.
 	 */
-	private String mTimerMessage = "Get ready!";
+	private String mNotificationMessage = "";
 
 	/**
-	 * Sets the timer message and invalidates the screen.
+	 * Sets the notifcation message and invalidates the screen.
 	 * 
 	 * @param value
 	 */
-	public void setTimerMessage(String value) {
-		if (!mTimerMessage.equals(value)) {
-			mTimerMessage = value;
+	public void setNotificationMessage(String value) {
+		if (!mNotificationMessage.equals(value)) {
+			mNotificationMessage = value;
 			invalidate();
 		}
 	}
 
 	/**
-	 * Gets the current timer message and invalidates the screen.
+	 * Gets the current notification message and invalidates the screen.
 	 * 
 	 * @return
 	 */
-	public String getTimerMessage() {
-		return mTimerMessage;
+	public String getNotifcationMessage() {
+		return mNotificationMessage;
 	}
+
+    /**
+     * Contains the timer message.
+     */
+    private String mTimerMessage = "Get ready!";
+
+    /**
+     * Sets the timer message and invalidates the screen.
+     *
+     * @param value
+     */
+    public void setTimerMessage(String value) {
+        if (!mTimerMessage.equals(value)) {
+            mTimerMessage = value;
+            invalidate();
+        }
+    }
+
+    /**
+     * Gets the current timer message and invalidates the screen.
+     *
+     * @return
+     */
+    public String getTimerMessage() {
+        return mTimerMessage;
+    }
 
 	/**
 	 * Calculates the arc length based on the input values.
@@ -970,7 +1002,15 @@ public class CircularProgressControl extends View {
 				.getDimensionPixelSize(R.dimen.cpc_timer_message_text));
 		mTextTimerMessagePaint.setTypeface(mFinenessRegularTypeface);
 
-		mTextCurrentRepetitionPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        mTextNotificationMessagePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        mTextNotificationMessagePaint.setColor(getResources().getColor(
+                R.color.cpc_notification_message_text));
+        mTextNotificationMessagePaint.setTextSize(getResources()
+                .getDimensionPixelSize(R.dimen.cpc_notification_message_text));
+        mTextNotificationMessagePaint.setTypeface(mFinenessRegularTypeface);
+
+
+        mTextCurrentRepetitionPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 		mTextCurrentRepetitionPaint.setColor(getResources().getColor(
 				R.color.cpc_current_repetition_text));
 		mTextCurrentRepetitionPaint.setTypeface(Typeface.DEFAULT_BOLD);
@@ -1021,6 +1061,7 @@ public class CircularProgressControl extends View {
 		mCenterY = getPaddingTop() + radius / 2;
 		mRepetitionCounterTextY = getPaddingTop() + radius / 12 * 7;
 		mTimerMessageTextY = getPaddingTop() + radius / 4 * 3;
+        mNotificationMessageTextY = getPaddingTop() + radius / 4 * 3;
 		mChairTextY = getPaddingTop() + radius / 4;
 		mChairTapY = getPaddingTop() + radius / 4 * 3;
 
@@ -1248,6 +1289,13 @@ public class CircularProgressControl extends View {
 				canvas.drawArc(mRestCircleOval, 270, mCalculatedRestArc, true,
 						mIsPressedState ? mRestProgressClickForegroundPaint
 								: mRestProgressForegroundPaint);
+                
+               float notificationMessageLength = mTextNotificationMessagePaint
+                        .measureText(mNotificationMessage);
+
+                canvas.drawText(mNotificationMessage, mCenterX - notificationMessageLength
+                        / 2, mNotificationMessageTextY, mTextNotificationMessagePaint);
+
 				float timerMessageLength = mTextTimerMessagePaint
 						.measureText(mTimerMessage);
 
@@ -1267,6 +1315,8 @@ public class CircularProgressControl extends View {
 						+ timerTextDescent, mTextTimerPaint);
 				canvas.drawText(unit.toString(), textStart + timerLength,
 						mCenterY + timerTextDescent, mTextTimerUnitPaint);
+
+
 
 			} else if (mCurrentState == CircularProgressState.EXERCISE) {
 

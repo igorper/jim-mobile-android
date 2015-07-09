@@ -58,6 +58,7 @@
     <color name="cpc_start_thin_text">#FFFFFFFF</color>
     <color name="cpc_timer_counter_text">#FFFFFFFF</color>
     <color name="cpc_timer_message_text">#FFFFFFFF</color>
+    <color name="cpc_notification_message_text">#FFE1563E</color>
     <color name="cpc_info_button_text">#FFFFFFFF</color>
     <color name="cpc_info_button_background">#F20080d0</color>
     <color name="cpc_overview_dash">#FFE1563E</color>
