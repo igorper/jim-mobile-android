@@ -269,7 +269,12 @@ public class TrainingActivity extends Activity {
 
             @Override
             public boolean onSingleTapUp(MotionEvent motionEvent) {
-                mViewPager.setCurrentItem((mViewPager.getCurrentItem() + 1) % mViewPager.getAdapter().getCount());
+                if(mViewPager.getCurrentItem() < mViewPager.getAdapter().getCount() - 1){
+                    mViewPager.setCurrentItem(mViewPager.getCurrentItem() + 1);
+                } else {
+                    toggleInfoButtonVisible(false);
+                    mViewPager.setCurrentItem(0);
+                }
                 return false;
             }
 
