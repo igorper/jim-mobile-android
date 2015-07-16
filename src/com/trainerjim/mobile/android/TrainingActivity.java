@@ -412,8 +412,11 @@ public class TrainingActivity extends Activity {
             mAnalytics.logShowExerciseImage();
         }
 
-        mViewPager.setVisibility(visible ? View.VISIBLE : View.GONE);
-        mDrawerLayout.setDrawerLockMode(visible ? DrawerLayout.LOCK_MODE_LOCKED_CLOSED : DrawerLayout.LOCK_MODE_UNLOCKED);
+        // only show/hide the images when there are some available
+        if(mViewPager.getAdapter().getCount() > 0) {
+            mViewPager.setVisibility(visible ? View.VISIBLE : View.GONE);
+            mDrawerLayout.setDrawerLockMode(visible ? DrawerLayout.LOCK_MODE_LOCKED_CLOSED : DrawerLayout.LOCK_MODE_UNLOCKED);
+        }
 	}
 
     @Override
