@@ -14,6 +14,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.database.Cursor;
+import android.graphics.Color;
 import android.media.Image;
 import android.os.Bundle;
 import android.os.Handler;
@@ -730,11 +731,10 @@ public class TrainingActivity extends Activity {
 				Series curSeries = curExercise.getCurrentSeries();
 				mCircularProgress.setCurrentState(CircularProgressState.REST);
 
-                mTextRectUpperLine.setText("- " + Integer.toString(curExercise.getOrder() + 1) + " -");
+                mTextRectUpperLine.setVisibility(View.GONE);
 
                 // show short name if available
-                String exerciseName = curExercise.getExerciseType().getShortName() != null ? curExercise
-                        .getExerciseType().getShortName() : curExercise.getExerciseType().getName();
+                String exerciseName = curExercise.getExerciseType().getName();
 
                 // visualize exercise order (useful when traversing exercises)
                 mTextRectLowerLine.setText(exerciseName);

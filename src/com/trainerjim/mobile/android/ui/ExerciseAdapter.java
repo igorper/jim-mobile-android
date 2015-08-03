@@ -48,7 +48,7 @@ public class ExerciseAdapter extends ArrayAdapter<Exercise> {
         TextView tvSeriesInfo = (TextView) convertView.findViewById(R.id.tvSeriesInfo);
 
         // Populate the data into the template view using the data object
-        tvExerciseName.setText(exercise.getExerciseType().getShortName());
+        tvExerciseName.setText(exercise.getExerciseType().getName());
         tvSeriesInfo.setText(String.format("%d / %d", exercise.getCurrentSeriesNumber() - 1, exercise.getAllSeriesCount()));
 
         // Return the completed view to render on screen
