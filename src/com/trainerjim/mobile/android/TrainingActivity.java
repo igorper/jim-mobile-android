@@ -588,6 +588,11 @@ public class TrainingActivity extends Activity {
 		} else if (mCurrentTraining == null) {
 			// start button was clicked
 
+            // no training available, don't do anything
+            if(mSettings.getSelectedTrainingId() == -1){
+                return;
+            }
+
             // should always return a valid training
             TrainingPlan selectedTrainingPlan = TrainingPlan.getByTrainingId(mSettings.getSelectedTrainingId());
 
@@ -892,7 +897,15 @@ public class TrainingActivity extends Activity {
      * @param trainingId
      */
     private void selectTraining(int trainingId){
-        mSettings.saveSelectedTrainingId(trainingId == -1 ? TrainingPlan.getAll(mSettings.getUserId()).get(0).getTrainingId() : trainingId);
+        // if training id is not set yet just select the first training if any trainings exist
+        if(trainingId == -1){
+            List<TrainingPlan> plans = TrainingPlan.getAll(mSettings.getUserId());
+            if(plans.size() > 0){
+                trainingId = plans.get(0).getTrainingId();
+            }
+        }
+
+        mSettings.saveSelectedTrainingId(trainingId);
     }
 
 	/*
