@@ -22,6 +22,7 @@ import com.trainerjim.mobile.android.entities.SeriesExecution;
 import com.trainerjim.mobile.android.entities.Training;
 import com.trainerjim.mobile.android.events.EndExerciseEvent;
 import com.trainerjim.mobile.android.events.StartExerciseEvent;
+import com.trainerjim.mobile.android.util.TutorialHelper;
 import com.trainerjim.mobile.android.util.Utils;
 
 import de.greenrobot.event.EventBus;
@@ -90,6 +91,8 @@ public class ExerciseViewFragment extends Fragment implements View.OnClickListen
      */
     private Boolean mEditSeriesDetails = false;
 
+    private TutorialHelper mTutorialHelper;
+
     private TextView mExerciseTimer;
     private LinearLayout mLlEditReps;
     private NumberPicker mEditRepetitionsNumPick;
@@ -147,15 +150,22 @@ public class ExerciseViewFragment extends Fragment implements View.OnClickListen
 
     public void onEvent(StartExerciseEvent event){
         this.mCurrentTraining = event.getCurrentTraining();
+        this.mTutorialHelper = event.getTutorialHelper();
 
         getView().setVisibility(View.VISIBLE);
         mExerciseTimer.setVisibility(mCurrentTraining.getCurrentExercise().getGuidanceType().equals(Exercise.GUIDANCE_TYPE_DURATION) ? View.VISIBLE : View.GONE);
 
         mUiHandler.postDelayed(mUpdateExerciseTimer, 0);
+
+        mTutorialHelper.showSaveSeriesTutorial();
     }
 
     @Override
     public void onClick(View view) {
+        if(mTutorialHelper.isTutorialActive()){
+            return;
+        }
+
         switch (view.getId()){
             case R.id.frag_exe_view_training_weight:{
                 onSeriesDoneClick();

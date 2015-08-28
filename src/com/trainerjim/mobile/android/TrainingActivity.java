@@ -1,29 +1,19 @@
 package com.trainerjim.mobile.android;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
-import android.content.BroadcastReceiver;
-import android.content.ContentValues;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.IntentFilter;
-import android.database.Cursor;
-import android.graphics.Color;
-import android.media.Image;
 import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.support.v4.app.ActionBarDrawerToggle;
-import android.support.v4.view.GravityCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
-import android.text.TextUtils;
 import android.util.Log;
 import android.view.ContextMenu;
 import android.view.GestureDetector;
@@ -42,9 +32,6 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.gms.analytics.GoogleAnalytics;
-import com.google.android.gms.analytics.HitBuilders;
-import com.google.android.gms.analytics.Tracker;
 import com.squareup.picasso.Picasso;
 import com.trainerjim.mobile.android.database.CompletedTraining;
 import com.trainerjim.mobile.android.database.TrainingPlan;
@@ -69,6 +56,7 @@ import com.trainerjim.mobile.android.ui.ExerciseImagesPagerAdapter;
 import com.trainerjim.mobile.android.ui.ExerciseAdapter;
 import com.trainerjim.mobile.android.ui.CircularProgressControl.CircularProgressState;
 import com.trainerjim.mobile.android.util.Analytics;
+import com.trainerjim.mobile.android.util.TutorialHelper;
 import com.trainerjim.mobile.android.util.Utils;
 
 import de.greenrobot.event.EventBus;
@@ -138,6 +126,8 @@ public class TrainingActivity extends Activity {
 
     private Analytics mAnalytics;
 
+    private TutorialHelper mTutorialHelper;
+
     @Override
 	protected void onCreate(Bundle savedInstanceState) {
 
@@ -151,6 +141,8 @@ public class TrainingActivity extends Activity {
 
         mSettings = PermanentSettings.create(PreferenceManager
 				.getDefaultSharedPreferences(this));
+
+        mTutorialHelper = new TutorialHelper(this, mSettings);
 
 		// if we are not logged in yet show the login activity first
 		if (!isUserLoggedIn()) {
@@ -222,6 +214,8 @@ public class TrainingActivity extends Activity {
                 mAnalytics.logMenuShow();
 
                 getActionBar().show();
+
+                mTutorialHelper.showExercisesListTutorial();
             }
         };
 
@@ -244,6 +238,9 @@ public class TrainingActivity extends Activity {
         mDrawerExercisesList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                if(mTutorialHelper.isTutorialActive()){
+                    return;
+                }
 
                 mAnalytics.logExerciseChanged();
 
@@ -326,7 +323,10 @@ public class TrainingActivity extends Activity {
 
 
     public boolean onClickExerciseImage(View v){
-        toggleInfoButtonVisible(false);
+        if(!mTutorialHelper.isTutorialActive()){
+            toggleInfoButtonVisible(false);
+        }
+
         return true;
     }
 
@@ -356,18 +356,21 @@ public class TrainingActivity extends Activity {
 
     @Override
     public boolean onContextItemSelected(MenuItem item) {
-        AdapterView.AdapterContextMenuInfo info  = (AdapterView.AdapterContextMenuInfo)item.getMenuInfo();
 
-        switch (item.getItemId()){
-            case R.id.skip_exercise:{
-                mAnalytics.logExerciseSkipped();
+        if(!mTutorialHelper.isTutorialActive()) {
+            AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
 
-                // TODO: think about a better way to consistently remove the update timer callback
-                mUiHandler.removeCallbacks(mUpdateRestTimer);
-                mCurrentTraining.removeExercise(info.position);
-                saveCurrentTraining();
-                updateScreen();
-                break;
+            switch (item.getItemId()) {
+                case R.id.skip_exercise: {
+                    mAnalytics.logExerciseSkipped();
+
+                    // TODO: think about a better way to consistently remove the update timer callback
+                    mUiHandler.removeCallbacks(mUpdateRestTimer);
+                    mCurrentTraining.removeExercise(info.position);
+                    saveCurrentTraining();
+                    updateScreen();
+                    break;
+                }
             }
         }
 
@@ -468,6 +471,10 @@ public class TrainingActivity extends Activity {
 	}
 
     public void onExercisesButtonClick(View v){
+        if(mTutorialHelper.isTutorialActive()){
+            return;
+        }
+
         mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_OPEN);
         mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
     }
@@ -496,10 +503,10 @@ public class TrainingActivity extends Activity {
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 
-        if (mDrawerToggle.onOptionsItemSelected(item)) {
+        if (mTutorialHelper.isTutorialActive() || mDrawerToggle.onOptionsItemSelected(item)) {
             return true;
         }
-
+        
 		switch (item.getItemId()) {
 		case R.id.action_sync: {
             runTrainingsSync();
@@ -520,7 +527,7 @@ public class TrainingActivity extends Activity {
                     .setNegativeButton(android.R.string.no, null).show();
             break;
         }
-		case R.id.action_logout: {
+		/*case R.id.action_logout: {
             new AlertDialog.Builder(this)
                     .setTitle("Log out")
                     .setMessage("Are you sure you would like to log out?")
@@ -535,7 +542,7 @@ public class TrainingActivity extends Activity {
                     .setNegativeButton(android.R.string.no, null).show();
 
 			break;
-		}
+		}*/
 		default:
 			break;
 		}
@@ -579,8 +586,14 @@ public class TrainingActivity extends Activity {
 	}
 
 	private void changeTrainingPlanState() {
+        // tutorial is active, don't do anything
+        if(mTutorialHelper.isTutorialActive()){
+            return;
+        }
+
 		/*if (mViewDuringExercise.getVisibility() == View.VISIBLE) {
 			// exercise has to be rated before doing anything else
+
 
 		} else */if (mCircularProgress.isInfoVisible()) {
 			// if info button is visible close it on tap
@@ -651,6 +664,8 @@ public class TrainingActivity extends Activity {
                 mLayoutRectTrainingSelector.setVisibility(View.VISIBLE);
                 mLayoutRectLowerLine.setVisibility(View.GONE);
 
+                mTutorialHelper.showMainPageTutorial();
+
             } else {
                 mTrainingSelector.setVisibility(View.GONE);
                 mTextRectOneLine.setText("NO TRAININGS");
@@ -715,6 +730,9 @@ public class TrainingActivity extends Activity {
 			Exercise curExercise = mCurrentTraining.getCurrentExercise();
 			// there are still some exercises to be performed
 			if (mCurrentTraining.isCurrentRest()) {
+                mTutorialHelper.showExerciseTutorial();
+
+
                 // TODO: encapsulate this or find a better way to do it
 
                 List<String> photoImages = curExercise.getExerciseType().getPhotoImages();
@@ -801,7 +819,7 @@ public class TrainingActivity extends Activity {
 
                 // TODO: mightr be better to decouple the training here (and not pass it,
                 // but rather pass a minimum set of parameters)
-                EventBus.getDefault().post(new StartExerciseEvent(mCurrentTraining));
+                EventBus.getDefault().post(new StartExerciseEvent(mCurrentTraining, mTutorialHelper));
 
                 mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
 			}
@@ -842,9 +860,12 @@ public class TrainingActivity extends Activity {
 	public void onBottomStrapClick(View view) {
         // if resting toggle the next/prev buttons and the current exercise info
         if(mCircularProgress.getCurrentState() != CircularProgressState.REST){
-            Intent intent = new Intent(TrainingActivity.this,
-                    TrainingSelectionList.class);
-            startActivityForResult(intent, ACTIVITY_REQUEST_TRAININGS_LIST);
+            // start select training activtiy only if tutorial not enabled
+            if(!mTutorialHelper.isTutorialActive()) {
+                Intent intent = new Intent(TrainingActivity.this,
+                        TrainingSelectionList.class);
+                startActivityForResult(intent, ACTIVITY_REQUEST_TRAININGS_LIST);
+            }
         }
 	}
 

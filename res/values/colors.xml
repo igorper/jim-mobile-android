@@ -68,4 +68,10 @@
     <color name="cpc_total_series_text">#FFFFFFFF</color>
     <!-- End Ciruclar progress control colors -->
 
+    <!-- Start tutorial -->
+
+    <color name="tutorial_background">#110080d0</color>
+
+    <!-- End tutorial -->
+
 </resources>

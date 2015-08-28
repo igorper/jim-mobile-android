@@ -15,6 +15,7 @@ import com.trainerjim.mobile.android.entities.Training;
 import com.trainerjim.mobile.android.events.EndExerciseEvent;
 import com.trainerjim.mobile.android.events.EndRateTraining;
 import com.trainerjim.mobile.android.events.StartRateTraining;
+import com.trainerjim.mobile.android.util.TutorialHelper;
 
 import de.greenrobot.event.EventBus;
 

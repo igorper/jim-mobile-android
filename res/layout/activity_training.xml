@@ -16,8 +16,6 @@
             android:keepScreenOn="true"
             android:orientation="horizontal" >
 
-            <!-- RATE TRAINING SCREEN -->
-
             <fragment
                 android:name="com.trainerjim.mobile.android.fragments.RateTrainingFragment"
                 android:layout_width="match_parent"

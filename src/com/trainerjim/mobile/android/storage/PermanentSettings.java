@@ -22,7 +22,16 @@ public class PermanentSettings {
 
     private static final String KEY_SELECTED_TRAINING_ID = "selected_training_id";
 
-	/**
+    private static final String KEY_MAIN_PAGE_TUTORIAL_COUNT = "main_page_tutorial_count";
+
+    private static final String KEY_REST_TUTORIAL_COUNT = "rest_tutorial_count";
+
+    private static final String KEY_SAVE_SERIES_TUTORIAL_COUNT = "save_series_tutorial_count";
+
+    private static final String KEY_EXERCISES_LIST_TUTORIAL_COUNT = "exercises_list_tutorial_count";
+
+
+    /**
 	 * Handle to the {@link SharedPreferences}.
 	 */
 	private SharedPreferences mPreferences;
@@ -92,5 +101,45 @@ public class PermanentSettings {
 
     public int getSelectedTrainingId() {
         return mPreferences.getInt(KEY_SELECTED_TRAINING_ID, -1);
+    }
+
+    public void saveMainPageTutorialCount(int count){
+        SharedPreferences.Editor editor = mPreferences.edit();
+        editor.putInt(KEY_MAIN_PAGE_TUTORIAL_COUNT, count);
+        editor.commit();
+    }
+
+    public int getMainPageTutorialCount() {
+        return mPreferences.getInt(KEY_MAIN_PAGE_TUTORIAL_COUNT, 0);
+    }
+
+    public void saveRestTutorialCount(int count){
+        SharedPreferences.Editor editor = mPreferences.edit();
+        editor.putInt(KEY_REST_TUTORIAL_COUNT, count);
+        editor.commit();
+    }
+
+    public int getRestTutorialCount() {
+        return mPreferences.getInt(KEY_REST_TUTORIAL_COUNT, 0);
+    }
+
+    public void saveSeriesTutorialCount(int count){
+        SharedPreferences.Editor editor = mPreferences.edit();
+        editor.putInt(KEY_SAVE_SERIES_TUTORIAL_COUNT, count);
+        editor.commit();
+    }
+
+    public int getSaveSeriesTutorialCount() {
+        return mPreferences.getInt(KEY_SAVE_SERIES_TUTORIAL_COUNT, 0);
+    }
+
+    public void saveExercisesListTutorialCount(int count){
+        SharedPreferences.Editor editor = mPreferences.edit();
+        editor.putInt(KEY_EXERCISES_LIST_TUTORIAL_COUNT, count);
+        editor.commit();
+    }
+
+    public int getExercisesListTutorialCount() {
+        return mPreferences.getInt(KEY_EXERCISES_LIST_TUTORIAL_COUNT, 0);
     }
 }
