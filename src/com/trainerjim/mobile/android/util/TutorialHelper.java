@@ -117,7 +117,7 @@ public class TutorialHelper implements OnShowcaseEventListener{
                 .setStyle(R.style.JimShowcaseTheme)
                 .setTarget(new ViewTarget(mParentActivity.findViewById(R.id.frag_exe_view_training_weight)))
                 .setContentTitle("Next exercise")
-                .setContentText("Once you stop exercising tap here to move to the next exercise")
+                .setContentText("Once you stop exercising, tap here to move to the next exercise")
                 .setShowcaseEventListener(eventListener)
                 .build();
     }
