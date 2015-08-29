@@ -306,12 +306,17 @@ public class TrainingActivity extends Activity {
         if (isUserLoggedIn() && TrainingPlan.getAll(mSettings.getUserId()).size() == 0) {
 			runTrainingsSync();
 		}
+	}
+
+    @Override
+    protected void onResume() {
+        super.onResume();
 
         // always upload the trainings on start
         runUploadTrainings();
-	}
+    }
 
-	/**
+    /**
 	 * Returns <code>true</code> if user is currently logged in, otherwise
 	 * <code>false</code>.
 	 * 
@@ -506,7 +511,7 @@ public class TrainingActivity extends Activity {
         if (mTutorialHelper.isTutorialActive() || mDrawerToggle.onOptionsItemSelected(item)) {
             return true;
         }
-        
+
 		switch (item.getItemId()) {
 		case R.id.action_sync: {
             runTrainingsSync();
