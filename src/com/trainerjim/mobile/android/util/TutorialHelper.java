@@ -146,7 +146,7 @@ public class TutorialHelper implements OnShowcaseEventListener{
                 .setStyle(R.style.JimShowcaseTheme)
                 .setTarget(new PointTarget(getTopRightPoint()))
                 .setContentTitle("Sync trainings")
-                .setContentText("Press the icon to upload completed and download new trainings")
+                .setContentText("Tap here to download new trainings")
                 .setShowcaseEventListener(eventListener)
                 .build();
     }
@@ -156,7 +156,7 @@ public class TutorialHelper implements OnShowcaseEventListener{
                 .setStyle(R.style.JimShowcaseTheme)
                 .setTarget(new ViewTarget(mParentActivity.findViewById(R.id.trainingSelector)))
                 .setContentTitle("Select training")
-                .setContentText("Tap to select a training")
+                .setContentText("Tap here to select a training")
                 .setShowcaseEventListener(eventListener)
                 .build();
     }
@@ -166,7 +166,7 @@ public class TutorialHelper implements OnShowcaseEventListener{
                 .setStyle(R.style.JimShowcaseTheme)
                 .setTarget(new ViewTarget(mParentActivity.findViewById(R.id.circularProgress)))
                 .setContentTitle("Start training")
-                .setContentText("Tap to start a training")
+                .setContentText("Tap here to start a training")
                 .setShowcaseEventListener(eventListener)
                 .build();
     }
@@ -227,7 +227,7 @@ public class TutorialHelper implements OnShowcaseEventListener{
                 break;
             } case SAVE_SERIES_CHANGE: {
                 mCurrentState = TutorialState.NONE;
-                mSettings.saveRestTutorialCount(mSettings.getSaveSeriesTutorialCount() + 1);
+                mSettings.saveSeriesTutorialCount(mSettings.getSaveSeriesTutorialCount() + 1);
                 break;
             }  case CHANGE_SKIP_EXERCISE: {
                 mCurrentState = TutorialState.CANCEL_TRAINING;
