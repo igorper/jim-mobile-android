@@ -3,6 +3,7 @@ package com.trainerjim.mobile.android.util;
 import android.app.Activity;
 import android.graphics.Point;
 import android.view.Display;
+import android.widget.RelativeLayout;
 
 import com.github.amlcurran.showcaseview.OnShowcaseEventListener;
 import com.github.amlcurran.showcaseview.ShowcaseView;
@@ -126,7 +127,7 @@ public class TutorialHelper implements OnShowcaseEventListener{
                 .setStyle(R.style.JimShowcaseTheme)
                 .setTarget(new ViewTarget(mParentActivity.findViewById(R.id.exercises_button)))
                 .setContentTitle("Exercises list")
-                .setContentText("Here you can see the list of exercises to perform")
+                .setContentText("Tap here to see the list of exercises to perform")
                 .setShowcaseEventListener(eventListener)
                 .build();
     }
@@ -136,7 +137,7 @@ public class TutorialHelper implements OnShowcaseEventListener{
                 .setStyle(R.style.JimShowcaseTheme)
                 .setTarget(new ViewTarget(mParentActivity.findViewById(R.id.info_button)))
                 .setContentTitle("Exercise image")
-                .setContentText("Here you can see the current exercise image")
+                .setContentText("Tap here to see the current exercise image")
                 .setShowcaseEventListener(eventListener)
                 .build();
     }
@@ -224,6 +225,17 @@ public class TutorialHelper implements OnShowcaseEventListener{
             } case SAVE_SERIES_OK: {
                 mCurrentState = TutorialState.SAVE_SERIES_CHANGE;
                 mCurrentShowcaseView = createSaveSeriesChangeTutorial(this);
+
+                int margin = (int)mParentActivity.getResources().getDimension(com.github.amlcurran.showcaseview.R.dimen.button_margin);
+
+
+                RelativeLayout.LayoutParams showcaseLP = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT,
+                        RelativeLayout.LayoutParams.WRAP_CONTENT);
+                showcaseLP.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
+                showcaseLP.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
+                showcaseLP.setMargins(margin, margin, margin, margin);
+
+                mCurrentShowcaseView.setButtonPosition(showcaseLP);
                 break;
             } case SAVE_SERIES_CHANGE: {
                 mCurrentState = TutorialState.NONE;
