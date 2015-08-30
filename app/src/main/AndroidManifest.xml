@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.trainerjim.mobile.android" >
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <application
+        android:name="com.activeandroid.app.Application"
+        android:allowBackup="true"
+        android:icon="@drawable/jim_launcher"
+        android:label="@string/app_name"
+        android:theme="@style/JimTheme">
+
+        <activity
+            android:name="com.trainerjim.mobile.android.TrainingActivity"
+            android:label="@string/app_name"
+            android:launchMode="singleTop"
+            android:screenOrientation="portrait" >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name="com.trainerjim.mobile.android.TrainingManifestActivity"
+            android:label="Expandable LV" >
+        </activity>
+        <activity android:name="com.trainerjim.mobile.android.TrainingSelectionList" />
+        <activity
+            android:name="com.trainerjim.mobile.android.LoginActivity"
+            android:excludeFromRecents="true"
+            android:label="@string/app_name"
+            android:noHistory="true" >
+        </activity>
+
+        <service android:name="com.trainerjim.mobile.android.DetectorService" />
+        <service android:name="com.trainerjim.mobile.android.network.ServerCommunicationService" />
+
+        <meta-data android:name="AA_DB_NAME" android:value="Trainerjim.db" />
+        <meta-data android:name="AA_DB_VERSION" android:value="2" />
+    </application>
+
+</manifest>
