@@ -24,6 +24,9 @@ android {
 dependencies {
     repositories {
         maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
+        flatDir{
+            dirs 'libs'
+        }
     }
 
     compile fileTree(dir: 'libs', include: ['*.jar'])
@@ -35,5 +38,5 @@ dependencies {
     compile 'com.squareup.okhttp:okhttp:2.4.0'
     compile 'com.michaelpardo:activeandroid:3.1.0-SNAPSHOT'
     compile 'com.google.android.gms:play-services-analytics:7.5.0'
-    compile 'com.github.amlcurran.showcaseview:library:5.0.0'
+    compile(name:'showcase-view', ext:'aar')
 }
