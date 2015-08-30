@@ -8,16 +8,23 @@
     </style>
 
     <style name="JimShowcaseTheme" parent="ShowcaseView.Light">
-        <item name="sv_backgroundColor">#DDFFD454</item>
+        <item name="sv_backgroundColor">#CCFFD454</item>
         <item name="sv_showcaseColor">#FF0080D0</item>
         <item name="sv_buttonText">Got it</item>
         <item name="sv_tintButtonColor">false</item>
         <item name="sv_titleTextAppearance">@style/JimShowcaseTitle</item>
+        <item name="sv_detailTextAppearance">@style/JimShowcaseDetails</item>
     </style>
 
     <style name="JimShowcaseTitle" parent="TextAppearance.ShowcaseView.Title">
         <item name="android:textColor">#FF0080D0</item>
         <item name="android:textSize">30dp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="JimShowcaseDetails" parent="TextAppearance.ShowcaseView.Title">
+        <item name="android:textColor">#FF000000</item>
+        <item name="android:textSize">18dp</item>
         <item name="android:textStyle">bold</item>
     </style>
 

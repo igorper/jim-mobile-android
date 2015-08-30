@@ -3,11 +3,13 @@ package com.trainerjim.mobile.android.util;
 import android.app.Activity;
 import android.graphics.Point;
 import android.view.Display;
+import android.view.View;
 import android.widget.RelativeLayout;
 
 import com.github.amlcurran.showcaseview.OnShowcaseEventListener;
 import com.github.amlcurran.showcaseview.ShowcaseView;
 import com.github.amlcurran.showcaseview.targets.PointTarget;
+import com.github.amlcurran.showcaseview.targets.Target;
 import com.github.amlcurran.showcaseview.targets.ViewTarget;
 import com.trainerjim.mobile.android.R;
 import com.trainerjim.mobile.android.storage.PermanentSettings;
@@ -15,7 +17,7 @@ import com.trainerjim.mobile.android.storage.PermanentSettings;
 /**
  * Created by igor on 27.08.15.
  */
-public class TutorialHelper implements OnShowcaseEventListener{
+public class TutorialHelper implements View.OnClickListener{
 
     private enum TutorialState {
         NONE,
@@ -54,28 +56,40 @@ public class TutorialHelper implements OnShowcaseEventListener{
         // a boolean flag)
         if(mSettings.getMainPageTutorialCount() == 0) {
             mCurrentState = TutorialState.SYNC;
-            mCurrentShowcaseView = createSyncTutorial(this);
+
+            initTutorialView("Sync trainings",
+                    "Tap here to download new trainings",
+                    new PointTarget(getTopRightPoint()));
         }
     }
 
     public void showExerciseTutorial(){
         if(mSettings.getRestTutorialCount() == 0) {
             mCurrentState = TutorialState.EXERCISE_IMAGE;
-            mCurrentShowcaseView = createExerciseImageTutorial(this);
+
+            initTutorialView("Exercise image",
+                    "Tap here to see the current exercise image",
+                    new ViewTarget(mParentActivity.findViewById(R.id.info_button)), 0.6f);
         }
     }
 
     public void showSaveSeriesTutorial(){
         if(mSettings.getSaveSeriesTutorialCount() == 0) {
             mCurrentState = TutorialState.SAVE_SERIES_OK;
-            mCurrentShowcaseView = createSaveSeriesOkTutorial(this);
+
+            initTutorialView("Next exercise",
+                    "Tap here to move to the next exercise",
+                    new ViewTarget(mParentActivity.findViewById(R.id.frag_exe_view_training_weight)), 1.5f);
         }
     }
 
     public void showExercisesListTutorial() {
         if(mSettings.getExercisesListTutorialCount() == 0) {
             mCurrentState = TutorialState.CHANGE_SKIP_EXERCISE;
-            mCurrentShowcaseView = createChangeSkipExerciseTutorial(this);
+
+            initTutorialView("Change exercise",
+                    "To change to another exercise select it from the list. Long press permanently skips the exercise",
+                    new ViewTarget(mParentActivity.findViewById(R.id.tvExerciseName)));
         }
     }
 
@@ -83,6 +97,7 @@ public class TutorialHelper implements OnShowcaseEventListener{
         return mCurrentState != TutorialState.NONE;
     }
 
+    /*** Helpers ***/
     private Point getTopRightPoint(){
         Display display = mParentActivity.getWindowManager().getDefaultDisplay();
         Point topRight = new Point();
@@ -92,175 +107,133 @@ public class TutorialHelper implements OnShowcaseEventListener{
         return topRight;
     }
 
-    private ShowcaseView createChangeSkipExerciseTutorial(OnShowcaseEventListener eventListener){
-        return new ShowcaseView.Builder(mParentActivity)
+    private void initTutorialView(String title, String text, Target target){
+        initTutorialView(title, text, target, 1f);
+    }
+
+    private void initTutorialView(String title, String text, Target target, float scaleMultiplier){
+        mCurrentShowcaseView = new ShowcaseView.Builder(mParentActivity, true)
                 .setStyle(R.style.JimShowcaseTheme)
-                .setTarget(new ViewTarget(mParentActivity.findViewById(R.id.tvExerciseName)))
-                .setContentTitle("Change exercise")
-                .setContentText("To change to another exercise select it from the list. Long press permanently skips the exercise")
-                .setShowcaseEventListener(eventListener)
+                .setOnClickListener(this)
+                .setContentTitle(title)
+                .setContentText(text)
+                .setTarget(target)
+                .setScaleMultiplier(scaleMultiplier)
                 .build();
     }
 
-    private ShowcaseView createCancelTrainingTutorial(OnShowcaseEventListener eventListener){
-        return new ShowcaseView.Builder(mParentActivity)
-                .setStyle(R.style.JimShowcaseTheme)
-                .setTarget(new PointTarget(getTopRightPoint()))
-                .setContentTitle("Cancel training")
-                .setContentText("Tap here to cancel the training")
-                .setShowcaseEventListener(eventListener)
-                .build();
+    /*** Start training tutorial ***/
+    private void createSelectTrainingsTutorial(){
+        mCurrentShowcaseView.setScaleMultiplier(1.1f);
+        mCurrentShowcaseView.setContentTitle("Select training");
+        mCurrentShowcaseView.setContentText("Tap here to select a training.");
+        mCurrentShowcaseView.setShowcase(new ViewTarget(mParentActivity.findViewById(R.id.trainingSelector)), true);
     }
 
-    private ShowcaseView createSaveSeriesOkTutorial(OnShowcaseEventListener eventListener){
-        return new ShowcaseView.Builder(mParentActivity)
-                .setStyle(R.style.JimShowcaseTheme)
-                .setTarget(new ViewTarget(mParentActivity.findViewById(R.id.frag_exe_view_training_weight)))
-                .setContentTitle("Next exercise")
-                .setContentText("Once you stop exercising, tap here to move to the next exercise")
-                .setShowcaseEventListener(eventListener)
-                .build();
+    private void createTrainingStartTutorial(){
+        mCurrentShowcaseView.setScaleMultiplier(1.7f);
+        mCurrentShowcaseView.setContentTitle("Start training");
+        mCurrentShowcaseView.setContentText("Tap here to start a training.");
+        mCurrentShowcaseView.setShowcase(new ViewTarget(mParentActivity.findViewById(R.id.circularProgress)), true);
     }
 
-    private ShowcaseView createExercisesListTutorial(OnShowcaseEventListener eventListener){
-        return new ShowcaseView.Builder(mParentActivity)
-                .setStyle(R.style.JimShowcaseTheme)
-                .setTarget(new ViewTarget(mParentActivity.findViewById(R.id.exercises_button)))
-                .setContentTitle("Exercises list")
-                .setContentText("Tap here to see the list of exercises to perform")
-                .setShowcaseEventListener(eventListener)
-                .build();
+    /*** Start exercise tutorial ***/
+    private void  createExercisesListTutorial(){
+        mCurrentShowcaseView.setScaleMultiplier(0.6f);
+        mCurrentShowcaseView.setContentTitle("Exercises list");
+        mCurrentShowcaseView.setContentText("Tap here to see the list of exercises to perform.");
+        mCurrentShowcaseView.setShowcase(new ViewTarget(mParentActivity.findViewById(R.id.exercises_button)), true);
     }
 
-    private ShowcaseView createExerciseImageTutorial(OnShowcaseEventListener eventListener){
-        return new ShowcaseView.Builder(mParentActivity)
-                .setStyle(R.style.JimShowcaseTheme)
-                .setTarget(new ViewTarget(mParentActivity.findViewById(R.id.info_button)))
-                .setContentTitle("Exercise image")
-                .setContentText("Tap here to see the current exercise image")
-                .setShowcaseEventListener(eventListener)
-                .build();
+    private void createExerciseStartTutorial(){
+        mCurrentShowcaseView.setScaleMultiplier(1.8f);
+        mCurrentShowcaseView.setContentTitle("Start exercise");
+        mCurrentShowcaseView.setContentText("To start exercising tap here and put the phone to a safe place.");
+        mCurrentShowcaseView.setShowcase(new ViewTarget(mParentActivity.findViewById(R.id.circularProgress)), true);
     }
 
-    private ShowcaseView createSyncTutorial(OnShowcaseEventListener eventListener){
-        return new ShowcaseView.Builder(mParentActivity)
-                .setStyle(R.style.JimShowcaseTheme)
-                .setTarget(new PointTarget(getTopRightPoint()))
-                .setContentTitle("Sync trainings")
-                .setContentText("Tap here to download new trainings")
-                .setShowcaseEventListener(eventListener)
-                .build();
+    /*** Exercises list tutorial ***/
+    private void createCancelTrainingTutorial(){
+        mCurrentShowcaseView.setContentTitle("Cancel training");
+        mCurrentShowcaseView.setContentText("Tap here to cancel the training.");
+        mCurrentShowcaseView.setShowcase(new PointTarget(getTopRightPoint()), true);
     }
 
-    private ShowcaseView createSelectTrainingsTutorial(OnShowcaseEventListener eventListener){
-        return new ShowcaseView.Builder(mParentActivity)
-                .setStyle(R.style.JimShowcaseTheme)
-                .setTarget(new ViewTarget(mParentActivity.findViewById(R.id.trainingSelector)))
-                .setContentTitle("Select training")
-                .setContentText("Tap here to select a training")
-                .setShowcaseEventListener(eventListener)
-                .build();
-    }
+    /*** Save series tutorial ***/
+    private void createSaveSeriesChangeTutorial(){
+        int margin = (int)mParentActivity.getResources().getDimension(com.github.amlcurran.showcaseview.R.dimen.button_margin);
 
-    private ShowcaseView createTrainingStartTutorial(OnShowcaseEventListener eventListener){
-        return new ShowcaseView.Builder(mParentActivity)
-                .setStyle(R.style.JimShowcaseTheme)
-                .setTarget(new ViewTarget(mParentActivity.findViewById(R.id.circularProgress)))
-                .setContentTitle("Start training")
-                .setContentText("Tap here to start a training")
-                .setShowcaseEventListener(eventListener)
-                .build();
-    }
+        RelativeLayout.LayoutParams showcaseLP = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT,
+                RelativeLayout.LayoutParams.WRAP_CONTENT);
+        showcaseLP.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
+        showcaseLP.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
+        showcaseLP.setMargins(margin, margin, margin, margin);
 
-    private ShowcaseView createSaveSeriesChangeTutorial(OnShowcaseEventListener eventListener){
-        return new ShowcaseView.Builder(mParentActivity)
-                .setStyle(R.style.JimShowcaseTheme)
-                .setTarget(new ViewTarget(mParentActivity.findViewById(R.id.frag_exe_view_edit)))
-                .setContentTitle("Series change")
-                .setContentText("If you did not exercise according to the plan tap here to log the change")
-                .setShowcaseEventListener(eventListener)
-                .build();
-    }
-
-    private ShowcaseView createExerciseStartTutorial(OnShowcaseEventListener eventListener){
-        return new ShowcaseView.Builder(mParentActivity)
-                .setStyle(R.style.JimShowcaseTheme)
-                .setTarget(new ViewTarget(mParentActivity.findViewById(R.id.circularProgress)))
-                .setContentTitle("Start exercise")
-                .setContentText("To start exercising tap here and put the phone to a safe place")
-                .setShowcaseEventListener(eventListener)
-                .build();
+        mCurrentShowcaseView.setScaleMultiplier(1f);
+        mCurrentShowcaseView.setButtonPosition(showcaseLP);
+        mCurrentShowcaseView.setContentTitle("Series change");
+        mCurrentShowcaseView.setContentText("If you did not exercise according to the plan tap here to log the change.");
+        mCurrentShowcaseView.setShowcase(new ViewTarget(mParentActivity.findViewById(R.id.frag_exe_view_edit)), true);
     }
 
     @Override
-    public void onShowcaseViewHide(ShowcaseView showcaseView) {
+    public void onClick(View view) {
         switch (mCurrentState){
-            case SYNC: {
+            case SYNC:{
                 mCurrentState = TutorialState.SELECT_TRAINING;
-                mCurrentShowcaseView = createSelectTrainingsTutorial(this);
+                createSelectTrainingsTutorial();
                 break;
             }
             case SELECT_TRAINING: {
                 mCurrentState = TutorialState.START_TRAINING;
-                mCurrentShowcaseView = createTrainingStartTutorial(this);
+                createTrainingStartTutorial();
                 break;
             }
             case START_TRAINING: {
                 mCurrentState = TutorialState.NONE;
+                mCurrentShowcaseView.hide();
+                mCurrentShowcaseView = null;
                 mSettings.saveMainPageTutorialCount(mSettings.getMainPageTutorialCount() + 1);
                 break;
             }
-            case EXERCISE_IMAGE:{
+            case EXERCISE_IMAGE: {
                 mCurrentState = TutorialState.EXERCISES_LIST;
-                mCurrentShowcaseView = createExercisesListTutorial(this);
+                createExercisesListTutorial();
                 break;
-            } case EXERCISES_LIST: {
+            }
+            case EXERCISES_LIST: {
                 mCurrentState = TutorialState.START_EXERCISE;
-                mCurrentShowcaseView = createExerciseStartTutorial(this);
+                createExerciseStartTutorial();
                 break;
-            } case START_EXERCISE: {
+            }
+            case START_EXERCISE: {
                 mCurrentState = TutorialState.NONE;
+                mCurrentShowcaseView.hide();
                 mSettings.saveRestTutorialCount(mSettings.getRestTutorialCount() + 1);
                 break;
-            } case SAVE_SERIES_OK: {
-                mCurrentState = TutorialState.SAVE_SERIES_CHANGE;
-                mCurrentShowcaseView = createSaveSeriesChangeTutorial(this);
-
-                int margin = (int)mParentActivity.getResources().getDimension(com.github.amlcurran.showcaseview.R.dimen.button_margin);
-
-
-                RelativeLayout.LayoutParams showcaseLP = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT,
-                        RelativeLayout.LayoutParams.WRAP_CONTENT);
-                showcaseLP.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
-                showcaseLP.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
-                showcaseLP.setMargins(margin, margin, margin, margin);
-
-                mCurrentShowcaseView.setButtonPosition(showcaseLP);
-                break;
-            } case SAVE_SERIES_CHANGE: {
-                mCurrentState = TutorialState.NONE;
-                mSettings.saveSeriesTutorialCount(mSettings.getSaveSeriesTutorialCount() + 1);
-                break;
-            }  case CHANGE_SKIP_EXERCISE: {
+            }
+            case CHANGE_SKIP_EXERCISE: {
                 mCurrentState = TutorialState.CANCEL_TRAINING;
-                mCurrentShowcaseView = createCancelTrainingTutorial(this);
+                createCancelTrainingTutorial();
                 break;
-            } case CANCEL_TRAINING: {
+            }
+            case CANCEL_TRAINING: {
                 mCurrentState = TutorialState.NONE;
+                mCurrentShowcaseView.hide();
                 mSettings.saveExercisesListTutorialCount(mSettings.getExercisesListTutorialCount() + 1);
                 break;
             }
+            case SAVE_SERIES_OK: {
+                mCurrentState = TutorialState.SAVE_SERIES_CHANGE;
+                createSaveSeriesChangeTutorial();
+                break;
+            }
+            case SAVE_SERIES_CHANGE: {
+                mCurrentState = TutorialState.NONE;
+                mCurrentShowcaseView.hide();
+                mSettings.saveSeriesTutorialCount(mSettings.getSaveSeriesTutorialCount() + 1);
+                break;
+            }
         }
-
-    }
-
-    @Override
-    public void onShowcaseViewDidHide(ShowcaseView showcaseView) {
-
-    }
-
-    @Override
-    public void onShowcaseViewShow(ShowcaseView showcaseView) {
-
     }
 }
