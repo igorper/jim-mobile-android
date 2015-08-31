@@ -7,27 +7,14 @@ import java.util.List;
  * @author Igor
  *
  */
-public class ExerciseType {
-
-    /**
-     * Local file name extension of exercise type image.
-     */
-    public static String IMAGE_EXTENSION = ".image";
-
-    public static String IMAGE_DATE_DELIMITER = "_";
-	
+public class ExerciseGroup {
 	/***********************
 	 * Fields deserialized from server data;
 	 ***********************/
 	private int id;
 	private String name;
-    private String medium_image_url;
-    private List<String> photoImages;
-    private Date image_updated_at;
-    private List<Integer> exercise_groups;
-
-    private String equipmentTypeImage;
-
+    private String thumb_image_url;
+    private boolean is_machine_group;
 	
 	/**
      * Gets the exercise type ID.
@@ -45,27 +32,27 @@ public class ExerciseType {
         return name;
     }
 
-    public List<Integer> getExerciseGroups(){ return exercise_groups; }
-
     /**
      * Gets the exercise type image url on the server (relative to server root).
      * @return
      */
-    public String getServerImageFileName() { return medium_image_url; }
+    public String getImageUrl() { return thumb_image_url; }
+
+    public boolean isMachineGroup() { return is_machine_group; }
 
     /**
      * Gets the local file name of the exercise type image. The file name has an extension appended
      * to allow filtering a directory for exercise images only.
      * @return
      */
-    public String getLocalImageFileName() {
+  /*  public String getLocalImageFileName() {
         return image_updated_at == null ? null : String.format("%d%s%d%s", getId(), IMAGE_DATE_DELIMITER, getImageUpdatedDate().getTime(), IMAGE_EXTENSION);
     }
 
     public Date getImageUpdatedDate() { return  image_updated_at; }
 
     private static String[] splitFileName(String fileName){
-        return fileName.replaceFirst("[.][^.]+$", "").split(ExerciseType.IMAGE_DATE_DELIMITER);
+        return fileName.replaceFirst("[.][^.]+$", "").split(ExerciseGroup.IMAGE_DATE_DELIMITER);
     }
 
     public static int extractIdFromFileName(String fileName){
@@ -90,9 +77,5 @@ public class ExerciseType {
 
     public List<String> getPhotoImages(){
         return photoImages;
-    }
-
-    public void setEquipmentTypeImage(String imagePath){ this.equipmentTypeImage = imagePath; }
-
-    public String getEquipmentTypeImage() { return equipmentTypeImage; }
+    }*/
 }

@@ -18,6 +18,7 @@ import com.trainerjim.mobile.android.R;
 import com.trainerjim.mobile.android.database.CompletedTraining;
 import com.trainerjim.mobile.android.database.TrainingPlan;
 import com.trainerjim.mobile.android.entities.Exercise;
+import com.trainerjim.mobile.android.entities.ExerciseGroup;
 import com.trainerjim.mobile.android.entities.ExercisePhoto;
 import com.trainerjim.mobile.android.entities.ExerciseType;
 import com.trainerjim.mobile.android.entities.LoginData;
@@ -277,6 +278,23 @@ public class ServerCommunicationService extends IntentService {
         ActiveAndroid.beginTransaction();
         try {
 
+            // get exercise groups
+            List<ExerciseGroup> exerciseGroups = service.getExerciseGroups();
+            Map<Integer, ExerciseGroup> exerciseGroupsLookup = new HashMap<>();
+            for (ExerciseGroup exerciseGroup: exerciseGroups){
+                    exerciseGroupsLookup.put(exerciseGroup.getId(), exerciseGroup);
+
+                // additionally, prefetch the equipment type images
+                if(exerciseGroup.isMachineGroup()){
+                    Picasso.with(this)
+                            .load(String.format("%s%s",
+                                    getResources().getString(R.string.server_url),
+                                    exerciseGroup.getImageUrl()))
+                            .fetch();
+                }
+
+            }
+
             // fetch server trainings and create a lookup table
             List<TrainingDescription> trainingsManifest = service.getTrainingsList();
             Map<Integer, TrainingDescription> trainingsManifestLookup = new HashMap<Integer, TrainingDescription>();
@@ -336,6 +354,17 @@ public class ServerCommunicationService extends IntentService {
 
                         // if no photos are available for the exercise just add an empty list
                         exerciseType.setPhotoImages(exercisePhotoLookup.containsKey(exerciseType.getId()) ? exercisePhotoLookup.get(exercise.getExerciseType().getId()) : new ArrayList<String>());
+
+                        // set equipment type image for each exercise type
+                        // there can be multiple exercise groups assigned to each exercise type (e.g.
+                        // muscle groups, equipment type)
+                        // take the first one with with is_machine_group flag set to true
+                        for(Integer exerciseGroupId : exerciseType.getExerciseGroups()){
+                            if (exerciseGroupsLookup.containsKey(exerciseGroupId)){
+                                ExerciseGroup group = exerciseGroupsLookup.get(exerciseGroupId);
+                                if(group.isMachineGroup()){ exerciseType.setEquipmentTypeImage(group.getImageUrl()); }
+                            }
+                        }
                     }
 
                 } catch (RetrofitError er) {

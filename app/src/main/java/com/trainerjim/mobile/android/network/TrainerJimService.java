@@ -1,5 +1,6 @@
 package com.trainerjim.mobile.android.network;
 
+import com.trainerjim.mobile.android.entities.ExerciseGroup;
 import com.trainerjim.mobile.android.entities.ExercisePhoto;
 import com.trainerjim.mobile.android.entities.ExerciseType;
 import com.trainerjim.mobile.android.entities.LoginData;
@@ -25,6 +26,9 @@ import retrofit.mime.TypedString;
  * Created by igor on 23.04.15.
  */
 public interface  TrainerJimService {
+    @GET("/api/v1/exercise_groups.json")
+    List<ExerciseGroup> getExerciseGroups();
+
     @GET("/training/exercise_types.json")
     List<ExerciseType> getExerciseTypes();
 
