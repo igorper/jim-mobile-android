@@ -27,11 +27,27 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent" >
 
+                <!--<fragment
+                    android:name="com.trainerjim.mobile.android.fragments.RestViewFragment"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:id="@+id/rest_view_fragment">
+                </fragment>-->
+                <LinearLayout
+                    android:layout_width="fill_parent"
+                    android:layout_height="fill_parent"
+                    android:id="@+id/todo_rest_screen"
+                    android:visibility="gone">
+
+                </LinearLayout>
+
                 <LinearLayout
                     android:paddingTop="20dp"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:orientation="vertical" >
+                    android:orientation="vertical"
+                    android:id="@+id/todo_main_screen"
+                    android:visibility="visible">
 
                     <RelativeLayout
                         android:layout_width="wrap_content"
@@ -225,12 +241,12 @@
 
                 <!-- START: THE VIEW SHOWN DURING THE EXERCISE -->
 
-                <fragment
+<!--                <fragment
                     android:name="com.trainerjim.mobile.android.fragments.ExerciseViewFragment"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:id="@+id/exercise_view_fragment">
-                </fragment>
+                </fragment>-->
                 <!-- END -->
 
             </RelativeLayout>

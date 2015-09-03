@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:paddingTop="20dp"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <RelativeLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" >
+
+        <!-- INFO BUTTON -->
+        <ImageView
+            android:id="@+id/exercises_button"
+            android:layout_width="@dimen/info_button_size"
+            android:layout_height="@dimen/info_button_size"
+            android:layout_alignParentLeft="true"
+            android:onClick="onExercisesButtonClick"
+            android:padding="@dimen/info_button_padding"
+            android:layout_marginLeft="@dimen/info_button_margin"
+            android:src="@drawable/exercises_ico"
+            android:visibility="invisible" />
+
+        <!-- CIRCULAR PROGRESS CONTROL -->
+        <com.trainerjim.mobile.android.ui.CircularProgressControl
+            android:id="@+id/circularProgress"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:paddingBottom="@dimen/circular_button_bottom_padding"
+            android:paddingLeft="@dimen/circular_button_side_padding"
+            android:paddingRight="@dimen/circular_button_side_padding"
+            android:paddingTop="@dimen/circular_button_top_padding" />
+
+        <!-- INFO BUTTON -->
+        <ImageView
+            android:id="@+id/info_button"
+            android:layout_width="@dimen/info_button_size"
+            android:layout_height="@dimen/info_button_size"
+            android:layout_alignParentRight="true"
+            android:onClick="onInfoButtonClick"
+            android:padding="@dimen/info_button_padding"
+            android:layout_marginRight="@dimen/info_button_margin"
+            android:src="@drawable/chair_ico"
+            android:visibility="invisible" />
+    </RelativeLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" >
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:orientation="vertical" >
+
+            <RelativeLayout
+                android:id="@+id/bottomContainer"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/status_rect_height"
+                android:layout_gravity="center"
+                android:background="@color/status_rect_background">
+
+                <LinearLayout
+                    android:id="@+id/trainingSelector"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:onClick="onBottomStrapClick"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/text_rect_upper_line"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:text="Workout selected:"
+                        android:textColor="@color/select_training_title_text"
+                        android:textSize="@dimen/status_rect_training_selection_small_font_size"/>
+
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="top">
+
+                        <!-- It's really hard to pick the optimal triangle size and align it with the text (this should be done from scratch with low level drawing in the future -->
+
+                        <LinearLayout
+                            android:id="@+id/layout_rect_training_selector"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentTop="true"
+                            android:layout_centerHorizontal="true"
+                            android:visibility="gone">
+
+                            <TextView
+                                android:id="@+id/trainingSelectorText"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="center_vertical"
+                                android:gravity="top"
+                                android:includeFontPadding="false"
+                                android:textColor="@color/select_training_text"
+                                android:textSize="@dimen/select_training_text_size" />
+
+                            <ImageView
+                                android:id="@+id/arrow_rect_lower_line"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="top|left"
+                                android:layout_marginLeft="10dp"
+                                android:adjustViewBounds="true"
+                                android:scaleType="fitCenter"
+                                android:src="@drawable/arrow_red_down" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:id="@+id/layout_rect_lower_line"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentTop="true"
+                            android:layout_centerHorizontal="true"
+                            android:visibility="gone">
+
+                            <TextView
+                                android:id="@+id/text_rect_lower_line"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="center_vertical"
+                                android:gravity="center"
+                                android:includeFontPadding="false"
+                                android:textColor="@color/select_training_text"
+                                android:textSize="@dimen/select_training_text_size"
+                                android:text="Triceps"/>
+                        </LinearLayout>
+                    </RelativeLayout>
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/text_rect_one_line"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_gravity="center_vertical"
+                    android:gravity="center"
+                    android:textAlignment="center"
+                    android:textColor="@color/cpc_overview_dash"
+                    android:visibility="invisible"
+                    android:textSize="40dp" />
+            </RelativeLayout>
+
+            <LinearLayout
+                android:id="@+id/seriesInformation"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginTop="5dp" >
+
+                <ImageView
+                    android:id="@+id/imageArrowSeriesInfo"
+                    android:layout_width="wrap_content"
+                    android:layout_height="15dp"
+                    android:layout_gravity="center_vertical|left"
+                    android:layout_marginRight="5dp"
+                    android:adjustViewBounds="true"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/arrow_orange_right" />
+
+                <TextView
+                    android:id="@+id/nextSeriesText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:gravity="center_vertical"
+                    android:textColor="@color/next_series_text"
+                    android:textSize="20dp" />
+            </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
+
+</LinearLayout>

@@ -21,6 +21,7 @@ import com.trainerjim.mobile.android.entities.Exercise;
 import com.trainerjim.mobile.android.entities.SeriesExecution;
 import com.trainerjim.mobile.android.entities.Training;
 import com.trainerjim.mobile.android.events.EndExerciseEvent;
+import com.trainerjim.mobile.android.events.EndRestEvent;
 import com.trainerjim.mobile.android.events.StartExerciseEvent;
 import com.trainerjim.mobile.android.util.TutorialHelper;
 import com.trainerjim.mobile.android.util.Utils;
@@ -84,7 +85,6 @@ public class ExerciseViewFragment extends Fragment implements View.OnClickListen
      */
     private Handler mUiHandler = new Handler();
 
-
     /**
      * Controls the visibility of the edit series details view. If true, edit
      * series view will be shown to the users.
@@ -99,6 +99,12 @@ public class ExerciseViewFragment extends Fragment implements View.OnClickListen
     private NumberPicker mEditWeightNumPick;
     private RelativeLayout mEditDetailsView;
     private EditText mEditCommentValue;
+
+    public ExerciseViewFragment(){}
+    public ExerciseViewFragment(Training currentTrainig, TutorialHelper tutorialHelper){
+        this.mCurrentTraining = currentTrainig;
+        this.mTutorialHelper = tutorialHelper;
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -139,25 +145,21 @@ public class ExerciseViewFragment extends Fragment implements View.OnClickListen
 
         initializeExerciseRatings(fragmentView);
 
+        mExerciseTimer.setVisibility(mCurrentTraining.getCurrentExercise().getGuidanceType().equals(Exercise.GUIDANCE_TYPE_DURATION) ? View.VISIBLE : View.GONE);
+
+        mUiHandler.postDelayed(mUpdateExerciseTimer, 0);
+
+       // mTutorialHelper.showSaveSeriesTutorial();
+
         return fragmentView;
     }
+
+    public void onEvent(EndRestEvent event){}
 
     @Override
     public void onDestroyView() {
         EventBus.getDefault().unregister(this);
         super.onDestroyView();
-    }
-
-    public void onEvent(StartExerciseEvent event){
-        this.mCurrentTraining = event.getCurrentTraining();
-        this.mTutorialHelper = event.getTutorialHelper();
-
-        getView().setVisibility(View.VISIBLE);
-        mExerciseTimer.setVisibility(mCurrentTraining.getCurrentExercise().getGuidanceType().equals(Exercise.GUIDANCE_TYPE_DURATION) ? View.VISIBLE : View.GONE);
-
-        mUiHandler.postDelayed(mUpdateExerciseTimer, 0);
-
-        mTutorialHelper.showSaveSeriesTutorial();
     }
 
     @Override

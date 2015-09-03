@@ -1,10 +1,11 @@
 package com.trainerjim.mobile.android;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.FragmentManager;
+import android.app.FragmentTransaction;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -36,24 +37,26 @@ import com.squareup.picasso.Picasso;
 import com.trainerjim.mobile.android.database.CompletedTraining;
 import com.trainerjim.mobile.android.database.TrainingPlan;
 import com.trainerjim.mobile.android.entities.Exercise;
-import com.trainerjim.mobile.android.entities.Series;
 import com.trainerjim.mobile.android.entities.Training;
 import com.trainerjim.mobile.android.events.DismissProgressEvent;
 import com.trainerjim.mobile.android.events.EndDownloadTrainingsEvent;
 import com.trainerjim.mobile.android.events.EndExerciseEvent;
 import com.trainerjim.mobile.android.events.EndRateTraining;
+import com.trainerjim.mobile.android.events.EndRestEvent;
+import com.trainerjim.mobile.android.events.EndTrainingEvent;
 import com.trainerjim.mobile.android.events.EndUploadCompletedTrainings;
 import com.trainerjim.mobile.android.events.ReportProgressEvent;
 import com.trainerjim.mobile.android.events.StartRateTraining;
 import com.trainerjim.mobile.android.events.StartExerciseEvent;
+import com.trainerjim.mobile.android.events.StartRestEvent;
+import com.trainerjim.mobile.android.events.ToggleGetReadyEvent;
 import com.trainerjim.mobile.android.events.TrainingSelectedEvent;
+import com.trainerjim.mobile.android.fragments.ExerciseViewFragment;
+import com.trainerjim.mobile.android.fragments.RestViewFragment;
 import com.trainerjim.mobile.android.network.ServerCommunicationService;
 import com.trainerjim.mobile.android.storage.PermanentSettings;
-import com.trainerjim.mobile.android.timers.GetReadyTimer;
-import com.trainerjim.mobile.android.timers.UpdateRestTimer;
 import com.trainerjim.mobile.android.ui.CircularProgressControl;
 import com.trainerjim.mobile.android.ui.ExerciseImagesPagerAdapter;
-import com.trainerjim.mobile.android.ui.ExerciseAdapter;
 import com.trainerjim.mobile.android.ui.CircularProgressControl.CircularProgressState;
 import com.trainerjim.mobile.android.util.Analytics;
 import com.trainerjim.mobile.android.util.TutorialHelper;
@@ -116,9 +119,9 @@ public class TrainingActivity extends Activity {
      * recursively until externally stopped or until there are no more exercises
      * left.
      */
-    private UpdateRestTimer mUpdateRestTimer = null;
+    //private UpdateRestTimer mUpdateRestTimer = null;
 
-    private GetReadyTimer mGetReadyTimer = null;
+    //private GetReadyTimer mGetReadyTimer = null;
 
     private ExerciseImagesPagerAdapter mExerciseImagesPagerAdapter;
 
@@ -181,8 +184,11 @@ public class TrainingActivity extends Activity {
         mDrawerExercisesList = (ListView)findViewById(R.id.exercises_list);
         mViewPager = (ViewPager) findViewById(R.id.pager);
 
-        mUpdateRestTimer = new UpdateRestTimer(this);
-        mGetReadyTimer = new GetReadyTimer(this);
+        todoMainScreen = (LinearLayout)findViewById(R.id.todo_main_screen);
+        todoRestScreen = (LinearLayout)findViewById(R.id.todo_rest_screen);
+
+        //mUpdateRestTimer = new UpdateRestTimer(this);
+        //mGetReadyTimer = new GetReadyTimer(this);
 
         mProgressDialog = new ProgressDialog(this);
         mProgressDialog.setIndeterminate(false);
@@ -346,7 +352,7 @@ public class TrainingActivity extends Activity {
         EventBus.getDefault().unregister(this);
 
 		// remove all periodical tasks
-		mUiHandler.removeCallbacks(mUpdateRestTimer);
+		//mUiHandler.removeCallbacks(mUpdateRestTimer);
 
 		super.onDestroy();
 	}
@@ -370,7 +376,7 @@ public class TrainingActivity extends Activity {
                     mAnalytics.logExerciseSkipped();
 
                     // TODO: think about a better way to consistently remove the update timer callback
-                    mUiHandler.removeCallbacks(mUpdateRestTimer);
+                    //mUiHandler.removeCallbacks(mUpdateRestTimer);
                     mCurrentTraining.removeExercise(info.position);
                     saveCurrentTraining();
                     updateScreen();
@@ -389,6 +395,9 @@ public class TrainingActivity extends Activity {
     public Handler getUiHandler(){
         return mUiHandler;
     }
+
+    private LinearLayout todoMainScreen;
+    private LinearLayout todoRestScreen;
 
 	/**
 	 * This method loads the currently active training to a memory object from
@@ -447,7 +456,7 @@ public class TrainingActivity extends Activity {
      * @param event
      */
     public void onEvent(EndExerciseEvent event){
-        mUiHandler.removeCallbacks(mUpdateRestTimer);
+        //mUiHandler.removeCallbacks(mUpdateRestTimer);
 
         // end this exercise (series)
         mCurrentTraining.endExercise();
@@ -458,7 +467,24 @@ public class TrainingActivity extends Activity {
         // TODO: this will most probably have to be communicated outside to the parent activity
         saveCurrentTraining();
 
-        updateScreen();
+        //updateScreen();
+
+        if (mCurrentTraining.getCurrentExercise() == null) {
+            if (!mCurrentTraining.isTrainingEnded()) {
+                // I'm done was clicked
+                mCurrentTraining.endTraining();
+            } else {
+                // end training event
+                EventBus.getDefault().post(new EndTrainingEvent());
+            }
+
+        } else {
+            // exercise -> rest
+            FragmentManager fm = getFragmentManager();
+            FragmentTransaction ft = fm.beginTransaction();
+            ft.replace(R.id.todo_rest_screen, new RestViewFragment(new StartRestEvent(mCurrentTraining, mTutorialHelper)));
+            ft.commit();
+        }
     }
 
     public void onEvent(EndRateTraining event){
@@ -497,8 +523,8 @@ public class TrainingActivity extends Activity {
     };
 
     private void cancelCurrentTraining() {
-        mUiHandler.removeCallbacks(mUpdateRestTimer);
-        mUiHandler.removeCallbacks(mGetReadyTimer);
+        //mUiHandler.removeCallbacks(mUpdateRestTimer);
+        //mUiHandler.removeCallbacks(mGetReadyTimer);
 
         mCurrentTraining = null;
 
@@ -618,31 +644,25 @@ public class TrainingActivity extends Activity {
             mCurrentTraining = Utils.getGsonObject().fromJson(selectedTrainingPlan.getData(),
                     Training.class);
             mCurrentTraining.startTraining();
-		} else if (mCurrentTraining.getCurrentExercise() == null) {
-			if (!mCurrentTraining.isTrainingEnded()) {
-				// I'm done was clicked
-				mCurrentTraining.endTraining();
-			} else {
-				// overview button was clicked
-
-				// store training to the database
-                int userId = mSettings.getUserId();
-                new CompletedTraining(mCurrentTraining.getTrainingName(), Utils.getGsonObject().toJson(mCurrentTraining.extractMeasurement(userId)), userId).save();
-
-				mCurrentTraining = null;
-			}
-
-		} else if (mCurrentTraining.isCurrentRest()) {
-			mGetReadyTimer.toggleGetReadyStartTimestamp();
-		} else {
-			// exercise -> rest
-
 		}
 
 		saveCurrentTraining();
 
 		updateScreen();
 	}
+
+    public void onEvent(EndTrainingEvent event){
+        // overview button was clicked
+
+        // store training to the database
+        int userId = mSettings.getUserId();
+        new CompletedTraining(mCurrentTraining.getTrainingName(), Utils.getGsonObject().toJson(mCurrentTraining.extractMeasurement(userId)), userId).save();
+
+        mCurrentTraining = null;
+
+        // also close the rest fragment and show the start training fragment
+
+    }
 
     /**
 	 * This is the sole method responsible for setting the activity UI (apart
@@ -735,7 +755,29 @@ public class TrainingActivity extends Activity {
 			Exercise curExercise = mCurrentTraining.getCurrentExercise();
 			// there are still some exercises to be performed
 			if (mCurrentTraining.isCurrentRest()) {
-                mTutorialHelper.showExerciseTutorial();
+                //Toast.makeText(this, "RESTING", Toast.LENGTH_SHORT).show();
+                //EventBus.getDefault().post(new StartRestEvent(mCurrentTraining, mTutorialHelper));
+
+                FragmentManager fm = getFragmentManager();
+                boolean f = fm.findFragmentById(R.id.todo_rest_screen) == null;
+                FragmentTransaction ft = fm.beginTransaction();
+                RestViewFragment rvf = new RestViewFragment(new StartRestEvent(mCurrentTraining, mTutorialHelper));
+                //SampleFragment rvf = new SampleFragment();
+                ft.add(R.id.todo_rest_screen, rvf);
+                ft.commit();
+
+
+
+                todoMainScreen.setVisibility(View.GONE);
+                todoRestScreen.setVisibility(View.VISIBLE);
+/*
+                FragmentManager fm = getFragmentManager();
+                FragmentTransaction ft = fm.beginTransaction();
+                RestViewFragment rvf = new RestViewFragment(new StartRestEvent(mCurrentTraining, mTutorialHelper));
+                ft.add(R.id.todo_rest_screen, rvf);
+                ft.commit();*/
+
+                /*mTutorialHelper.showExerciseTutorial();
 
 
                 // TODO: encapsulate this or find a better way to do it
@@ -817,45 +859,41 @@ public class TrainingActivity extends Activity {
 
                     mDrawerExercisesList.setAdapter(adapter);
                     mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
-				}
+				}*/
 			} else {
 				// otherwise show exercising UI
-                mUiHandler.removeCallbacks(mUpdateRestTimer);
+                /*mUiHandler.removeCallbacks(mUpdateRestTimer);
 
                 // TODO: mightr be better to decouple the training here (and not pass it,
                 // but rather pass a minimum set of parameters)
                 EventBus.getDefault().post(new StartExerciseEvent(mCurrentTraining, mTutorialHelper));
 
-                mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
+                mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);*/
 			}
-
-			// set exercise and training progres bars
-			mCircularProgress.setTrainingMaxProgress(mCurrentTraining
-					.getTotalSeriesCount());
-			mCircularProgress.setTrainingMinProgress(0);
-			mCircularProgress.setTrainingProgressValue(mCurrentTraining
-					.getSeriesPerformedCount());
-
-			mCircularProgress.setExerciseMaxProgress(curExercise
-					.getAllSeriesCount());
-			mCircularProgress.setExerciseMinProgress(0);
-			mCircularProgress.setExerciseProgressValue(curExercise
-					.getAllSeriesCount() - curExercise.getSeriesLeftCount());
-
-            // show the info button only if the get ready timer is not running
-            mInfoButton.setVisibility(mGetReadyTimer.isStarted() ? View.INVISIBLE : View.VISIBLE);
-            mExercisesListButton.setVisibility(mGetReadyTimer.isStarted() ? View.INVISIBLE : View.VISIBLE);
-			mBottomContainer.setVisibility(View.VISIBLE);
-			mSeriesInformation.setVisibility(View.VISIBLE);
-			mTrainingSelector.setVisibility(View.VISIBLE);
-			// TODO: mSwipeControl.setVisibility(View.VISIBLE);
-			mImageArrowSeriesInfo.setVisibility(View.VISIBLE);
 
             getActionBar().hide();
 		}
 
         invalidateOptionsMenu();
 	}
+
+    public void onEvent(ToggleGetReadyEvent event){
+        mDrawerLayout.setDrawerLockMode(event.isEnabled() ? DrawerLayout.LOCK_MODE_LOCKED_CLOSED :
+                DrawerLayout.LOCK_MODE_UNLOCKED);
+    }
+
+    public void onEvent(StartExerciseEvent event){
+        mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
+    }
+
+    public void onEvent(EndRestEvent event){
+
+        FragmentManager fm = getFragmentManager();
+        FragmentTransaction ft = fm.beginTransaction();
+        ExerciseViewFragment evf = new ExerciseViewFragment(mCurrentTraining, mTutorialHelper);
+        ft.replace(R.id.todo_rest_screen, evf);
+        ft.commit();
+    }
 
 	/**
 	 * Starts the select training activity.
@@ -873,37 +911,6 @@ public class TrainingActivity extends Activity {
             }
         }
 	}
-
-	private void showExerciseRateView() {
-		//mViewDuringExercise.setVisibility(View.VISIBLE);
-	}
-
-    public void updateGetReadyTimer(int secondsLeft){
-        mCircularProgress.setRestProgressValue(secondsLeft);
-        mCircularProgress.setTimer(secondsLeft);
-    }
-
-    public void updateRestTimer(int restLeft){
-        mCircularProgress.setRestProgressValue(restLeft < 0 ? 0
-                : restLeft);
-
-        // if time has run out notify the user that he should
-        if(restLeft < 0){
-            mCircularProgress.setTimerMessage("");
-            mCircularProgress.setNotificationMessage("Tap to exercise");
-        }
-        mCircularProgress.setTimer(Math.abs(restLeft));
-    }
-
-    public void getReadyTimerOver(){
-
-        // time is up, start the exercise animation
-        mCurrentTraining.startExercise();
-
-        showExerciseRateView();
-
-        updateScreen();
-    }
 
     public void onEvent(final TrainingSelectedEvent event){
         mUiHandler.post(new Runnable() {
