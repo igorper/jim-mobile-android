@@ -37,7 +37,6 @@
             android:layout_width="@dimen/info_button_size"
             android:layout_height="@dimen/info_button_size"
             android:layout_alignParentRight="true"
-            android:onClick="onInfoButtonClick"
             android:padding="@dimen/info_button_padding"
             android:layout_marginRight="@dimen/info_button_margin"
             android:src="@drawable/chair_ico"
@@ -176,5 +175,14 @@
             </LinearLayout>
         </LinearLayout>
     </LinearLayout>
+
+    <!-- START: FULLSCREEN EXERCISE IMAGE -->
+    <android.support.v4.view.ViewPager xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/pager"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone">
+    </android.support.v4.view.ViewPager>
+    <!-- END -->
 
 </LinearLayout>

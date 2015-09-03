@@ -4,6 +4,7 @@ import java.util.List;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.app.ProgressDialog;
@@ -38,6 +39,7 @@ import com.trainerjim.mobile.android.database.CompletedTraining;
 import com.trainerjim.mobile.android.database.TrainingPlan;
 import com.trainerjim.mobile.android.entities.Exercise;
 import com.trainerjim.mobile.android.entities.Training;
+import com.trainerjim.mobile.android.events.BackPressedEvent;
 import com.trainerjim.mobile.android.events.DismissProgressEvent;
 import com.trainerjim.mobile.android.events.EndDownloadTrainingsEvent;
 import com.trainerjim.mobile.android.events.EndExerciseEvent;
@@ -45,6 +47,7 @@ import com.trainerjim.mobile.android.events.EndRateTraining;
 import com.trainerjim.mobile.android.events.EndRestEvent;
 import com.trainerjim.mobile.android.events.EndTrainingEvent;
 import com.trainerjim.mobile.android.events.EndUploadCompletedTrainings;
+import com.trainerjim.mobile.android.events.ExerciseImageEvent;
 import com.trainerjim.mobile.android.events.ReportProgressEvent;
 import com.trainerjim.mobile.android.events.StartRateTraining;
 import com.trainerjim.mobile.android.events.StartExerciseEvent;
@@ -90,13 +93,12 @@ public class TrainingActivity extends Activity {
     private TextView mTextRectLowerLine;
     private TextView mTextRectOneLine;
 	private RelativeLayout mBottomContainer;
-    private ImageView mInfoButton;
     private ImageView mExercisesListButton;
 	private LinearLayout mSeriesInformation;
 	private TextView mSeriesInfoText;
 	private ImageView mImageArrowSeriesInfo;
 	private CheckBox mEditDetailsCheckbox;
-    private ImageView mExerciseImage;
+    //private ImageView mExerciseImage;
     private DrawerLayout mDrawerLayout;
     private ListView mDrawerExercisesList;
 
@@ -125,7 +127,7 @@ public class TrainingActivity extends Activity {
 
     private ExerciseImagesPagerAdapter mExerciseImagesPagerAdapter;
 
-    private ViewPager mViewPager;
+    //private ViewPager mViewPager;
 
     private Analytics mAnalytics;
 
@@ -173,16 +175,15 @@ public class TrainingActivity extends Activity {
         mTextRectLowerLine = (TextView)findViewById(R.id.text_rect_lower_line);
         mTextRectOneLine = (TextView)findViewById(R.id.text_rect_one_line);
 		mBottomContainer = (RelativeLayout) findViewById(R.id.bottomContainer);
-		mInfoButton = (ImageView) findViewById(R.id.info_button);
         mExercisesListButton = (ImageView) findViewById(R.id.exercises_button);
 		mSeriesInformation = (LinearLayout) findViewById(R.id.seriesInformation);
 		mSeriesInfoText = (TextView) findViewById(R.id.nextSeriesText);
 		mImageArrowSeriesInfo = (ImageView) findViewById(R.id.imageArrowSeriesInfo);
 //		mEditDetailsCheckbox = (CheckBox) findViewById(R.id.checkbox_edit_details);
-        mExerciseImage = (ImageView)findViewById(R.id.exerciseImage);
+        //mExerciseImage = (ImageView)findViewById(R.id.exerciseImage);
         mDrawerLayout = (DrawerLayout)findViewById(R.id.drawer_layout);
         mDrawerExercisesList = (ListView)findViewById(R.id.exercises_list);
-        mViewPager = (ViewPager) findViewById(R.id.pager);
+        //mViewPager = (ViewPager) findViewById(R.id.pager);
 
         todoMainScreen = (LinearLayout)findViewById(R.id.todo_main_screen);
         todoRestScreen = (LinearLayout)findViewById(R.id.todo_rest_screen);
@@ -257,54 +258,6 @@ public class TrainingActivity extends Activity {
             }
         });
 
-        // since view pager ignores click event we had to implement a tap gesture detector to recognize
-        // the tap gesture and perform the appropriate action (in this case moving to next page of the
-        // view pager)
-        final GestureDetector tapGestureDetector = new GestureDetector(this, new GestureDetector.OnGestureListener() {
-            @Override
-            public boolean onDown(MotionEvent motionEvent) {
-                return false;
-            }
-
-            @Override
-            public void onShowPress(MotionEvent motionEvent) {
-
-            }
-
-            @Override
-            public boolean onSingleTapUp(MotionEvent motionEvent) {
-                if(mViewPager.getCurrentItem() < mViewPager.getAdapter().getCount() - 1){
-                    mViewPager.setCurrentItem(mViewPager.getCurrentItem() + 1);
-                } else {
-                    toggleInfoButtonVisible(false);
-                    mViewPager.setCurrentItem(0);
-                }
-                return false;
-            }
-
-            @Override
-            public boolean onScroll(MotionEvent motionEvent, MotionEvent motionEvent2, float v, float v2) {
-                return false;
-            }
-
-            @Override
-            public void onLongPress(MotionEvent motionEvent) {
-
-            }
-
-            @Override
-            public boolean onFling(MotionEvent motionEvent, MotionEvent motionEvent2, float v, float v2) {
-                return false;
-            }
-        });
-
-        mViewPager.setOnTouchListener(new View.OnTouchListener() {
-            public boolean onTouch(View v, MotionEvent event) {
-                tapGestureDetector.onTouchEvent(event);
-                return false;
-            }
-        });
-
         registerForContextMenu(mDrawerExercisesList);
 
 		// try to fetch trainings if not available
@@ -331,15 +284,6 @@ public class TrainingActivity extends Activity {
 	private boolean isUserLoggedIn() {
 		return mSettings.getUserId() != -1;
 	}
-
-
-    public boolean onClickExerciseImage(View v){
-        if(!mTutorialHelper.isTutorialActive()){
-            toggleInfoButtonVisible(false);
-        }
-
-        return true;
-    }
 
 	/*
 	 * TODO: Check if stuff in onCreate and onDestroy should be moved to more
@@ -420,35 +364,22 @@ public class TrainingActivity extends Activity {
 	 */
 	private void saveCurrentTraining() {
 		mSettings.saveCurrentTrainingPlan(mCurrentTraining == null ? ""
-				: Utils.getGsonObject().toJson(mCurrentTraining));
-	}
-
-	/**
-	 * Toggles the visibility of additional info circular button overlay and
-	 * sets the appropriate icon.
-	 * 
-	 * @param visible
-	 */
-	private void toggleInfoButtonVisible(boolean visible) {
-
-        if(visible){
-            mAnalytics.logShowExerciseImage();
-        }
-
-        // only show/hide the images when there are some available
-        if(mViewPager.getAdapter().getCount() > 0) {
-            mViewPager.setVisibility(visible ? View.VISIBLE : View.GONE);
-            mDrawerLayout.setDrawerLockMode(visible ? DrawerLayout.LOCK_MODE_LOCKED_CLOSED : DrawerLayout.LOCK_MODE_UNLOCKED);
-        }
+                : Utils.getGsonObject().toJson(mCurrentTraining));
 	}
 
     @Override
     public void onBackPressed() {
-        if(mViewPager.getVisibility() == View.VISIBLE){
-            toggleInfoButtonVisible(false);
+        if(exerciseImageVisible){
+            // just notify all listeners (fragments) that the back button was clicked
+            EventBus.getDefault().post(new BackPressedEvent());
         } else {
             super.onBackPressed();
         }
+    }
+
+    private boolean exerciseImageVisible;
+    public void onEvent(ExerciseImageEvent event){
+        exerciseImageVisible = event.isVisible();
     }
 
     /**
@@ -482,7 +413,7 @@ public class TrainingActivity extends Activity {
             // exercise -> rest
             FragmentManager fm = getFragmentManager();
             FragmentTransaction ft = fm.beginTransaction();
-            ft.replace(R.id.todo_rest_screen, new RestViewFragment(new StartRestEvent(mCurrentTraining, mTutorialHelper)));
+            ft.replace(R.id.todo_rest_screen, new RestViewFragment(mCurrentTraining, mTutorialHelper, mAnalytics));
             ft.commit();
         }
     }
@@ -491,15 +422,6 @@ public class TrainingActivity extends Activity {
         saveCurrentTraining();
         updateScreen();
     }
-
-	/**
-	 * Triggered on additional info button click.
-	 * 
-	 * @param v
-	 */
-	public void onInfoButtonClick(View v) {
-		toggleInfoButtonVisible(!mCircularProgress.isInfoVisible());
-	}
 
     public void onExercisesButtonClick(View v){
         if(mTutorialHelper.isTutorialActive()){
@@ -628,7 +550,7 @@ public class TrainingActivity extends Activity {
 
 		} else */if (mCircularProgress.isInfoVisible()) {
 			// if info button is visible close it on tap
-			toggleInfoButtonVisible(false);
+			//toggleInfoButtonVisible(false);
 		} else if (mCurrentTraining == null) {
 			// start button was clicked
 
@@ -698,7 +620,6 @@ public class TrainingActivity extends Activity {
             }
 
             mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
-			mInfoButton.setVisibility(View.INVISIBLE);
             mExercisesListButton.setVisibility(View.INVISIBLE);
 
 			mBottomContainer.setVisibility(View.VISIBLE);
@@ -741,7 +662,6 @@ public class TrainingActivity extends Activity {
 			}
 
             mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
-			mInfoButton.setVisibility(View.INVISIBLE);
             mExercisesListButton.setVisibility(View.INVISIBLE);
 			mSeriesInformation.setVisibility(View.VISIBLE);
 			mImageArrowSeriesInfo.setVisibility(View.GONE);
@@ -761,12 +681,8 @@ public class TrainingActivity extends Activity {
                 FragmentManager fm = getFragmentManager();
                 boolean f = fm.findFragmentById(R.id.todo_rest_screen) == null;
                 FragmentTransaction ft = fm.beginTransaction();
-                RestViewFragment rvf = new RestViewFragment(new StartRestEvent(mCurrentTraining, mTutorialHelper));
-                //SampleFragment rvf = new SampleFragment();
-                ft.add(R.id.todo_rest_screen, rvf);
+                ft.add(R.id.todo_rest_screen, new RestViewFragment(mCurrentTraining, mTutorialHelper, mAnalytics));
                 ft.commit();
-
-
 
                 todoMainScreen.setVisibility(View.GONE);
                 todoRestScreen.setVisibility(View.VISIBLE);
@@ -887,6 +803,9 @@ public class TrainingActivity extends Activity {
     }
 
     public void onEvent(EndRestEvent event){
+
+        // start the exercise
+        mCurrentTraining.startExercise();
 
         FragmentManager fm = getFragmentManager();
         FragmentTransaction ft = fm.beginTransaction();

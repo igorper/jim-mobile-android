@@ -75,17 +75,6 @@
                             android:paddingRight="@dimen/circular_button_side_padding"
                             android:paddingTop="@dimen/circular_button_top_padding" />
 
-                        <!-- INFO BUTTON -->
-                        <ImageView
-                            android:id="@+id/info_button"
-                            android:layout_width="@dimen/info_button_size"
-                            android:layout_height="@dimen/info_button_size"
-                            android:layout_alignParentRight="true"
-                            android:onClick="onInfoButtonClick"
-                            android:padding="@dimen/info_button_padding"
-                            android:layout_marginRight="@dimen/info_button_margin"
-                            android:src="@drawable/chair_ico"
-                            android:visibility="invisible" />
                     </RelativeLayout>
 
                     <LinearLayout
@@ -223,14 +212,6 @@
                 </LinearLayout>
 
                 <!-- START: FULLSCREEN EXERCISE IMAGE -->
-                <ImageView
-                    android:id="@+id/exerciseImage"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:onClick="onClickExerciseImage"
-                    android:scaleType="centerCrop"
-                    android:visibility="gone" >
-                </ImageView>
                 <android.support.v4.view.ViewPager xmlns:android="http://schemas.android.com/apk/res/android"
                     android:id="@+id/pager"
                     android:layout_width="match_parent"

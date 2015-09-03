@@ -7,7 +7,10 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Vibrator;
 import android.support.v4.view.ViewPager;
+import android.support.v4.widget.DrawerLayout;
+import android.view.GestureDetector;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -20,13 +23,16 @@ import com.trainerjim.mobile.android.TrainingActivity;
 import com.trainerjim.mobile.android.entities.Exercise;
 import com.trainerjim.mobile.android.entities.Series;
 import com.trainerjim.mobile.android.entities.Training;
+import com.trainerjim.mobile.android.events.BackPressedEvent;
 import com.trainerjim.mobile.android.events.EndExerciseEvent;
+import com.trainerjim.mobile.android.events.ExerciseImageEvent;
 import com.trainerjim.mobile.android.events.ToggleGetReadyEvent;
 import com.trainerjim.mobile.android.events.EndRestEvent;
 import com.trainerjim.mobile.android.events.StartRestEvent;
 import com.trainerjim.mobile.android.ui.CircularProgressControl;
 import com.trainerjim.mobile.android.ui.ExerciseAdapter;
 import com.trainerjim.mobile.android.ui.ExerciseImagesPagerAdapter;
+import com.trainerjim.mobile.android.util.Analytics;
 import com.trainerjim.mobile.android.util.TutorialHelper;
 import com.trainerjim.mobile.android.util.Utils;
 
@@ -42,9 +48,9 @@ public class RestViewFragment extends Fragment implements View.OnClickListener {
 
     private Training mCurrentTraining;
     private TutorialHelper mTutorialHelper;
+    private Analytics mAnalytics;
 
     private CircularProgressControl mCircularProgress;
-    private ViewPager mViewPager;
     private TextView mTextRectUpperLine;
     private TextView mTextRectLowerLine;
     private LinearLayout mLayoutRectLowerLine;
@@ -56,6 +62,7 @@ public class RestViewFragment extends Fragment implements View.OnClickListener {
     private ImageView mImageArrowSeriesInfo;
     private ImageView mInfoButton;
     private ImageView mExercisesListButton;
+    private ViewPager mViewPager;
 
     private UpdateRestTimer mUpdateRestTimer = null;
 
@@ -67,10 +74,13 @@ public class RestViewFragment extends Fragment implements View.OnClickListener {
 
     public RestViewFragment(){}
 
-    public RestViewFragment(StartRestEvent event){
-        this.mCurrentTraining = event.getCurrentTraining();
-        this.mTutorialHelper = event.getTutorialHelper();
-
+    // TODO: this is not the best pattern as if the fragment is killed and recreated by android
+    // this constructor might not be called. In the future think about passing those args through
+    // a bundle, but for now this should not be a problem.
+    public RestViewFragment(Training training, TutorialHelper tutorialHelper, Analytics analytics){
+        this.mCurrentTraining = training;
+        this.mTutorialHelper = tutorialHelper;
+        this.mAnalytics = analytics;
     }
 
     @Override
@@ -89,11 +99,58 @@ public class RestViewFragment extends Fragment implements View.OnClickListener {
         mImageArrowSeriesInfo = (ImageView) fragmentView.findViewById(R.id.imageArrowSeriesInfo);
         mInfoButton = (ImageView) fragmentView.findViewById(R.id.info_button);
         mExercisesListButton = (ImageView) fragmentView.findViewById(R.id.exercises_button);
-
-        // TODO: this has to move in this fragment out of the activity
         mViewPager = (ViewPager) getActivity().findViewById(R.id.pager);
 
+        // since view pager ignores click event we had to implement a tap gesture detector to recognize
+        // the tap gesture and perform the appropriate action (in this case moving to next page of the
+        // view pager)
+        final GestureDetector tapGestureDetector = new GestureDetector(getActivity(), new GestureDetector.OnGestureListener() {
+            @Override
+            public boolean onDown(MotionEvent motionEvent) {
+                return false;
+            }
+
+            @Override
+            public void onShowPress(MotionEvent motionEvent) {
+
+            }
+
+            @Override
+            public boolean onSingleTapUp(MotionEvent motionEvent) {
+                if(mViewPager.getCurrentItem() < mViewPager.getAdapter().getCount() - 1){
+                    mViewPager.setCurrentItem(mViewPager.getCurrentItem() + 1);
+                } else {
+                    toggleInfoButtonVisible(false);
+                    mViewPager.setCurrentItem(0);
+                }
+                return false;
+            }
+
+            @Override
+            public boolean onScroll(MotionEvent motionEvent, MotionEvent motionEvent2, float v, float v2) {
+                return false;
+            }
+
+            @Override
+            public void onLongPress(MotionEvent motionEvent) {
+
+            }
+
+            @Override
+            public boolean onFling(MotionEvent motionEvent, MotionEvent motionEvent2, float v, float v2) {
+                return false;
+            }
+        });
+
+        mViewPager.setOnTouchListener(new View.OnTouchListener() {
+            public boolean onTouch(View v, MotionEvent event) {
+                tapGestureDetector.onTouchEvent(event);
+                return false;
+            }
+        });
+
         mCircularProgress.setOnClickListener(this);
+        mInfoButton.setOnClickListener(this);
 
         // TODO: update that we won't need to pass in the TrainingActivity. might be better to pass in
         // just a callback function
@@ -103,6 +160,15 @@ public class RestViewFragment extends Fragment implements View.OnClickListener {
         EventBus.getDefault().register(this);
 
         return fragmentView;
+    }
+
+    // TODO: seems like this is not used anywhere
+    public boolean onClickExerciseImage(View v){
+        if(!mTutorialHelper.isTutorialActive()){
+            toggleInfoButtonVisible(false);
+        }
+
+        return true;
     }
 
     @Override
@@ -257,6 +323,36 @@ public class RestViewFragment extends Fragment implements View.OnClickListener {
                 updateScreen();
                 return;
             }
+            case R.id.info_button: {
+                toggleInfoButtonVisible(!mCircularProgress.isInfoVisible());
+                return;
+            }
+        }
+    }
+
+
+    /**
+     * Toggles the visibility of additional info circular button overlay and
+     * sets the appropriate icon.
+     *
+     * @param visible
+     */
+    private void toggleInfoButtonVisible(boolean visible) {
+
+        if(visible){
+            mAnalytics.logShowExerciseImage();
+        }
+
+        // only show/hide the images when there are some available
+        if(mViewPager.getAdapter().getCount() > 0) {
+            mViewPager.setVisibility(visible ? View.VISIBLE : View.GONE);
+            EventBus.getDefault().post(new ExerciseImageEvent(visible));
+        }
+    }
+
+    public void onEvent(BackPressedEvent event){
+        if(mViewPager.getVisibility() == View.VISIBLE){
+            toggleInfoButtonVisible(false);
         }
     }
 
@@ -302,7 +398,6 @@ public class RestViewFragment extends Fragment implements View.OnClickListener {
 
         @Override
         public void run() {
-            Training currentTraining = mCurrentTraining;
             int secLeft = Math.round(Utils.GET_READY_INTERVAL
                     - (float) (System.currentTimeMillis() - mGetReadyStartTimestamp)
                     / 1000);
@@ -324,10 +419,6 @@ public class RestViewFragment extends Fragment implements View.OnClickListener {
         }
 
         private void getReadyTimerOver(){
-
-            // time is up, start the exercise animation
-            mCurrentTraining.startExercise();
-
             // otherwise show exercising UI
             mUiHandler.removeCallbacks(mUpdateRestTimer);
 
@@ -360,19 +451,20 @@ public class RestViewFragment extends Fragment implements View.OnClickListener {
 
         @Override
         public void run() {
-            Training currentTraining = mCurrentTraining;
-            Exercise currentExercise = currentTraining.getCurrentExercise();
+            Exercise currentExercise = mCurrentTraining.getCurrentExercise();
 
             int currentRest = currentExercise.getCurrentSeries()
                     .getRestTime();
-            int currentRestLeft = currentTraining.calculateCurrentRestLeft();
+            int currentRestLeft = mCurrentTraining.calculateCurrentRestLeft();
 
             // TODO: improve this. this one should not have a hard reference to the training activity
             // but should signal redraw in a differnet way (e.g. using callbacks, listeners, events?)
             updateRestTimer(currentRestLeft);
 
+            // TODO: for now we simply pass the whole training instance to fragments as we need information
+            // such as 'isFirstSeries), etc.
             // play a sound if the rest interval got to 0
-            if(!currentTraining.isFirstSeries() && currentRestLeft == 0 && currentRestLeft != mLastRestTimerValue) {
+            if(!mCurrentTraining.isFirstSeries() && currentRestLeft == 0 && currentRestLeft != mLastRestTimerValue) {
                 try {
                     MediaPlayer.create(getActivity().getApplicationContext(), R.raw.alert).start();
                     ((Vibrator) getActivity().getApplicationContext().getSystemService(Context.VIBRATOR_SERVICE)).vibrate(500);
