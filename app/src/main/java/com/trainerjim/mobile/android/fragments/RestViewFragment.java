@@ -7,7 +7,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Vibrator;
 import android.support.v4.view.ViewPager;
-import android.support.v4.widget.DrawerLayout;
 import android.view.GestureDetector;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -29,7 +28,6 @@ import com.trainerjim.mobile.android.events.ExerciseImageEvent;
 import com.trainerjim.mobile.android.events.ExercisesListEvent;
 import com.trainerjim.mobile.android.events.ToggleGetReadyEvent;
 import com.trainerjim.mobile.android.events.EndRestEvent;
-import com.trainerjim.mobile.android.events.StartRestEvent;
 import com.trainerjim.mobile.android.ui.CircularProgressControl;
 import com.trainerjim.mobile.android.ui.ExerciseAdapter;
 import com.trainerjim.mobile.android.ui.ExerciseImagesPagerAdapter;
@@ -52,11 +50,8 @@ public class RestViewFragment extends Fragment implements View.OnClickListener {
     private Analytics mAnalytics;
 
     private CircularProgressControl mCircularProgress;
-    private TextView mTextRectLowerLine;
-    private TextView mSeriesInfoText;
-    private LinearLayout mSeriesInformation;
-    private RelativeLayout mBottomContainer;
-    private ImageView mImageArrowSeriesInfo;
+    private TextView mTextExerciseName;
+    private TextView mTextSeriesInfo;
     private ImageView mInfoButton;
     private ImageView mExercisesListButton;
     private ViewPager mViewPager;
@@ -85,11 +80,8 @@ public class RestViewFragment extends Fragment implements View.OnClickListener {
         View fragmentView = inflater.inflate(R.layout.rest_view_fragment, container, false);
 
         mCircularProgress = (CircularProgressControl)fragmentView.findViewById(R.id.circularProgress);
-        mTextRectLowerLine = (TextView)fragmentView.findViewById(R.id.text_rect_lower_line);
-        mSeriesInfoText = (TextView) fragmentView.findViewById(R.id.nextSeriesText);
-        mSeriesInformation = (LinearLayout) fragmentView.findViewById(R.id.seriesInformation);
-        mBottomContainer = (RelativeLayout) fragmentView.findViewById(R.id.bottomContainer);
-        mImageArrowSeriesInfo = (ImageView) fragmentView.findViewById(R.id.imageArrowSeriesInfo);
+        mTextExerciseName = (TextView)fragmentView.findViewById(R.id.text_rect_lower_line);
+        mTextSeriesInfo = (TextView) fragmentView.findViewById(R.id.text_series_info);
         mInfoButton = (ImageView) fragmentView.findViewById(R.id.info_button);
         mExercisesListButton = (ImageView) fragmentView.findViewById(R.id.exercises_list_button);
         mViewPager = (ViewPager) getActivity().findViewById(R.id.pager);
@@ -113,6 +105,7 @@ public class RestViewFragment extends Fragment implements View.OnClickListener {
                 if(mViewPager.getCurrentItem() < mViewPager.getAdapter().getCount() - 1){
                     mViewPager.setCurrentItem(mViewPager.getCurrentItem() + 1);
                 } else {
+                    // if last image was shown close the image view
                     toggleInfoButtonVisible(false);
                     mViewPager.setCurrentItem(0);
                 }
@@ -142,12 +135,12 @@ public class RestViewFragment extends Fragment implements View.OnClickListener {
             }
         });
 
+        mCircularProgress.setCurrentState(CircularProgressControl.CircularProgressState.REST);
+
         mCircularProgress.setOnClickListener(this);
         mInfoButton.setOnClickListener(this);
         mExercisesListButton.setOnClickListener(this);
 
-        // TODO: update that we won't need to pass in the TrainingActivity. might be better to pass in
-        // just a callback function
         mUpdateRestTimer = new UpdateRestTimer();
         mGetReadyTimer = new GetReadyTimer();
 
@@ -182,36 +175,27 @@ public class RestViewFragment extends Fragment implements View.OnClickListener {
     // TODO: this should contain only the minimum code needed for redrawing the part of the UI
     // connected with get ready/rest timer
     public void updateScreen(){
-
-        // TODO: encapsulate this or find a better way to do it
-
-        Exercise curExercise = mCurrentTraining.getCurrentExercise();
-        List<String> photoImages = curExercise.getExerciseType().getPhotoImages();
-
-        mExerciseImagesPagerAdapter = new ExerciseImagesPagerAdapter(this.getActivity(), photoImages);
-
-        // TODO: do we need to remove previous adapter?
-        mViewPager.setAdapter(mExerciseImagesPagerAdapter);
-
-        // first remove all existing callbacks
+        // remove any calbacks if exist as they will be added later
         mUiHandler.removeCallbacks(mUpdateRestTimer);
         mUiHandler.removeCallbacks(mGetReadyTimer);
 
-        // now show all the common information
+        // bind photos to the image view
+        Exercise curExercise = mCurrentTraining.getCurrentExercise();
+        List<String> photoImages = curExercise.getExerciseType().getPhotoImages();
+        mExerciseImagesPagerAdapter = new ExerciseImagesPagerAdapter(this.getActivity(), photoImages);
+        // TODO: do we need to remove previous adapter?
+        mViewPager.setAdapter(mExerciseImagesPagerAdapter);
+
+        // show exercise and series information
         Series curSeries = curExercise.getCurrentSeries();
-        mCircularProgress.setCurrentState(CircularProgressControl.CircularProgressState.REST);
-
-        // show short name if available
         String exerciseName = curExercise.getExerciseType().getName();
-
-        // visualize exercise order (useful when traversing exercises)
-        mTextRectLowerLine.setText(exerciseName);
+        mTextExerciseName.setText(exerciseName);
 
         // TODO: remove
         if(curExercise.getGuidanceType().equals(Exercise.GUIDANCE_TYPE_DURATION)){
             int minutes = curSeries.getNumberTotalRepetitions() / 60;
             int seconds = curSeries.getNumberTotalRepetitions() - minutes * 60;
-            mSeriesInfoText.setText(
+            mTextSeriesInfo.setText(
                     String.format(
                             "Series %d (%d min %d sec, %d kg)",
                             curExercise.getCurrentSeriesNumber(),
@@ -219,7 +203,7 @@ public class RestViewFragment extends Fragment implements View.OnClickListener {
                             seconds,
                             curSeries.getWeight()));
         } else {
-            mSeriesInfoText.setText(
+            mTextSeriesInfo.setText(
                     String.format(
                             "Series %d (%d reps, %d kg)",
                             curExercise.getCurrentSeriesNumber(),
@@ -227,36 +211,14 @@ public class RestViewFragment extends Fragment implements View.OnClickListener {
                             curSeries.getWeight()));
         }
 
-        mCircularProgress.setTimerMessage("RESTING");
+        int currentRest = curSeries.getRestTime();
+        mCircularProgress.setRestMaxProgress(currentRest);
+        mCircularProgress.setRestMinProgress(0);
 
-        // get ready timer was not started yet so show the rest timer
-/*        if (mGetReadyTimer.isStarted()) {
-            mCircularProgress.setRestMaxProgress(Utils.GET_READY_INTERVAL);
-            mCircularProgress.setRestMinProgress(0);
-            mCircularProgress.setTimerMessage("GET READY");
+        // also start the periodic timer to update the rest screen
+        mUiHandler.postDelayed(mUpdateRestTimer, 0);
 
-            mUiHandler.postDelayed(mGetReadyTimer, 0);
-            //mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
-
-        } else {*/
-            int currentRest = curSeries.getRestTime();
-            mCircularProgress.setRestMaxProgress(currentRest);
-            mCircularProgress.setRestMinProgress(0);
-
-            // also start the periodic timer to update the rest screen
-            mUiHandler.postDelayed(mUpdateRestTimer, 0);
-
-            // only in this state the user should be allowed to see the list of exercises
-            // update the training plan based on the current state
-            ExerciseAdapter adapter = new ExerciseAdapter(getActivity(), new ArrayList<>(mCurrentTraining.getExercisesLeft()));
-            adapter.setSelectedExercisePosition(mCurrentTraining.getSelectedExercisePosition());
-
-            //mDrawerExercisesList.setAdapter(adapter);
-            //mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
-  //      }
-
-
-        // set exercise and training progres bars
+        // set exercise and training progress bars
         mCircularProgress.setTrainingMaxProgress(mCurrentTraining
                 .getTotalSeriesCount());
         mCircularProgress.setTrainingMinProgress(0);
@@ -266,14 +228,17 @@ public class RestViewFragment extends Fragment implements View.OnClickListener {
         mCircularProgress.setExerciseMaxProgress(curExercise
                 .getAllSeriesCount());
         mCircularProgress.setExerciseMinProgress(0);
-        mCircularProgress.setExerciseProgressValue(curExercise
-                .getAllSeriesCount() - curExercise.getSeriesLeftCount());
+        mCircularProgress.setExerciseProgressValue(curExercise.getAllSeriesCount() - curExercise.getSeriesLeftCount());
 
         // show the info button only if the get ready timer is not running
         mInfoButton.setVisibility(View.VISIBLE);
         mExercisesListButton.setVisibility(View.VISIBLE);
 
         mTutorialHelper.showExerciseTutorial();
+    }
+
+    private void showInfoText(){
+
     }
 
     private void showGetReadyScreen(){
@@ -477,10 +442,11 @@ public class RestViewFragment extends Fragment implements View.OnClickListener {
                     : restLeft);
 
             // if time has run out notify the user that he should
-            if(restLeft < 0){
-                mCircularProgress.setTimerMessage("");
-                mCircularProgress.setNotificationMessage("Tap to exercise");
-            }
+            boolean restOver = restLeft <= 0;
+
+            mCircularProgress.setTimerMessage(restOver ? "" : "RESTING");
+            mCircularProgress.setNotificationMessage(restOver ? "Tap to exercise" : "");
+
             mCircularProgress.setTimer(Math.abs(restLeft));
         }
     }

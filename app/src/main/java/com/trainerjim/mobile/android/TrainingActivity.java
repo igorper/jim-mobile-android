@@ -15,15 +15,12 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.support.v4.app.ActionBarDrawerToggle;
-import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
 import android.util.Log;
 import android.view.ContextMenu;
-import android.view.GestureDetector;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
 import android.widget.AdapterView;
@@ -53,7 +50,6 @@ import com.trainerjim.mobile.android.events.ExercisesListEvent;
 import com.trainerjim.mobile.android.events.ReportProgressEvent;
 import com.trainerjim.mobile.android.events.StartRateTraining;
 import com.trainerjim.mobile.android.events.StartExerciseEvent;
-import com.trainerjim.mobile.android.events.StartRestEvent;
 import com.trainerjim.mobile.android.events.ToggleGetReadyEvent;
 import com.trainerjim.mobile.android.events.TrainingSelectedEvent;
 import com.trainerjim.mobile.android.fragments.ExerciseViewFragment;
@@ -242,7 +238,8 @@ public class TrainingActivity extends Activity {
                 // move to a particular exercise in the training plan
                 mCurrentTraining.selectExercise(i);
                 mDrawerLayout.closeDrawers();
-                //updateScreen();
+
+                updateExercisesList();
 
                 Fragment currentFragment = getFragmentManager().findFragmentById(R.id.todo_rest_screen);
 
@@ -366,7 +363,7 @@ public class TrainingActivity extends Activity {
 
     @Override
     public void onBackPressed() {
-        if(exerciseImageVisible){
+        if(mExerciseImageVisible){
             // just notify all listeners (fragments) that the back button was clicked
             EventBus.getDefault().post(new BackPressedEvent());
         } else {
@@ -374,9 +371,16 @@ public class TrainingActivity extends Activity {
         }
     }
 
-    private boolean exerciseImageVisible;
+    private boolean mExerciseImageVisible;
     public void onEvent(ExerciseImageEvent event){
-        exerciseImageVisible = event.isVisible();
+        mExerciseImageVisible = event.isVisible();
+    }
+
+    private void updateExercisesList() {
+        ExerciseAdapter adapter = new ExerciseAdapter(getApplicationContext(), new ArrayList<>(mCurrentTraining.getExercisesLeft()));
+        adapter.setSelectedExercisePosition(mCurrentTraining.getSelectedExercisePosition());
+
+        mDrawerExercisesList.setAdapter(adapter);
     }
 
     /**
@@ -395,7 +399,7 @@ public class TrainingActivity extends Activity {
         // TODO: this will most probably have to be communicated outside to the parent activity
         saveCurrentTraining();
 
-        //updateScreen();
+        updateExercisesList();
 
         if (mCurrentTraining.getCurrentExercise() == null) {
             if (!mCurrentTraining.isTrainingEnded()) {

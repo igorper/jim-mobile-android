@@ -67,14 +67,12 @@
 
             <!-- SERIES SERIES -->
             <LinearLayout
-                android:id="@+id/seriesInformation"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:layout_marginTop="5dp" >
 
                 <ImageView
-                    android:id="@+id/imageArrowSeriesInfo"
                     android:layout_width="wrap_content"
                     android:layout_height="15dp"
                     android:layout_gravity="center_vertical|left"
@@ -84,7 +82,7 @@
                     android:src="@drawable/arrow_orange_right" />
 
                 <TextView
-                    android:id="@+id/nextSeriesText"
+                    android:id="@+id/text_series_info"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_vertical"
