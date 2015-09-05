@@ -69,7 +69,7 @@ public class TrainingPlan extends Model {
                 .execute();
     }
 
-    public static TrainingPlan getByTrainingId(int trainingId){
+    public static TrainingPlan getByTrainingId(long trainingId){
         return new Select()
                 .from(TrainingPlan.class)
                 .where("training_id = ?", trainingId)

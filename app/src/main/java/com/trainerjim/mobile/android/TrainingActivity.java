@@ -50,10 +50,12 @@ import com.trainerjim.mobile.android.events.ExercisesListEvent;
 import com.trainerjim.mobile.android.events.ReportProgressEvent;
 import com.trainerjim.mobile.android.events.StartRateTraining;
 import com.trainerjim.mobile.android.events.StartExerciseEvent;
+import com.trainerjim.mobile.android.events.StartTrainingEvent;
 import com.trainerjim.mobile.android.events.ToggleGetReadyEvent;
 import com.trainerjim.mobile.android.events.TrainingSelectedEvent;
 import com.trainerjim.mobile.android.fragments.ExerciseViewFragment;
 import com.trainerjim.mobile.android.fragments.RestViewFragment;
+import com.trainerjim.mobile.android.fragments.StartTrainingFragment;
 import com.trainerjim.mobile.android.network.ServerCommunicationService;
 import com.trainerjim.mobile.android.storage.PermanentSettings;
 import com.trainerjim.mobile.android.ui.CircularProgressControl;
@@ -74,8 +76,6 @@ public class TrainingActivity extends Activity {
 	private final static int MENU_UPLOAD = Menu.FIRST + 1;
     private final static int MENU_LOGOUT = Menu.FIRST + 2;
     private final static int MENU_CANCEL = Menu.FIRST + 3;
-
-	private static final int ACTIVITY_REQUEST_TRAININGS_LIST = 0;
 
 	private PermanentSettings mSettings;
 
@@ -556,17 +556,7 @@ public class TrainingActivity extends Activity {
 			// start button was clicked
 
             // no training available, don't do anything
-            if(mSettings.getSelectedTrainingId() == -1){
-                return;
-            }
 
-            // should always return a valid training
-            TrainingPlan selectedTrainingPlan = TrainingPlan.getByTrainingId(mSettings.getSelectedTrainingId());
-
-            // load to memory
-            mCurrentTraining = Utils.getGsonObject().fromJson(selectedTrainingPlan.getData(),
-                    Training.class);
-            mCurrentTraining.startTraining();
 		}
 
 		saveCurrentTraining();
@@ -597,8 +587,18 @@ public class TrainingActivity extends Activity {
         mDrawerExercisesList.setAdapter(null);
 
 		if (mCurrentTraining == null) {
-			// no training started yet, show the start button
-			mCircularProgress.setCurrentState(CircularProgressState.START);
+            FragmentManager fm = getFragmentManager();
+            boolean f = fm.findFragmentById(R.id.todo_rest_screen) == null;
+            FragmentTransaction ft = fm.beginTransaction();
+            ft.add(R.id.todo_rest_screen, new StartTrainingFragment(mCurrentTraining, mTutorialHelper, mAnalytics, mSettings));
+            ft.commit();
+
+            todoMainScreen.setVisibility(View.GONE);
+            todoRestScreen.setVisibility(View.VISIBLE);
+
+
+            // no training started yet, show the start button
+			/*mCircularProgress.setCurrentState(CircularProgressState.START);
 
             //// TODO: DB if(getAvailableTrainings().getCount() > 0){
             if(TrainingPlan.getAll(mSettings.getUserId()).size() > 0){
@@ -623,7 +623,7 @@ public class TrainingActivity extends Activity {
             mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
 
 			mBottomContainer.setVisibility(View.VISIBLE);
-			mSeriesInformation.setVisibility(View.INVISIBLE);
+			mSeriesInformation.setVisibility(View.INVISIBLE);*/
 
             // show the action bar
             getActionBar().show();
@@ -798,6 +798,23 @@ public class TrainingActivity extends Activity {
         invalidateOptionsMenu();
 	}
 
+    public void onEvent(StartTrainingEvent event){
+        selectTraining(event.getSelectedTrainingId());
+
+        if(mSettings.getSelectedTrainingId() == -1){
+            return;
+        }
+
+        // should always return a valid training
+        TrainingPlan selectedTrainingPlan = TrainingPlan.getByTrainingId(mSettings.getSelectedTrainingId());
+
+        // load to memory
+        mCurrentTraining = Utils.getGsonObject().fromJson(selectedTrainingPlan.getData(),
+                Training.class);
+        mCurrentTraining.startTraining();
+
+    }
+
     public void onEvent(ToggleGetReadyEvent event){
         mDrawerLayout.setDrawerLockMode(event.isEnabled() ? DrawerLayout.LOCK_MODE_LOCKED_CLOSED :
                 DrawerLayout.LOCK_MODE_UNLOCKED);
@@ -819,32 +836,9 @@ public class TrainingActivity extends Activity {
         ft.commit();
     }
 
-	/**
-	 * Starts the select training activity.
-	 * 
-	 * @param view
-	 */
-	public void onBottomStrapClick(View view) {
-        // if resting toggle the next/prev buttons and the current exercise info
-        if(mCircularProgress.getCurrentState() != CircularProgressState.REST){
-            // start select training activtiy only if tutorial not enabled
-            if(!mTutorialHelper.isTutorialActive()) {
-                Intent intent = new Intent(TrainingActivity.this,
-                        TrainingSelectionList.class);
-                startActivityForResult(intent, ACTIVITY_REQUEST_TRAININGS_LIST);
-            }
-        }
-	}
 
-    public void onEvent(final TrainingSelectedEvent event){
-        mUiHandler.post(new Runnable() {
-
-            @Override
-            public void run() {
-                selectTraining(event.getSelectedTrainingId());
-                updateScreen();
-            }
-        });
+    public void onEvent(TrainingSelectedEvent event){
+        selectTraining(event.getSelectedTrainingId());
     }
 
     /**
@@ -864,45 +858,6 @@ public class TrainingActivity extends Activity {
 
         mSettings.saveSelectedTrainingId(trainingId);
     }
-
-	/*
-	 * Gets the results from activities started from this activity.
-	 * 
-	 * @see android.app.Activity#onActivityResult(int, int,
-	 * android.content.Intent)
-	 */
-	@Override
-	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-		switch (requestCode) {
-		case ACTIVITY_REQUEST_TRAININGS_LIST: {
-			// on training selected from the list of trainings
-			if (data != null
-					&& resultCode == RESULT_OK
-					&& data.hasExtra(TrainingSelectionList.INTENT_EXTRA_SELECTED_TRAINING_KEY)) {
-				final long trainingId = data
-						.getExtras()
-						.getLong(
-								TrainingSelectionList.INTENT_EXTRA_SELECTED_TRAINING_KEY,
-								-1);
-
-				mUiHandler.post(new Runnable() {
-
-					@Override
-					public void run() {
-                        // TODO: DB
-						//updateTrainingSelector(trainingId);
-                        updateScreen();
-					}
-				});
-			}
-			break;
-		}
-		default:
-			Log.d(TAG, "onActivityResult default switch.");
-			break;
-		}
-	}
-
 
     public void onEvent(final ReportProgressEvent event){
         mUiHandler.postDelayed(new Runnable() {
