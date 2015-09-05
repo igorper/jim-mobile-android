@@ -142,7 +142,7 @@ public class TutorialHelper implements View.OnClickListener{
         mCurrentShowcaseView.setScaleMultiplier(0.6f);
         mCurrentShowcaseView.setContentTitle("Exercises list");
         mCurrentShowcaseView.setContentText("Tap here to see the list of exercises to perform.");
-        mCurrentShowcaseView.setShowcase(new ViewTarget(mParentActivity.findViewById(R.id.exercises_button)), true);
+        mCurrentShowcaseView.setShowcase(new ViewTarget(mParentActivity.findViewById(R.id.exercises_list_button)), true);
     }
 
     private void createExerciseStartTutorial(){

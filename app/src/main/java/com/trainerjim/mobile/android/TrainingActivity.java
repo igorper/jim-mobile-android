@@ -1,5 +1,6 @@
 package com.trainerjim.mobile.android;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import android.app.Activity;
@@ -48,6 +49,7 @@ import com.trainerjim.mobile.android.events.EndRestEvent;
 import com.trainerjim.mobile.android.events.EndTrainingEvent;
 import com.trainerjim.mobile.android.events.EndUploadCompletedTrainings;
 import com.trainerjim.mobile.android.events.ExerciseImageEvent;
+import com.trainerjim.mobile.android.events.ExercisesListEvent;
 import com.trainerjim.mobile.android.events.ReportProgressEvent;
 import com.trainerjim.mobile.android.events.StartRateTraining;
 import com.trainerjim.mobile.android.events.StartExerciseEvent;
@@ -59,6 +61,7 @@ import com.trainerjim.mobile.android.fragments.RestViewFragment;
 import com.trainerjim.mobile.android.network.ServerCommunicationService;
 import com.trainerjim.mobile.android.storage.PermanentSettings;
 import com.trainerjim.mobile.android.ui.CircularProgressControl;
+import com.trainerjim.mobile.android.ui.ExerciseAdapter;
 import com.trainerjim.mobile.android.ui.ExerciseImagesPagerAdapter;
 import com.trainerjim.mobile.android.ui.CircularProgressControl.CircularProgressState;
 import com.trainerjim.mobile.android.util.Analytics;
@@ -93,12 +96,10 @@ public class TrainingActivity extends Activity {
     private TextView mTextRectLowerLine;
     private TextView mTextRectOneLine;
 	private RelativeLayout mBottomContainer;
-    private ImageView mExercisesListButton;
 	private LinearLayout mSeriesInformation;
 	private TextView mSeriesInfoText;
 	private ImageView mImageArrowSeriesInfo;
 	private CheckBox mEditDetailsCheckbox;
-    //private ImageView mExerciseImage;
     private DrawerLayout mDrawerLayout;
     private ListView mDrawerExercisesList;
 
@@ -115,15 +116,6 @@ public class TrainingActivity extends Activity {
 	 */
 	private Handler mUiHandler = new Handler();
 
-
-    /**
-     * This runnable updates the screen during the rest state.It calls itself
-     * recursively until externally stopped or until there are no more exercises
-     * left.
-     */
-    //private UpdateRestTimer mUpdateRestTimer = null;
-
-    //private GetReadyTimer mGetReadyTimer = null;
 
     private ExerciseImagesPagerAdapter mExerciseImagesPagerAdapter;
 
@@ -175,7 +167,6 @@ public class TrainingActivity extends Activity {
         mTextRectLowerLine = (TextView)findViewById(R.id.text_rect_lower_line);
         mTextRectOneLine = (TextView)findViewById(R.id.text_rect_one_line);
 		mBottomContainer = (RelativeLayout) findViewById(R.id.bottomContainer);
-        mExercisesListButton = (ImageView) findViewById(R.id.exercises_button);
 		mSeriesInformation = (LinearLayout) findViewById(R.id.seriesInformation);
 		mSeriesInfoText = (TextView) findViewById(R.id.nextSeriesText);
 		mImageArrowSeriesInfo = (ImageView) findViewById(R.id.imageArrowSeriesInfo);
@@ -183,13 +174,10 @@ public class TrainingActivity extends Activity {
         //mExerciseImage = (ImageView)findViewById(R.id.exerciseImage);
         mDrawerLayout = (DrawerLayout)findViewById(R.id.drawer_layout);
         mDrawerExercisesList = (ListView)findViewById(R.id.exercises_list);
-        //mViewPager = (ViewPager) findViewById(R.id.pager);
 
         todoMainScreen = (LinearLayout)findViewById(R.id.todo_main_screen);
         todoRestScreen = (LinearLayout)findViewById(R.id.todo_rest_screen);
 
-        //mUpdateRestTimer = new UpdateRestTimer(this);
-        //mGetReadyTimer = new GetReadyTimer(this);
 
         mProgressDialog = new ProgressDialog(this);
         mProgressDialog.setIndeterminate(false);
@@ -254,7 +242,16 @@ public class TrainingActivity extends Activity {
                 // move to a particular exercise in the training plan
                 mCurrentTraining.selectExercise(i);
                 mDrawerLayout.closeDrawers();
-                updateScreen();
+                //updateScreen();
+
+                Fragment currentFragment = getFragmentManager().findFragmentById(R.id.todo_rest_screen);
+
+                if(currentFragment != null && currentFragment instanceof RestViewFragment){
+                    ((RestViewFragment)currentFragment).updateScreen();
+                }
+
+                // TODO: it might be useful to have an event called training changed, which would
+                // be used to notify all the fragments to refresh the layout
             }
         });
 
@@ -423,7 +420,7 @@ public class TrainingActivity extends Activity {
         updateScreen();
     }
 
-    public void onExercisesButtonClick(View v){
+    public void onEvent(ExercisesListEvent event){
         if(mTutorialHelper.isTutorialActive()){
             return;
         }
@@ -620,7 +617,6 @@ public class TrainingActivity extends Activity {
             }
 
             mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
-            mExercisesListButton.setVisibility(View.INVISIBLE);
 
 			mBottomContainer.setVisibility(View.VISIBLE);
 			mSeriesInformation.setVisibility(View.INVISIBLE);
@@ -662,7 +658,6 @@ public class TrainingActivity extends Activity {
 			}
 
             mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
-            mExercisesListButton.setVisibility(View.INVISIBLE);
 			mSeriesInformation.setVisibility(View.VISIBLE);
 			mImageArrowSeriesInfo.setVisibility(View.GONE);
 
@@ -686,6 +681,12 @@ public class TrainingActivity extends Activity {
 
                 todoMainScreen.setVisibility(View.GONE);
                 todoRestScreen.setVisibility(View.VISIBLE);
+
+                ExerciseAdapter adapter = new ExerciseAdapter(getApplicationContext(), new ArrayList<>(mCurrentTraining.getExercisesLeft()));
+                adapter.setSelectedExercisePosition(mCurrentTraining.getSelectedExercisePosition());
+
+                mDrawerExercisesList.setAdapter(adapter);
+                mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
 /*
                 FragmentManager fm = getFragmentManager();
                 FragmentTransaction ft = fm.beginTransaction();

@@ -53,18 +53,6 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content" >
 
-                        <!-- INFO BUTTON -->
-                        <ImageView
-                            android:id="@+id/exercises_button"
-                            android:layout_width="@dimen/info_button_size"
-                            android:layout_height="@dimen/info_button_size"
-                            android:layout_alignParentLeft="true"
-                            android:onClick="onExercisesButtonClick"
-                            android:padding="@dimen/info_button_padding"
-                            android:layout_marginLeft="@dimen/info_button_margin"
-                            android:src="@drawable/exercises_ico"
-                            android:visibility="invisible" />
-
                         <!-- CIRCULAR PROGRESS CONTROL -->
                         <com.trainerjim.mobile.android.ui.CircularProgressControl
                             android:id="@+id/circularProgress"

@@ -26,6 +26,7 @@ import com.trainerjim.mobile.android.entities.Training;
 import com.trainerjim.mobile.android.events.BackPressedEvent;
 import com.trainerjim.mobile.android.events.EndExerciseEvent;
 import com.trainerjim.mobile.android.events.ExerciseImageEvent;
+import com.trainerjim.mobile.android.events.ExercisesListEvent;
 import com.trainerjim.mobile.android.events.ToggleGetReadyEvent;
 import com.trainerjim.mobile.android.events.EndRestEvent;
 import com.trainerjim.mobile.android.events.StartRestEvent;
@@ -51,14 +52,10 @@ public class RestViewFragment extends Fragment implements View.OnClickListener {
     private Analytics mAnalytics;
 
     private CircularProgressControl mCircularProgress;
-    private TextView mTextRectUpperLine;
     private TextView mTextRectLowerLine;
-    private LinearLayout mLayoutRectLowerLine;
-    private LinearLayout mLayoutRectTrainingSelector;
     private TextView mSeriesInfoText;
     private LinearLayout mSeriesInformation;
     private RelativeLayout mBottomContainer;
-    private LinearLayout mTrainingSelector;
     private ImageView mImageArrowSeriesInfo;
     private ImageView mInfoButton;
     private ImageView mExercisesListButton;
@@ -88,17 +85,13 @@ public class RestViewFragment extends Fragment implements View.OnClickListener {
         View fragmentView = inflater.inflate(R.layout.rest_view_fragment, container, false);
 
         mCircularProgress = (CircularProgressControl)fragmentView.findViewById(R.id.circularProgress);
-        mTextRectUpperLine = (TextView)fragmentView.findViewById(R.id.text_rect_upper_line);
         mTextRectLowerLine = (TextView)fragmentView.findViewById(R.id.text_rect_lower_line);
-        mLayoutRectLowerLine = (LinearLayout)fragmentView.findViewById(R.id.layout_rect_lower_line);
-        mLayoutRectTrainingSelector = (LinearLayout) fragmentView.findViewById(R.id.layout_rect_training_selector);
         mSeriesInfoText = (TextView) fragmentView.findViewById(R.id.nextSeriesText);
         mSeriesInformation = (LinearLayout) fragmentView.findViewById(R.id.seriesInformation);
         mBottomContainer = (RelativeLayout) fragmentView.findViewById(R.id.bottomContainer);
-        mTrainingSelector = (LinearLayout) fragmentView.findViewById(R.id.trainingSelector);
         mImageArrowSeriesInfo = (ImageView) fragmentView.findViewById(R.id.imageArrowSeriesInfo);
         mInfoButton = (ImageView) fragmentView.findViewById(R.id.info_button);
-        mExercisesListButton = (ImageView) fragmentView.findViewById(R.id.exercises_button);
+        mExercisesListButton = (ImageView) fragmentView.findViewById(R.id.exercises_list_button);
         mViewPager = (ViewPager) getActivity().findViewById(R.id.pager);
 
         // since view pager ignores click event we had to implement a tap gesture detector to recognize
@@ -151,6 +144,7 @@ public class RestViewFragment extends Fragment implements View.OnClickListener {
 
         mCircularProgress.setOnClickListener(this);
         mInfoButton.setOnClickListener(this);
+        mExercisesListButton.setOnClickListener(this);
 
         // TODO: update that we won't need to pass in the TrainingActivity. might be better to pass in
         // just a callback function
@@ -160,15 +154,6 @@ public class RestViewFragment extends Fragment implements View.OnClickListener {
         EventBus.getDefault().register(this);
 
         return fragmentView;
-    }
-
-    // TODO: seems like this is not used anywhere
-    public boolean onClickExerciseImage(View v){
-        if(!mTutorialHelper.isTutorialActive()){
-            toggleInfoButtonVisible(false);
-        }
-
-        return true;
     }
 
     @Override
@@ -183,6 +168,7 @@ public class RestViewFragment extends Fragment implements View.OnClickListener {
         super.onPause();
 
         mUiHandler.removeCallbacks(mGetReadyTimer);
+        mUiHandler.removeCallbacks(mUpdateRestTimer);
     }
 
     @Override
@@ -195,7 +181,7 @@ public class RestViewFragment extends Fragment implements View.OnClickListener {
 
     // TODO: this should contain only the minimum code needed for redrawing the part of the UI
     // connected with get ready/rest timer
-    private void updateScreen(){
+    public void updateScreen(){
 
         // TODO: encapsulate this or find a better way to do it
 
@@ -207,30 +193,21 @@ public class RestViewFragment extends Fragment implements View.OnClickListener {
         // TODO: do we need to remove previous adapter?
         mViewPager.setAdapter(mExerciseImagesPagerAdapter);
 
-        mCircularProgress.setInfoChairLevel(mCurrentTraining
-                .getCurrentExercise().getMachineSetting());
-
         // first remove all existing callbacks
         mUiHandler.removeCallbacks(mUpdateRestTimer);
         mUiHandler.removeCallbacks(mGetReadyTimer);
-        // mUiHandler.removeCallbacks(mUpdateExerciseTimer);
 
         // now show all the common information
         Series curSeries = curExercise.getCurrentSeries();
         mCircularProgress.setCurrentState(CircularProgressControl.CircularProgressState.REST);
-
-        mCircularProgress.setOnClickListener(this);
-
-        mTextRectUpperLine.setVisibility(View.GONE);
 
         // show short name if available
         String exerciseName = curExercise.getExerciseType().getName();
 
         // visualize exercise order (useful when traversing exercises)
         mTextRectLowerLine.setText(exerciseName);
-        mLayoutRectLowerLine.setVisibility(View.VISIBLE);
-        mLayoutRectTrainingSelector.setVisibility(View.GONE);
 
+        // TODO: remove
         if(curExercise.getGuidanceType().equals(Exercise.GUIDANCE_TYPE_DURATION)){
             int minutes = curSeries.getNumberTotalRepetitions() / 60;
             int seconds = curSeries.getNumberTotalRepetitions() - minutes * 60;
@@ -250,13 +227,10 @@ public class RestViewFragment extends Fragment implements View.OnClickListener {
                             curSeries.getWeight()));
         }
 
-
-        mSeriesInformation.setVisibility(View.VISIBLE);
-
         mCircularProgress.setTimerMessage("RESTING");
 
         // get ready timer was not started yet so show the rest timer
-        if (mGetReadyTimer.isStarted()) {
+/*        if (mGetReadyTimer.isStarted()) {
             mCircularProgress.setRestMaxProgress(Utils.GET_READY_INTERVAL);
             mCircularProgress.setRestMinProgress(0);
             mCircularProgress.setTimerMessage("GET READY");
@@ -264,7 +238,7 @@ public class RestViewFragment extends Fragment implements View.OnClickListener {
             mUiHandler.postDelayed(mGetReadyTimer, 0);
             //mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
 
-        } else {
+        } else {*/
             int currentRest = curSeries.getRestTime();
             mCircularProgress.setRestMaxProgress(currentRest);
             mCircularProgress.setRestMinProgress(0);
@@ -279,7 +253,7 @@ public class RestViewFragment extends Fragment implements View.OnClickListener {
 
             //mDrawerExercisesList.setAdapter(adapter);
             //mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
-        }
+  //      }
 
 
         // set exercise and training progres bars
@@ -296,15 +270,21 @@ public class RestViewFragment extends Fragment implements View.OnClickListener {
                 .getAllSeriesCount() - curExercise.getSeriesLeftCount());
 
         // show the info button only if the get ready timer is not running
-        mInfoButton.setVisibility(mGetReadyTimer.isStarted() ? View.INVISIBLE : View.VISIBLE);
-        mExercisesListButton.setVisibility(mGetReadyTimer.isStarted() ? View.INVISIBLE : View.VISIBLE);
-        mBottomContainer.setVisibility(View.VISIBLE);
-        mSeriesInformation.setVisibility(View.VISIBLE);
-        mTrainingSelector.setVisibility(View.VISIBLE);
-        // TODO: mSwipeControl.setVisibility(View.VISIBLE);
-        mImageArrowSeriesInfo.setVisibility(View.VISIBLE);
+        mInfoButton.setVisibility(View.VISIBLE);
+        mExercisesListButton.setVisibility(View.VISIBLE);
 
         mTutorialHelper.showExerciseTutorial();
+    }
+
+    private void showGetReadyScreen(){
+        mUiHandler.removeCallbacks(mUpdateRestTimer);
+
+        mCircularProgress.setRestMaxProgress(Utils.GET_READY_INTERVAL);
+        mCircularProgress.setRestMinProgress(0);
+        mCircularProgress.setTimerMessage("GET READY");
+
+        mInfoButton.setVisibility(View.INVISIBLE);
+        mExercisesListButton.setVisibility(View.INVISIBLE);
     }
 
     @Override
@@ -319,12 +299,25 @@ public class RestViewFragment extends Fragment implements View.OnClickListener {
 
                 EventBus.getDefault().post(new ToggleGetReadyEvent(isGetReadyStarted));
 
-                // TODO: get rid of this
-                updateScreen();
+                if(isGetReadyStarted){
+                    showGetReadyScreen();
+
+                    mUiHandler.postDelayed(mGetReadyTimer, 0);
+                } else {
+
+                    // TODO: this should have a better name. it should be called smth like show
+                    // rest screen
+                    updateScreen();
+                }
+
                 return;
             }
             case R.id.info_button: {
-                toggleInfoButtonVisible(!mCircularProgress.isInfoVisible());
+                toggleInfoButtonVisible(true);
+                return;
+            }
+            case R.id.exercises_list_button: {
+                EventBus.getDefault().post(new ExercisesListEvent());
                 return;
             }
         }
@@ -398,6 +391,7 @@ public class RestViewFragment extends Fragment implements View.OnClickListener {
 
         @Override
         public void run() {
+            mCircularProgress.setNotificationMessage("");
             int secLeft = Math.round(Utils.GET_READY_INTERVAL
                     - (float) (System.currentTimeMillis() - mGetReadyStartTimestamp)
                     / 1000);
