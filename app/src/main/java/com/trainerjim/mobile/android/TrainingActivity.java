@@ -16,7 +16,6 @@ import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.support.v4.app.ActionBarDrawerToggle;
 import android.support.v4.widget.DrawerLayout;
-import android.util.Log;
 import android.view.ContextMenu;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -161,7 +160,7 @@ public class TrainingActivity extends Activity {
 		mTrainingSelectorText = (TextView) findViewById(R.id.trainingSelectorText);
         mTextRectUpperLine = (TextView)findViewById(R.id.text_rect_upper_line);
         mTextRectLowerLine = (TextView)findViewById(R.id.text_rect_lower_line);
-        mTextRectOneLine = (TextView)findViewById(R.id.text_rect_one_line);
+        mTextRectOneLine = (TextView)findViewById(R.id.text_no_trainings);
 		mBottomContainer = (RelativeLayout) findViewById(R.id.bottomContainer);
 		mSeriesInformation = (LinearLayout) findViewById(R.id.seriesInformation);
 		mSeriesInfoText = (TextView) findViewById(R.id.nextSeriesText);
@@ -171,7 +170,6 @@ public class TrainingActivity extends Activity {
         mDrawerLayout = (DrawerLayout)findViewById(R.id.drawer_layout);
         mDrawerExercisesList = (ListView)findViewById(R.id.exercises_list);
 
-        todoMainScreen = (LinearLayout)findViewById(R.id.todo_main_screen);
         todoRestScreen = (LinearLayout)findViewById(R.id.todo_rest_screen);
 
 
@@ -221,7 +219,7 @@ public class TrainingActivity extends Activity {
 		mCircularProgress.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                changeTrainingPlanState();
+           //     changeTrainingPlanState();
             }
         });
 
@@ -334,7 +332,6 @@ public class TrainingActivity extends Activity {
         return mUiHandler;
     }
 
-    private LinearLayout todoMainScreen;
     private LinearLayout todoRestScreen;
 
 	/**
@@ -577,6 +574,14 @@ public class TrainingActivity extends Activity {
 
     }
 
+    private void populateExerciseList(){
+        ExerciseAdapter adapter = new ExerciseAdapter(getApplicationContext(), new ArrayList<>(mCurrentTraining.getExercisesLeft()));
+        adapter.setSelectedExercisePosition(mCurrentTraining.getSelectedExercisePosition());
+
+        mDrawerExercisesList.setAdapter(adapter);
+        mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
+    }
+
     /**
 	 * This is the sole method responsible for setting the activity UI (apart
 	 * from runnables, which also have to be registered in this method, and are
@@ -588,14 +593,11 @@ public class TrainingActivity extends Activity {
 
 		if (mCurrentTraining == null) {
             FragmentManager fm = getFragmentManager();
-            boolean f = fm.findFragmentById(R.id.todo_rest_screen) == null;
             FragmentTransaction ft = fm.beginTransaction();
-            ft.add(R.id.todo_rest_screen, new StartTrainingFragment(mCurrentTraining, mTutorialHelper, mAnalytics, mSettings));
+            ft.replace(R.id.todo_rest_screen, new StartTrainingFragment(mCurrentTraining, mTutorialHelper, mAnalytics, mSettings));
             ft.commit();
 
-            todoMainScreen.setVisibility(View.GONE);
-            todoRestScreen.setVisibility(View.VISIBLE);
-
+            mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
 
             // no training started yet, show the start button
 			/*mCircularProgress.setCurrentState(CircularProgressState.START);
@@ -680,17 +682,10 @@ public class TrainingActivity extends Activity {
                 FragmentManager fm = getFragmentManager();
                 boolean f = fm.findFragmentById(R.id.todo_rest_screen) == null;
                 FragmentTransaction ft = fm.beginTransaction();
-                ft.add(R.id.todo_rest_screen, new RestViewFragment(mCurrentTraining, mTutorialHelper, mAnalytics));
+                ft.replace(R.id.todo_rest_screen, new RestViewFragment(mCurrentTraining, mTutorialHelper, mAnalytics));
                 ft.commit();
 
-                todoMainScreen.setVisibility(View.GONE);
-                todoRestScreen.setVisibility(View.VISIBLE);
-
-                ExerciseAdapter adapter = new ExerciseAdapter(getApplicationContext(), new ArrayList<>(mCurrentTraining.getExercisesLeft()));
-                adapter.setSelectedExercisePosition(mCurrentTraining.getSelectedExercisePosition());
-
-                mDrawerExercisesList.setAdapter(adapter);
-                mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
+                populateExerciseList();
 /*
                 FragmentManager fm = getFragmentManager();
                 FragmentTransaction ft = fm.beginTransaction();
@@ -813,6 +808,20 @@ public class TrainingActivity extends Activity {
                 Training.class);
         mCurrentTraining.startTraining();
 
+        // switch fragments
+        FragmentManager fm = getFragmentManager();
+        FragmentTransaction ft = fm.beginTransaction();
+        RestViewFragment frag = new RestViewFragment(mCurrentTraining, mTutorialHelper, mAnalytics);
+        ft.replace(R.id.todo_rest_screen, frag);
+        ft.commit();
+
+        // rebuild the menu and hide it
+        invalidateOptionsMenu();
+        getActionBar().hide();
+
+        populateExerciseList();
+
+        saveCurrentTraining();
     }
 
     public void onEvent(ToggleGetReadyEvent event){

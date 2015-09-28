@@ -37,7 +37,7 @@
                     android:layout_width="fill_parent"
                     android:layout_height="fill_parent"
                     android:id="@+id/todo_rest_screen"
-                    android:visibility="gone">
+                    android:visibility="visible">
 
                 </LinearLayout>
 
@@ -47,7 +47,7 @@
                     android:layout_height="match_parent"
                     android:orientation="vertical"
                     android:id="@+id/todo_main_screen"
-                    android:visibility="visible">
+                    android:visibility="gone">
 
                     <RelativeLayout
                         android:layout_width="wrap_content"
@@ -158,7 +158,7 @@
                                 </LinearLayout>
 
                                 <TextView
-                                    android:id="@+id/text_rect_one_line"
+                                    android:id="@+id/text_no_trainings"
                                     android:layout_width="match_parent"
                                     android:layout_height="match_parent"
                                     android:layout_gravity="center_vertical"

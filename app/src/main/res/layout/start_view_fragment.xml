@@ -112,14 +112,15 @@
                 </LinearLayout>
 
                 <TextView
-                    android:id="@+id/text_rect_one_line"
+                    android:id="@+id/text_no_trainings"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:layout_gravity="center_vertical"
                     android:gravity="center"
                     android:textAlignment="center"
                     android:textColor="@color/cpc_overview_dash"
-                    android:textSize="40dp" />
+                    android:textSize="40dp"
+                    android:text="NO TRAININGS" />
             </RelativeLayout>
         </LinearLayout>
     </LinearLayout>

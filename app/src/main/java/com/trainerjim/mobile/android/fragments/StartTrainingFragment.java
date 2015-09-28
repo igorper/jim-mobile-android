@@ -1,47 +1,28 @@
 package com.trainerjim.mobile.android.fragments;
 
 import android.app.Fragment;
-import android.content.Context;
 import android.content.Intent;
-import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Vibrator;
-import android.support.v4.view.ViewPager;
 import android.util.Log;
-import android.view.GestureDetector;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.trainerjim.mobile.android.R;
-import com.trainerjim.mobile.android.TrainingActivity;
 import com.trainerjim.mobile.android.TrainingSelectionList;
 import com.trainerjim.mobile.android.database.TrainingPlan;
-import com.trainerjim.mobile.android.entities.Exercise;
-import com.trainerjim.mobile.android.entities.Series;
 import com.trainerjim.mobile.android.entities.Training;
-import com.trainerjim.mobile.android.events.BackPressedEvent;
-import com.trainerjim.mobile.android.events.EndExerciseEvent;
-import com.trainerjim.mobile.android.events.EndRestEvent;
-import com.trainerjim.mobile.android.events.ExerciseImageEvent;
-import com.trainerjim.mobile.android.events.ExercisesListEvent;
 import com.trainerjim.mobile.android.events.StartTrainingEvent;
-import com.trainerjim.mobile.android.events.ToggleGetReadyEvent;
 import com.trainerjim.mobile.android.events.TrainingSelectedEvent;
 import com.trainerjim.mobile.android.storage.PermanentSettings;
 import com.trainerjim.mobile.android.ui.CircularProgressControl;
-import com.trainerjim.mobile.android.ui.ExerciseImagesPagerAdapter;
 import com.trainerjim.mobile.android.util.Analytics;
 import com.trainerjim.mobile.android.util.TutorialHelper;
 import com.trainerjim.mobile.android.util.Utils;
-
-import java.util.List;
 
 import de.greenrobot.event.EventBus;
 
@@ -57,12 +38,14 @@ public class StartTrainingFragment extends Fragment implements View.OnClickListe
     private Analytics mAnalytics;
     private PermanentSettings mSettings;
 
+    private int mSelectedTrainingId = -1;
+
 
     private CircularProgressControl mCircularProgress;
     private RelativeLayout mBottomContainer;
     private TextView mTrainingSelectorText;
     private LinearLayout mTrainingSelector;
-    private TextView mTextRectOneLine;
+    private TextView mTextNoTrainings;
 
     private Handler mUiHandler = new Handler();
     public StartTrainingFragment(){}
@@ -90,37 +73,32 @@ public class StartTrainingFragment extends Fragment implements View.OnClickListe
         mBottomContainer = (RelativeLayout) fragmentView.findViewById(R.id.bottomContainer);
         mTrainingSelectorText = (TextView) fragmentView.findViewById(R.id.trainingSelectorText);
         mTrainingSelector = (LinearLayout) fragmentView.findViewById(R.id.trainingSelector);
-        mTextRectOneLine = (TextView) fragmentView.findViewById(R.id.text_rect_one_line);
+        mTextNoTrainings = (TextView) fragmentView.findViewById(R.id.text_no_trainings);
 
         mBottomContainer.setVisibility(View.VISIBLE);
-        mBottomContainer.setOnClickListener(this);
+        mTrainingSelector.setOnClickListener(this);
 
-        if(TrainingPlan.getAll(mSettings.getUserId()).size() > 0){
+        boolean trainingsAvailable = TrainingPlan.getAll(mSettings.getUserId()).size() > 0;
+        if(trainingsAvailable){
+            mSelectedTrainingId = mSettings.getSelectedTrainingId();
             // saved selected training plan ID should always be a valid ID.
-            updateSelectedTrainingText(mSettings.getSelectedTrainingId());
+            updateSelectedTrainingText();
 
             mTutorialHelper.showMainPageTutorial();
 
-        } else {
-            mTrainingSelector.setVisibility(View.GONE);
-            mTextRectOneLine.setText("NO TRAININGS");
-            mTextRectOneLine.setVisibility(View.VISIBLE);
         }
+
+        mTrainingSelector.setVisibility(trainingsAvailable ? View.VISIBLE : View.GONE);
+        mTextNoTrainings.setVisibility(trainingsAvailable ? View.GONE : View.VISIBLE);
 
         EventBus.getDefault().register(this);
 
         return fragmentView;
     }
 
-    private void updateSelectedTrainingText(long trainingId){
-        TrainingPlan selectedTrainingPlan = TrainingPlan.getByTrainingId(trainingId);
+    private void updateSelectedTrainingText(){
+        TrainingPlan selectedTrainingPlan = TrainingPlan.getByTrainingId(mSelectedTrainingId);
         mTrainingSelectorText.setText(selectedTrainingPlan.getName());
-        //mTextRectUpperLine.setVisibility(View.VISIBLE);
-        mTrainingSelector.setVisibility(View.VISIBLE);
-        mTextRectOneLine.setVisibility(View.INVISIBLE);
-        //mLayoutRectTrainingSelector.setVisibility(View.VISIBLE);
-        //mLayoutRectLowerLine.setVisibility(View.GONE);
-
     }
 
     @Override
@@ -137,11 +115,11 @@ public class StartTrainingFragment extends Fragment implements View.OnClickListe
 
         switch (view.getId()){
             case R.id.circularProgress: {
-                EventBus.getDefault().post(new StartTrainingEvent(-1));
+                EventBus.getDefault().post(new StartTrainingEvent(mSelectedTrainingId));
 
                 return;
             }
-            case R.id.bottomContainer: {
+            case R.id.trainingSelector: {
                 Intent intent = new Intent(getActivity(),
                         TrainingSelectionList.class);
                 startActivityForResult(intent, ACTIVITY_REQUEST_TRAININGS_LIST);
@@ -152,47 +130,7 @@ public class StartTrainingFragment extends Fragment implements View.OnClickListe
     }
 
     public void onEvent(final TrainingSelectedEvent event){
-        updateSelectedTrainingText(event.getSelectedTrainingId());
+        mSelectedTrainingId = event.getSelectedTrainingId();
+        updateSelectedTrainingText();
     }
-
-
-    /*
-     * Gets the results from activities started from this activity.
-     *
-     * @see android.app.Activity#onActivityResult(int, int,
-     * android.content.Intent)
-     */
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        switch (requestCode) {
-            case ACTIVITY_REQUEST_TRAININGS_LIST: {
-                // on training selected from the list of trainings
-                if (data != null
-                        && resultCode == getActivity().RESULT_OK
-                        && data.hasExtra(TrainingSelectionList.INTENT_EXTRA_SELECTED_TRAINING_KEY)) {
-                    final long trainingId = data
-                            .getExtras()
-                            .getLong(
-                                    TrainingSelectionList.INTENT_EXTRA_SELECTED_TRAINING_KEY,
-                                    -1);
-
-                    mUiHandler.post(new Runnable() {
-
-                        @Override
-                        public void run() {
-                            // TODO: DB
-                            //updateTrainingSelector(trainingId);
-                            updateSelectedTrainingText(trainingId);
-                        }
-                    });
-                }
-                break;
-            }
-            default:
-                Log.d(Utils.getApplicationTag(), "onActivityResult default switch.");
-                break;
-        }
-    }
-
-
 }
