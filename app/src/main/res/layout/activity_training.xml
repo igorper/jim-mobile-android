@@ -16,12 +16,12 @@
             android:keepScreenOn="true"
             android:orientation="horizontal" >
 
-            <fragment
+            <!--<fragment
                 android:name="com.trainerjim.mobile.android.fragments.RateTrainingFragment"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:id="@+id/rate_training_fragment">
-            </fragment>
+            </fragment>-->
 
             <RelativeLayout
                 android:layout_width="match_parent"

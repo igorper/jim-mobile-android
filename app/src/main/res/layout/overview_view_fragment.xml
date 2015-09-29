@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:paddingTop="20dp"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <RelativeLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" >
+
+        <!-- CIRCULAR PROGRESS CONTROL -->
+        <com.trainerjim.mobile.android.ui.CircularProgressControl
+            android:id="@+id/circularProgress"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:paddingBottom="@dimen/circular_button_bottom_padding"
+            android:paddingLeft="@dimen/circular_button_side_padding"
+            android:paddingRight="@dimen/circular_button_side_padding"
+            android:paddingTop="@dimen/circular_button_top_padding" />
+
+    </RelativeLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" >
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:orientation="vertical" >
+
+            <RelativeLayout
+                android:id="@+id/bottomContainer"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/status_rect_height"
+                android:layout_gravity="center"
+                android:background="@color/status_rect_background">
+
+                <TextView
+                    android:id="@+id/text_no_trainings"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_gravity="center_vertical"
+                    android:gravity="center"
+                    android:textAlignment="center"
+                    android:textColor="@color/cpc_overview_dash"
+                    android:textSize="40dp"
+                    android:text="ALL DONE"/>
+            </RelativeLayout>
+
+            <LinearLayout
+                android:id="@+id/seriesInformation"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginTop="5dp" >
+
+                <TextView
+                    android:id="@+id/nextSeriesText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:gravity="center_vertical"
+                    android:textColor="@color/next_series_text"
+                    android:textSize="20dp"
+                    android:text="tap circle to close"/>
+            </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
+</LinearLayout>
