@@ -17,17 +17,12 @@ import android.preference.PreferenceManager;
 import android.support.v4.app.ActionBarDrawerToggle;
 import android.support.v4.widget.DrawerLayout;
 import android.view.ContextMenu;
-import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.widget.AdapterView;
-import android.widget.CheckBox;
-import android.widget.LinearLayout;
 import android.widget.ListView;
-import android.widget.RelativeLayout;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.squareup.picasso.Picasso;
@@ -46,7 +41,6 @@ import com.trainerjim.mobile.android.events.ExerciseImageEvent;
 import com.trainerjim.mobile.android.events.ExercisesListEvent;
 import com.trainerjim.mobile.android.events.ReportProgressEvent;
 import com.trainerjim.mobile.android.events.EndTrainingEvent;
-import com.trainerjim.mobile.android.events.StartExerciseEvent;
 import com.trainerjim.mobile.android.events.StartTrainingEvent;
 import com.trainerjim.mobile.android.events.ToggleGetReadyEvent;
 import com.trainerjim.mobile.android.events.TrainingSelectedEvent;
@@ -58,7 +52,6 @@ import com.trainerjim.mobile.android.fragments.RestViewFragment;
 import com.trainerjim.mobile.android.fragments.StartTrainingFragment;
 import com.trainerjim.mobile.android.network.ServerCommunicationService;
 import com.trainerjim.mobile.android.storage.PermanentSettings;
-import com.trainerjim.mobile.android.ui.CircularProgressControl;
 import com.trainerjim.mobile.android.ui.ExerciseAdapter;
 import com.trainerjim.mobile.android.ui.ExerciseImagesPagerAdapter;
 import com.trainerjim.mobile.android.util.Analytics;
@@ -71,28 +64,13 @@ public class TrainingActivity extends Activity {
 
 	private static final String TAG = Utils.getApplicationTag();
 
-	private final static int MENU_SYNC = Menu.FIRST;
-	private final static int MENU_UPLOAD = Menu.FIRST + 1;
-    private final static int MENU_LOGOUT = Menu.FIRST + 2;
-    private final static int MENU_CANCEL = Menu.FIRST + 3;
-
 	private PermanentSettings mSettings;
 
 	/**
 	 * References to the XML defined UI controls.
 	 */
-	private CircularProgressControl mCircularProgress;
-	private LinearLayout mTrainingSelector;
-    private LinearLayout mLayoutRectTrainingSelector;
-    private LinearLayout mLayoutRectLowerLine;
+
 	private ProgressDialog mProgressDialog;
-	private TextView mTrainingSelectorText;
-    private TextView mTextRectUpperLine;
-    private TextView mTextRectLowerLine;
-    private TextView mTextRectOneLine;
-	private RelativeLayout mBottomContainer;
-	private TextView mSeriesInfoText;
-	private CheckBox mEditDetailsCheckbox;
     private DrawerLayout mDrawerLayout;
     private ListView mDrawerExercisesList;
 
@@ -112,7 +90,11 @@ public class TrainingActivity extends Activity {
 
     private ExerciseImagesPagerAdapter mExerciseImagesPagerAdapter;
 
-    //private ViewPager mViewPager;
+    /**
+     * Holds the information if the exercise image is currently visible or not. Determines the behaviour
+     * of the back button.
+     */
+    private boolean mExerciseImageVisible;
 
     private Analytics mAnalytics;
 
@@ -151,22 +133,8 @@ public class TrainingActivity extends Activity {
 
         setContentView(R.layout.activity_training);
 
-        mCircularProgress = (CircularProgressControl) findViewById(R.id.circularProgress);
-		mTrainingSelector = (LinearLayout) findViewById(R.id.trainingSelector);
-        mLayoutRectTrainingSelector = (LinearLayout) findViewById(R.id.layout_rect_training_selector);
-        mLayoutRectLowerLine = (LinearLayout)findViewById(R.id.layout_rect_lower_line);
-		mTrainingSelectorText = (TextView) findViewById(R.id.trainingSelectorText);
-        mTextRectUpperLine = (TextView)findViewById(R.id.text_rect_upper_line);
-        mTextRectLowerLine = (TextView)findViewById(R.id.text_rect_lower_line);
-        mTextRectOneLine = (TextView)findViewById(R.id.text_no_trainings);
-		mBottomContainer = (RelativeLayout) findViewById(R.id.bottomContainer);
-//		mEditDetailsCheckbox = (CheckBox) findViewById(R.id.checkbox_edit_details);
-        //mExerciseImage = (ImageView)findViewById(R.id.exerciseImage);
         mDrawerLayout = (DrawerLayout)findViewById(R.id.drawer_layout);
         mDrawerExercisesList = (ListView)findViewById(R.id.exercises_list);
-
-        todoRestScreen = (LinearLayout)findViewById(R.id.todo_rest_screen);
-
 
         mProgressDialog = new ProgressDialog(this);
         mProgressDialog.setIndeterminate(false);
@@ -209,14 +177,6 @@ public class TrainingActivity extends Activity {
 		loadCurrentTraining();
 
         updateScreen();
-
-        // add a long click action to the main exercise button
-		mCircularProgress.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-           //     changeTrainingPlanState();
-            }
-        });
 
         // set action when user click the exercise in the exercises menu
         mDrawerExercisesList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -319,16 +279,6 @@ public class TrainingActivity extends Activity {
         return super.onContextItemSelected(item);
     }
 
-    public Training getCurrentTraining() {
-        return mCurrentTraining;
-    }
-
-    public Handler getUiHandler(){
-        return mUiHandler;
-    }
-
-    private LinearLayout todoRestScreen;
-
 	/**
 	 * This method loads the currently active training to a memory object from
 	 * json string saved in application settings. If the json string is
@@ -382,14 +332,6 @@ public class TrainingActivity extends Activity {
         return super.onCreateOptionsMenu(menu);
     };
 
-    private void cancelCurrentTraining() {
-        //mUiHandler.removeCallbacks(mUpdateRestTimer);
-        //mUiHandler.removeCallbacks(mGetReadyTimer);
-
-        mCurrentTraining = null;
-
-        saveCurrentTraining();
-    }
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
@@ -412,28 +354,15 @@ public class TrainingActivity extends Activity {
                     .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
 
                         public void onClick(DialogInterface dialog, int whichButton) {
-                            cancelCurrentTraining();
-                            updateScreen();
+                            mCurrentTraining = null;
+
+                            saveCurrentTraining();
+
+                            showStartTrainingFragment();
                         }})
                     .setNegativeButton(android.R.string.no, null).show();
             break;
         }
-		/*case R.id.action_logout: {
-            new AlertDialog.Builder(this)
-                    .setTitle("Log out")
-                    .setMessage("Are you sure you would like to log out?")
-                    .setIcon(android.R.drawable.ic_dialog_alert)
-                    .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
-
-                        public void onClick(DialogInterface dialog, int whichButton) {
-                            cancelCurrentTraining();
-                            mSettings.saveUserId(-1);
-                            finish();
-                        }})
-                    .setNegativeButton(android.R.string.no, null).show();
-
-			break;
-		}*/
 		default:
 			break;
 		}
@@ -467,38 +396,13 @@ public class TrainingActivity extends Activity {
 
 		Intent intent = new Intent(this, ServerCommunicationService.class);
 		intent.putExtra(ServerCommunicationService.INTENT_KEY_ACTION,
-				ServerCommunicationService.ACTION_FETCH_TRAININGS);
+                ServerCommunicationService.ACTION_FETCH_TRAININGS);
 
         // TODO: think about where to make sure this is not negative (invalid) - we will also have
         // to check the if the session cookie is set
         intent.putExtra(ServerCommunicationService.INTENT_KEY_USER_ID,
                 mSettings.getUserId());
 		startService(intent);
-	}
-
-	private void changeTrainingPlanState() {
-        // tutorial is active, don't do anything
-        if(mTutorialHelper.isTutorialActive()){
-            return;
-        }
-
-		/*if (mViewDuringExercise.getVisibility() == View.VISIBLE) {
-			// exercise has to be rated before doing anything else
-
-
-		} else */if (mCircularProgress.isInfoVisible()) {
-			// if info button is visible close it on tap
-			//toggleInfoButtonVisible(false);
-		} else if (mCurrentTraining == null) {
-			// start button was clicked
-
-            // no training available, don't do anything
-
-		}
-
-		saveCurrentTraining();
-
-		updateScreen();
 	}
 
     private void showStartTrainingFragment(){
@@ -508,6 +412,8 @@ public class TrainingActivity extends Activity {
         ft.commit();
 
         mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
+
+        invalidateOptionsMenu();
 
         getActionBar().show();
     }
@@ -591,78 +497,24 @@ public class TrainingActivity extends Activity {
 			}
 
 		} else {
-			// in general, show no messages
-			mCircularProgress.setTimerMessage("");
-            mCircularProgress.setNotificationMessage("");
-
 			showRestTrainingFragment();
 		}
 
         invalidateOptionsMenu();
 	}
 
-    private boolean mExerciseImageVisible;
-    public void onEvent(ExerciseImageEvent event){
-        mExerciseImageVisible = event.isVisible();
+    /**
+     * Triggered when the changes the selected training.
+     * @param event
+     */
+    public void onEvent(TrainingSelectedEvent event){
+        selectTraining(event.getSelectedTrainingId());
     }
 
     /**
-     * This event is called when a user ends performing a particular exercise.
+     * Triggered on start training click.
      * @param event
      */
-    public void onEvent(EndExerciseEvent event){
-        //mUiHandler.removeCallbacks(mUpdateRestTimer);
-
-        // end this exercise (series)
-        mCurrentTraining.endExercise();
-
-        // advance to the next activity
-        mCurrentTraining.nextActivity();
-
-        // TODO: this will most probably have to be communicated outside to the parent activity
-        saveCurrentTraining();
-
-        updateExercisesList();
-
-        if (mCurrentTraining.getCurrentExercise() == null) {
-            showEndTrainingFragment();
-
-        } else {
-            // exercise -> rest
-            showRestTrainingFragment();
-        }
-    }
-
-    public void onEvent(EndTrainingEvent event){
-        saveCurrentTraining();
-
-        showRateTrainingFragment();
-    }
-
-    public void onEvent(EndRateTraining event){
-        saveCurrentTraining();
-
-        showOverviewTrainingFragment();
-    }
-
-    public void onEvent(ExercisesListEvent event){
-        if(mTutorialHelper.isTutorialActive()){
-            return;
-        }
-
-        mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_OPEN);
-        mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
-    }
-
-    public void onEvent(EndOverviewEvent event){
-        int userId = mSettings.getUserId();
-        new CompletedTraining(mCurrentTraining.getTrainingName(), Utils.getGsonObject().toJson(mCurrentTraining.extractMeasurement(userId)), userId).save();
-
-        mCurrentTraining = null;
-        saveCurrentTraining();
-        showStartTrainingFragment();
-    }
-
     public void onEvent(StartTrainingEvent event){
         selectTraining(event.getSelectedTrainingId());
 
@@ -694,15 +546,41 @@ public class TrainingActivity extends Activity {
         saveCurrentTraining();
     }
 
+    /**
+     * Triggered when the exercise image visible state changes.
+     * @param event
+     */
+    public void onEvent(ExerciseImageEvent event){
+        mExerciseImageVisible = event.isVisible();
+    }
+
+    /**
+     * Triggered when the exercises list visual state changes.
+     * @param event
+     */
+    public void onEvent(ExercisesListEvent event){
+        if(mTutorialHelper.isTutorialActive()){
+            return;
+        }
+
+        mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_OPEN);
+        mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
+    }
+
+    // TODO: rename ToggleGetReadyEvent to GetReadyEvent
+    /**
+     * Triggered when the get ready event is toggled.
+     * @param event
+     */
     public void onEvent(ToggleGetReadyEvent event){
         mDrawerLayout.setDrawerLockMode(event.isEnabled() ? DrawerLayout.LOCK_MODE_LOCKED_CLOSED :
                 DrawerLayout.LOCK_MODE_UNLOCKED);
     }
 
-    public void onEvent(StartExerciseEvent event){
-        mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
-    }
-
+    /**
+     * Triggered when the user starts to perform an exercise.
+     * @param event
+     */
     public void onEvent(EndRestEvent event){
 
         // start the exercise
@@ -715,9 +593,59 @@ public class TrainingActivity extends Activity {
         ft.commit();
     }
 
+    /**
+     * Triggered when the user ends performing a particular exercise.
+     * @param event
+     */
+    public void onEvent(EndExerciseEvent event){
 
-    public void onEvent(TrainingSelectedEvent event){
-        selectTraining(event.getSelectedTrainingId());
+        // advance to the next activity
+        mCurrentTraining.nextActivity();
+
+        saveCurrentTraining();
+
+        updateExercisesList();
+
+        if (mCurrentTraining.getCurrentExercise() == null) {
+            showEndTrainingFragment();
+
+        } else {
+            // exercise -> rest
+            showRestTrainingFragment();
+        }
+    }
+
+    /**
+     * Triggered when the user ends a training.
+     * @param event
+     */
+    public void onEvent(EndTrainingEvent event){
+        saveCurrentTraining();
+
+        showRateTrainingFragment();
+    }
+
+    /**
+     * Triggered when the user saves the training rating.
+     * @param event
+     */
+    public void onEvent(EndRateTraining event){
+        saveCurrentTraining();
+
+        showOverviewTrainingFragment();
+    }
+
+    /**
+     * Triggered when the user dismisses the training overview.
+     * @param event
+     */
+    public void onEvent(EndOverviewEvent event){
+        int userId = mSettings.getUserId();
+        new CompletedTraining(mCurrentTraining.getTrainingName(), Utils.getGsonObject().toJson(mCurrentTraining.extractMeasurement(userId)), userId).save();
+
+        mCurrentTraining = null;
+        saveCurrentTraining();
+        showStartTrainingFragment();
     }
 
     /**

@@ -73,8 +73,6 @@ public class OverviewTrainingFragment extends Fragment implements View.OnClickLi
                 EventBus.getDefault().post(new EndOverviewEvent());
                 return;
             }
-
-
         }
     }
 

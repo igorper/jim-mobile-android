@@ -22,7 +22,6 @@ import com.trainerjim.mobile.android.entities.SeriesExecution;
 import com.trainerjim.mobile.android.entities.Training;
 import com.trainerjim.mobile.android.events.EndExerciseEvent;
 import com.trainerjim.mobile.android.events.EndRestEvent;
-import com.trainerjim.mobile.android.events.StartExerciseEvent;
 import com.trainerjim.mobile.android.util.TutorialHelper;
 import com.trainerjim.mobile.android.util.Utils;
 
@@ -204,7 +203,8 @@ public class ExerciseViewFragment extends Fragment implements View.OnClickListen
         }
 
         mEditDetailsView.setVisibility(View.GONE);
-        getView().setVisibility(View.GONE);
+
+        EventBus.getDefault().post(new EndExerciseEvent());
     }
 
     /**
@@ -306,14 +306,15 @@ public class ExerciseViewFragment extends Fragment implements View.OnClickListen
         // the rating can be changed later on (in edit series details view).
         mCurrentTraining.setCurrentSeriesExecutionRating(DEFAULT_SERIES_RATING);
 
+        // end this exercise (series)
+        mCurrentTraining.endExercise();
+
         // hide the screen that is shown during exercising
         if(closeView) {
-            getView().setVisibility(View.GONE);
+            EventBus.getDefault().post(new EndExerciseEvent());
         }
 
         mUiHandler.removeCallbacks(mUpdateExerciseTimer);
-
-        EventBus.getDefault().post(new EndExerciseEvent());
     }
 
     /**
