@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Vibrator;
 import android.support.v4.view.ViewPager;
+import android.util.Log;
 import android.view.GestureDetector;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -175,9 +176,7 @@ public class RestViewFragment extends Fragment implements View.OnClickListener {
     // TODO: this should contain only the minimum code needed for redrawing the part of the UI
     // connected with get ready/rest timer
     public void updateScreen(){
-        // remove any calbacks if exist as they will be added later
-        mUiHandler.removeCallbacks(mUpdateRestTimer);
-        mUiHandler.removeCallbacks(mGetReadyTimer);
+        // TODO: think about how this method goes together with onResume (lifecylce)
 
         // bind photos to the image view
         Exercise curExercise = mCurrentTraining.getCurrentExercise();
@@ -217,6 +216,10 @@ public class RestViewFragment extends Fragment implements View.OnClickListener {
 
         // also start the periodic timer to update the rest screen
         mUiHandler.postDelayed(mUpdateRestTimer, 0);
+
+        if(mGetReadyTimer.isStarted()){
+            mUiHandler.postDelayed(mGetReadyTimer, 0);
+        }
 
         // set exercise and training progress bars
         mCircularProgress.setTrainingMaxProgress(mCurrentTraining
