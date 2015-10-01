@@ -214,11 +214,12 @@ public class RestViewFragment extends Fragment implements View.OnClickListener {
         mCircularProgress.setRestMaxProgress(currentRest);
         mCircularProgress.setRestMinProgress(0);
 
-        // also start the periodic timer to update the rest screen
-        mUiHandler.postDelayed(mUpdateRestTimer, 0);
-
         if(mGetReadyTimer.isStarted()){
+            // the get ready timer is already running
             mUiHandler.postDelayed(mGetReadyTimer, 0);
+        } else {
+            // if get ready timer is not running yet we should start the rest timer
+            mUiHandler.postDelayed(mUpdateRestTimer, 0);
         }
 
         // set exercise and training progress bars
@@ -272,6 +273,7 @@ public class RestViewFragment extends Fragment implements View.OnClickListener {
 
                     mUiHandler.postDelayed(mGetReadyTimer, 0);
                 } else {
+                    mUiHandler.removeCallbacks(mGetReadyTimer);
 
                     // TODO: this should have a better name. it should be called smth like show
                     // rest screen
