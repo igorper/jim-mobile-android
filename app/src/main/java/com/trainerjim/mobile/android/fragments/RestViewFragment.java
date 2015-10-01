@@ -1,7 +1,9 @@
 package com.trainerjim.mobile.android.fragments;
 
+import android.app.AlertDialog;
 import android.app.Fragment;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
@@ -10,6 +12,9 @@ import android.support.v4.view.ViewPager;
 import android.util.Log;
 import android.view.GestureDetector;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -24,11 +29,13 @@ import com.trainerjim.mobile.android.entities.Exercise;
 import com.trainerjim.mobile.android.entities.Series;
 import com.trainerjim.mobile.android.entities.Training;
 import com.trainerjim.mobile.android.events.BackPressedEvent;
+import com.trainerjim.mobile.android.events.CancelTrainingEvent;
 import com.trainerjim.mobile.android.events.EndExerciseEvent;
 import com.trainerjim.mobile.android.events.ExerciseImageEvent;
 import com.trainerjim.mobile.android.events.ExercisesListEvent;
 import com.trainerjim.mobile.android.events.ToggleGetReadyEvent;
 import com.trainerjim.mobile.android.events.EndRestEvent;
+import com.trainerjim.mobile.android.events.TrainingStateChangedEvent;
 import com.trainerjim.mobile.android.ui.CircularProgressControl;
 import com.trainerjim.mobile.android.ui.ExerciseAdapter;
 import com.trainerjim.mobile.android.ui.ExerciseImagesPagerAdapter;
@@ -85,7 +92,7 @@ public class RestViewFragment extends Fragment implements View.OnClickListener {
         mTextSeriesInfo = (TextView) fragmentView.findViewById(R.id.text_series_info);
         mInfoButton = (ImageView) fragmentView.findViewById(R.id.info_button);
         mExercisesListButton = (ImageView) fragmentView.findViewById(R.id.exercises_list_button);
-        mViewPager = (ViewPager) getActivity().findViewById(R.id.pager);
+        mViewPager = (ViewPager) fragmentView.findViewById(R.id.pager);
 
         // since view pager ignores click event we had to implement a tap gesture detector to recognize
         // the tap gesture and perform the appropriate action (in this case moving to next page of the
@@ -147,6 +154,8 @@ public class RestViewFragment extends Fragment implements View.OnClickListener {
 
         EventBus.getDefault().register(this);
 
+        setHasOptionsMenu(true);
+
         return fragmentView;
     }
 
@@ -175,8 +184,8 @@ public class RestViewFragment extends Fragment implements View.OnClickListener {
 
     // TODO: this should contain only the minimum code needed for redrawing the part of the UI
     // connected with get ready/rest timer
-    public void updateScreen(){
-        // TODO: think about how this method goes together with onResume (lifecylce)
+    private void updateScreen(){
+        // TODO: think about how this method goes together with onResume (lifecycle)
 
         // bind photos to the image view
         Exercise curExercise = mCurrentTraining.getCurrentExercise();
@@ -241,10 +250,6 @@ public class RestViewFragment extends Fragment implements View.OnClickListener {
         mTutorialHelper.showExerciseTutorial();
     }
 
-    private void showInfoText(){
-
-    }
-
     private void showGetReadyScreen(){
         mUiHandler.removeCallbacks(mUpdateRestTimer);
 
@@ -293,6 +298,41 @@ public class RestViewFragment extends Fragment implements View.OnClickListener {
         }
     }
 
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(R.menu.active_training_actions, menu);
+
+        super.onCreateOptionsMenu(menu, inflater);
+    }
+
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+
+        if (mTutorialHelper.isTutorialActive()) {
+            return true;
+        }
+
+        switch (item.getItemId()) {
+            case R.id.action_cancel:{
+                new AlertDialog.Builder(getActivity())
+                        .setTitle("Cancel training")
+                        .setMessage("Are you sure you would like to cancel the training?")
+                        .setIcon(android.R.drawable.ic_dialog_alert)
+                        .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+
+                            public void onClick(DialogInterface dialog, int whichButton) {
+                                EventBus.getDefault().post(new CancelTrainingEvent());
+                            }})
+                        .setNegativeButton(android.R.string.no, null).show();
+                break;
+            }
+            default:
+                break;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
 
     /**
      * Toggles the visibility of additional info circular button overlay and
@@ -317,6 +357,10 @@ public class RestViewFragment extends Fragment implements View.OnClickListener {
         if(mViewPager.getVisibility() == View.VISIBLE){
             toggleInfoButtonVisible(false);
         }
+    }
+
+    public void onEvent(TrainingStateChangedEvent event){
+        updateScreen();
     }
 
     /**

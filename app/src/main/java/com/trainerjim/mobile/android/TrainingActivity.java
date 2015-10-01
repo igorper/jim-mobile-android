@@ -30,6 +30,7 @@ import com.trainerjim.mobile.android.database.CompletedTraining;
 import com.trainerjim.mobile.android.database.TrainingPlan;
 import com.trainerjim.mobile.android.entities.Training;
 import com.trainerjim.mobile.android.events.BackPressedEvent;
+import com.trainerjim.mobile.android.events.CancelTrainingEvent;
 import com.trainerjim.mobile.android.events.DismissProgressEvent;
 import com.trainerjim.mobile.android.events.EndDownloadTrainingsEvent;
 import com.trainerjim.mobile.android.events.EndExerciseEvent;
@@ -44,6 +45,7 @@ import com.trainerjim.mobile.android.events.EndTrainingEvent;
 import com.trainerjim.mobile.android.events.StartTrainingEvent;
 import com.trainerjim.mobile.android.events.ToggleGetReadyEvent;
 import com.trainerjim.mobile.android.events.TrainingSelectedEvent;
+import com.trainerjim.mobile.android.events.TrainingStateChangedEvent;
 import com.trainerjim.mobile.android.fragments.EndTrainingFragment;
 import com.trainerjim.mobile.android.fragments.ExerciseViewFragment;
 import com.trainerjim.mobile.android.fragments.OverviewTrainingFragment;
@@ -70,7 +72,6 @@ public class TrainingActivity extends Activity {
 	 * References to the XML defined UI controls.
 	 */
 
-	private ProgressDialog mProgressDialog;
     private DrawerLayout mDrawerLayout;
     private ListView mDrawerExercisesList;
 
@@ -86,9 +87,6 @@ public class TrainingActivity extends Activity {
 	 * UI thread handler.
 	 */
 	private Handler mUiHandler = new Handler();
-
-
-    private ExerciseImagesPagerAdapter mExerciseImagesPagerAdapter;
 
     /**
      * Holds the information if the exercise image is currently visible or not. Determines the behaviour
@@ -108,8 +106,6 @@ public class TrainingActivity extends Activity {
         mAnalytics = Analytics.getInstance(getApplicationContext());
 
         EventBus.getDefault().register(this);
-
-        Picasso.with(getApplicationContext()).setIndicatorsEnabled(true);
 
         mSettings = PermanentSettings.create(PreferenceManager
 				.getDefaultSharedPreferences(this));
@@ -136,10 +132,6 @@ public class TrainingActivity extends Activity {
         mDrawerLayout = (DrawerLayout)findViewById(R.id.drawer_layout);
         mDrawerExercisesList = (ListView)findViewById(R.id.exercises_list);
 
-        mProgressDialog = new ProgressDialog(this);
-        mProgressDialog.setIndeterminate(false);
-        mProgressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-
         mDrawerToggle = new ActionBarDrawerToggle(
                 this,
                 mDrawerLayout,
@@ -147,7 +139,6 @@ public class TrainingActivity extends Activity {
                 R.string.app_name,  /* "open drawer" description */
                 R.string.app_name /* "close drawer" description */
         ) {
-
             /** Called when a drawer has settled in a completely closed state. */
             public void onDrawerClosed(View view) {
                 super.onDrawerClosed(view);
@@ -178,49 +169,28 @@ public class TrainingActivity extends Activity {
 
         updateScreen();
 
-        // set action when user click the exercise in the exercises menu
+        // set action when the user clicks the exercise in the exercises menu
         mDrawerExercisesList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                if(mTutorialHelper.isTutorialActive()){
-                    return;
-                }
+            if(mTutorialHelper.isTutorialActive()){
+                return;
+            }
 
-                mAnalytics.logExerciseChanged();
+            mAnalytics.logExerciseChanged();
 
-                // move to a particular exercise in the training plan
-                mCurrentTraining.selectExercise(i);
-                mDrawerLayout.closeDrawers();
+            // move to a particular exercise in the training plan
+            mCurrentTraining.selectExercise(i);
+            mDrawerLayout.closeDrawers();
 
-                updateExercisesList();
+            updateExercisesList();
 
-                Fragment currentFragment = getFragmentManager().findFragmentById(R.id.todo_rest_screen);
-
-                if(currentFragment != null && currentFragment instanceof RestViewFragment){
-                    ((RestViewFragment)currentFragment).updateScreen();
-                }
-
-                // TODO: it might be useful to have an event called training changed, which would
-                // be used to notify all the fragments to refresh the layout
+            EventBus.getDefault().post(new TrainingStateChangedEvent());
             }
         });
 
         registerForContextMenu(mDrawerExercisesList);
-
-		// try to fetch trainings if not available
-		// TODO: DB
-        if (isUserLoggedIn() && TrainingPlan.getAll(mSettings.getUserId()).size() == 0) {
-			runTrainingsSync();
-		}
 	}
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-
-        // always upload the trainings on start
-        runUploadTrainings();
-    }
 
     /**
 	 * Returns <code>true</code> if user is currently logged in, otherwise
@@ -241,9 +211,6 @@ public class TrainingActivity extends Activity {
 	@Override
 	protected void onDestroy() {
         EventBus.getDefault().unregister(this);
-
-		// remove all periodical tasks
-		//mUiHandler.removeCallbacks(mUpdateRestTimer);
 
 		super.onDestroy();
 	}
@@ -266,8 +233,6 @@ public class TrainingActivity extends Activity {
                 case R.id.skip_exercise: {
                     mAnalytics.logExerciseSkipped();
 
-                    // TODO: think about a better way to consistently remove the update timer callback
-                    //mUiHandler.removeCallbacks(mUpdateRestTimer);
                     mCurrentTraining.removeExercise(info.position);
                     saveCurrentTraining();
                     updateScreen();
@@ -320,100 +285,13 @@ public class TrainingActivity extends Activity {
         mDrawerExercisesList.setAdapter(adapter);
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(android.view.Menu menu) {
-        MenuInflater inflater = getMenuInflater();
-
-        if(mCurrentTraining == null) {
-            inflater.inflate(R.menu.inactive_training_actions, menu);
-        } else {
-            inflater.inflate(R.menu.active_training_actions, menu);
-        }
-        return super.onCreateOptionsMenu(menu);
-    };
-
-
-	@Override
-	public boolean onOptionsItemSelected(MenuItem item) {
-
-        if (mTutorialHelper.isTutorialActive() || mDrawerToggle.onOptionsItemSelected(item)) {
-            return true;
-        }
-
-		switch (item.getItemId()) {
-		case R.id.action_sync: {
-            runTrainingsSync();
-
-			break;
-		}
-        case R.id.action_cancel:{
-            new AlertDialog.Builder(this)
-                    .setTitle("Cancel training")
-                    .setMessage("Are you sure you would like to cancel the training?")
-                    .setIcon(android.R.drawable.ic_dialog_alert)
-                    .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
-
-                        public void onClick(DialogInterface dialog, int whichButton) {
-                            mCurrentTraining = null;
-
-                            saveCurrentTraining();
-
-                            showStartTrainingFragment();
-                        }})
-                    .setNegativeButton(android.R.string.no, null).show();
-            break;
-        }
-		default:
-			break;
-		}
-
-		return super.onOptionsItemSelected(item);
-	}
-
-	/**
-	 * Initiates the upload of completed trainings.
-	 */
-	private void runUploadTrainings() {
-        // show the progress bar
-        setProgressBarIndeterminateVisibility(true);
-
-		Intent intent = new Intent(this, ServerCommunicationService.class);
-		intent.putExtra(ServerCommunicationService.INTENT_KEY_ACTION,
-				ServerCommunicationService.ACTION_UPLOAD_COMPLETED_TRAININGS);
-
-        // TODO: think about where to make sure this is not negative (invalid) - we will also have
-        // to check the if the session cookie is set
-        intent.putExtra(ServerCommunicationService.INTENT_KEY_USER_ID,
-                mSettings.getUserId());
-		startService(intent);
-	}
-
-	/**
-	 * Initiates the training sync process.
-	 */
-	private void runTrainingsSync() {
-        setProgressBarIndeterminateVisibility(true);
-
-		Intent intent = new Intent(this, ServerCommunicationService.class);
-		intent.putExtra(ServerCommunicationService.INTENT_KEY_ACTION,
-                ServerCommunicationService.ACTION_FETCH_TRAININGS);
-
-        // TODO: think about where to make sure this is not negative (invalid) - we will also have
-        // to check the if the session cookie is set
-        intent.putExtra(ServerCommunicationService.INTENT_KEY_USER_ID,
-                mSettings.getUserId());
-		startService(intent);
-	}
-
     private void showStartTrainingFragment(){
         FragmentManager fm = getFragmentManager();
         FragmentTransaction ft = fm.beginTransaction();
-        ft.replace(R.id.todo_rest_screen, new StartTrainingFragment(mCurrentTraining, mTutorialHelper, mAnalytics, mSettings));
+        ft.replace(R.id.main_container, new StartTrainingFragment(mCurrentTraining, mTutorialHelper, mAnalytics, mSettings));
         ft.commit();
 
         mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
-
-        invalidateOptionsMenu();
 
         getActionBar().show();
     }
@@ -421,7 +299,7 @@ public class TrainingActivity extends Activity {
     private void showEndTrainingFragment(){
         FragmentManager fm = getFragmentManager();
         FragmentTransaction ft = fm.beginTransaction();
-        ft.replace(R.id.todo_rest_screen, new EndTrainingFragment(mCurrentTraining));
+        ft.replace(R.id.main_container, new EndTrainingFragment(mCurrentTraining));
         ft.commit();
 
         mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
@@ -432,7 +310,7 @@ public class TrainingActivity extends Activity {
     private void showRateTrainingFragment(){
         FragmentManager fm = getFragmentManager();
         FragmentTransaction ft = fm.beginTransaction();
-        ft.replace(R.id.todo_rest_screen, new RateTrainingFragment(mCurrentTraining));
+        ft.replace(R.id.main_container, new RateTrainingFragment(mCurrentTraining));
         ft.commit();
 
         mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
@@ -443,7 +321,7 @@ public class TrainingActivity extends Activity {
     private void showOverviewTrainingFragment(){
         FragmentManager fm = getFragmentManager();
         FragmentTransaction ft = fm.beginTransaction();
-        ft.replace(R.id.todo_rest_screen, new OverviewTrainingFragment(mCurrentTraining));
+        ft.replace(R.id.main_container, new OverviewTrainingFragment(mCurrentTraining));
         ft.commit();
 
         mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
@@ -455,7 +333,7 @@ public class TrainingActivity extends Activity {
         // there are still some exercises to be performed
         FragmentManager fm = getFragmentManager();
         FragmentTransaction ft = fm.beginTransaction();
-        ft.replace(R.id.todo_rest_screen, new RestViewFragment(mCurrentTraining, mTutorialHelper, mAnalytics));
+        ft.replace(R.id.main_container, new RestViewFragment(mCurrentTraining, mTutorialHelper, mAnalytics));
         ft.commit();
 
         populateExerciseList();
@@ -471,15 +349,7 @@ public class TrainingActivity extends Activity {
         mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
     }
 
-    /**
-	 * This is the sole method responsible for setting the activity UI (apart
-	 * from runnables, which also have to be registered in this method, and are
-	 * responsible for periodic screen changes)
-	 */
 	private void updateScreen() {
-        // deregister current exercise list adapter as we will register an updated one
-        mDrawerExercisesList.setAdapter(null);
-
         if (mCurrentTraining == null) {
             showStartTrainingFragment();
 
@@ -499,24 +369,22 @@ public class TrainingActivity extends Activity {
 		} else {
 			showRestTrainingFragment();
 		}
-
-        invalidateOptionsMenu();
-	}
+    }
 
     /**
      * Triggered when the changes the selected training.
      * @param event
      */
-    public void onEvent(TrainingSelectedEvent event){
+    /*public void onEvent(TrainingSelectedEvent event){
         selectTraining(event.getSelectedTrainingId());
-    }
+    }*/
 
     /**
      * Triggered on start training click.
      * @param event
      */
     public void onEvent(StartTrainingEvent event){
-        selectTraining(event.getSelectedTrainingId());
+        //selectTraining(event.getSelectedTrainingId());
 
         if(mSettings.getSelectedTrainingId() == -1){
             return;
@@ -534,16 +402,26 @@ public class TrainingActivity extends Activity {
         FragmentManager fm = getFragmentManager();
         FragmentTransaction ft = fm.beginTransaction();
         RestViewFragment frag = new RestViewFragment(mCurrentTraining, mTutorialHelper, mAnalytics);
-        ft.replace(R.id.todo_rest_screen, frag);
+        ft.replace(R.id.main_container, frag);
         ft.commit();
 
         // rebuild the menu and hide it
-        invalidateOptionsMenu();
         getActionBar().hide();
 
         populateExerciseList();
 
         saveCurrentTraining();
+    }
+
+    /**
+     * Triggered when the current training was canceled.
+     * @param event
+     */
+    public void onEvent(CancelTrainingEvent event){
+        mCurrentTraining = null;
+
+        saveCurrentTraining();
+        showStartTrainingFragment();
     }
 
     /**
@@ -589,7 +467,7 @@ public class TrainingActivity extends Activity {
         FragmentManager fm = getFragmentManager();
         FragmentTransaction ft = fm.beginTransaction();
         ExerciseViewFragment evf = new ExerciseViewFragment(mCurrentTraining, mTutorialHelper);
-        ft.replace(R.id.todo_rest_screen, evf);
+        ft.replace(R.id.main_container, evf);
         ft.commit();
     }
 
@@ -647,72 +525,4 @@ public class TrainingActivity extends Activity {
         saveCurrentTraining();
         showStartTrainingFragment();
     }
-
-    /**
-     * This function saves the currently selected training id to persistent storage. It makes sure
-     * that selected training id is a legal (existing). If the input training id is not valid training
-     * id from the first database training is used.
-     * @param trainingId
-     */
-    private void selectTraining(int trainingId){
-        // if training id is not set yet just select the first training if any trainings exist
-        if(trainingId == -1){
-            List<TrainingPlan> plans = TrainingPlan.getAll(mSettings.getUserId());
-            if(plans.size() > 0){
-                trainingId = plans.get(0).getTrainingId();
-            }
-        }
-
-        mSettings.saveSelectedTrainingId(trainingId);
-    }
-
-    public void onEvent(final ReportProgressEvent event){
-        mUiHandler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                mProgressDialog.setMessage(event.message);
-                mProgressDialog.setMax(event.maxProgress);
-                mProgressDialog.setProgress(event.currentProgress);
-                mProgressDialog.show();
-            }
-        }, 0);
-    }
-
-    public void onEvent(final EndUploadCompletedTrainings event){
-        mUiHandler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                setProgressBarIndeterminateVisibility(false);
-            }
-        }, 0);
-    }
-
-    public void onEvent(final DismissProgressEvent event){
-        mUiHandler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                mProgressDialog.hide();
-            }
-        }, 0);
-    }
-
-    public void onEvent(final EndDownloadTrainingsEvent event){
-
-        mUiHandler.postDelayed(new Runnable() {
-           @Override
-           public void run() {
-               setProgressBarIndeterminateVisibility(false);
-               if(event.getStatus()) {
-                   selectTraining(-1);
-                   updateScreen();
-               } else {
-                   Toast.makeText(getApplicationContext(), "Download trainings: " + event.getErrorMessage(), Toast.LENGTH_LONG).show();
-               }
-           }
-        }, 0);
-
-
-        // after training were downloaded run the upload as well
-        runUploadTrainings();
-	}
 }

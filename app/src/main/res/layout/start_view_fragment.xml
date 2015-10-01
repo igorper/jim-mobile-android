@@ -43,7 +43,8 @@
                     android:id="@+id/trainingSelector"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:orientation="vertical">
+                    android:orientation="vertical"
+                    android:visibility="gone">
 
                     <TextView
                         android:id="@+id/text_rect_upper_line"
@@ -120,7 +121,8 @@
                     android:textAlignment="center"
                     android:textColor="@color/cpc_overview_dash"
                     android:textSize="40dp"
-                    android:text="NO TRAININGS" />
+                    android:text="NO TRAININGS"
+                    android:visibility="gone"/>
             </RelativeLayout>
         </LinearLayout>
     </LinearLayout>

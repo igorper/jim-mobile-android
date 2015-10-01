@@ -5,67 +5,11 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent" >
 
-    <FrameLayout
-        android:id="@+id/content_frame"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent" >
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="@color/background"
-            android:keepScreenOn="true"
-            android:orientation="horizontal" >
-
-            <!--<fragment
-                android:name="com.trainerjim.mobile.android.fragments.RateTrainingFragment"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:id="@+id/rate_training_fragment">
-            </fragment>-->
-
-            <RelativeLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent" >
-
-                <!--<fragment
-                    android:name="com.trainerjim.mobile.android.fragments.RestViewFragment"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:id="@+id/rest_view_fragment">
-                </fragment>-->
-                <LinearLayout
-                    android:layout_width="fill_parent"
-                    android:layout_height="fill_parent"
-                    android:id="@+id/todo_rest_screen"
-                    android:visibility="visible">
-
-                </LinearLayout>
-
-
-
-                <!-- START: FULLSCREEN EXERCISE IMAGE -->
-                <android.support.v4.view.ViewPager xmlns:android="http://schemas.android.com/apk/res/android"
-                    android:id="@+id/pager"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:visibility="gone">
-                </android.support.v4.view.ViewPager>
-                <!-- END -->
-
-                <!-- START: THE VIEW SHOWN DURING THE EXERCISE -->
-
-<!--                <fragment
-                    android:name="com.trainerjim.mobile.android.fragments.ExerciseViewFragment"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:id="@+id/exercise_view_fragment">
-                </fragment>-->
-                <!-- END -->
-
-            </RelativeLayout>
-        </LinearLayout>
-        </FrameLayout>
-
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:id="@+id/main_container">
+    </LinearLayout>
     <ListView
         android:cacheColorHint="#00000000"
         android:id="@+id/exercises_list"

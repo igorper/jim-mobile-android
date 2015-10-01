@@ -24,7 +24,7 @@ public class Analytics {
         mAnalytics.setDryRun(!BuildConfig.DEBUG);
 
         mTracker = mAnalytics.newTracker("UA-64326228-1"); // Replace with actual tracker/property Id
-        mTracker.enableExceptionReporting(true);
+        //mTracker.enableExceptionReporting(true);
         mTracker.enableAdvertisingIdCollection(true);
         mTracker.enableAutoActivityTracking(true);
     }
