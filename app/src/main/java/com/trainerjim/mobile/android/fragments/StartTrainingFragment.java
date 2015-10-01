@@ -17,6 +17,9 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.github.amlcurran.showcaseview.ShowcaseView;
+import com.github.amlcurran.showcaseview.targets.PointTarget;
+import com.github.amlcurran.showcaseview.targets.ViewTarget;
 import com.trainerjim.mobile.android.R;
 import com.trainerjim.mobile.android.TrainingSelectionList;
 import com.trainerjim.mobile.android.database.TrainingPlan;
@@ -47,7 +50,6 @@ public class StartTrainingFragment extends Fragment implements View.OnClickListe
     private static final int ACTIVITY_REQUEST_TRAININGS_LIST = 0;
 
     private Training mCurrentTraining;
-    private TutorialHelper mTutorialHelper;
     private Analytics mAnalytics;
     private PermanentSettings mSettings;
 
@@ -58,16 +60,18 @@ public class StartTrainingFragment extends Fragment implements View.OnClickListe
     private LinearLayout mTrainingSelector;
     private TextView mTextNoTrainings;
 
+    private TutorialHelper.TutorialState mCurrentState = TutorialHelper.TutorialState.NONE;
+    private ShowcaseView mCurrentShowcaseView;
+
     private Handler mUiHandler = new Handler();
     public StartTrainingFragment(){}
 
     // TODO: this is not the best pattern as if the fragment is killed and recreated by android
     // this constructor might not be called. In the future think about passing those args through
     // a bundle, but for now this should not be a problem.
-    public StartTrainingFragment(Training training, TutorialHelper tutorialHelper, Analytics analytics,
+    public StartTrainingFragment(Training training, Analytics analytics,
                                  PermanentSettings permanentSettings){
         this.mCurrentTraining = training;
-        this.mTutorialHelper = tutorialHelper;
         this.mAnalytics = analytics;
         this.mSettings = permanentSettings;
     }
@@ -96,8 +100,6 @@ public class StartTrainingFragment extends Fragment implements View.OnClickListe
         boolean trainingsAvailable = TrainingPlan.getAll(mSettings.getUserId()).size() > 0;
         if(trainingsAvailable){
             updateSelectedTrainingText();
-
-            mTutorialHelper.showMainPageTutorial();
         } else {
             runTrainingsSync();
         }
@@ -122,7 +124,7 @@ public class StartTrainingFragment extends Fragment implements View.OnClickListe
     @Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 
-        if (mTutorialHelper.isTutorialActive()) {
+        if (mCurrentState != TutorialHelper.TutorialState.NONE) {
             return true;
         }
 
@@ -148,6 +150,8 @@ public class StartTrainingFragment extends Fragment implements View.OnClickListe
 
         if(trainingsAvailable) {
             mTrainingSelectorText.setText(selectedTrainingPlan.getName());
+            showMainPageTutorial();            showMainPageTutorial();
+
         }
 
         mTrainingSelector.setVisibility(trainingsAvailable ? View.VISIBLE : View.GONE);
@@ -163,22 +167,44 @@ public class StartTrainingFragment extends Fragment implements View.OnClickListe
 
     @Override
     public void onClick(View view) {
-        if(mTutorialHelper.isTutorialActive()){
-            return;
-        }
+        if(mCurrentState == TutorialHelper.TutorialState.NONE){
+            // currently no tutorial is in shown, capture button actions
+            switch (view.getId()){
+                case R.id.circularProgress: {
+                    EventBus.getDefault().post(new StartTrainingEvent(mSettings.getSelectedTrainingId()));
 
-        switch (view.getId()){
-            case R.id.circularProgress: {
-                EventBus.getDefault().post(new StartTrainingEvent(mSettings.getSelectedTrainingId()));
+                    return;
+                }
+                case R.id.trainingSelector: {
+                    Intent intent = new Intent(getActivity(),
+                            TrainingSelectionList.class);
+                    startActivityForResult(intent, ACTIVITY_REQUEST_TRAININGS_LIST);
 
-                return;
+                    return;
+                }
             }
-            case R.id.trainingSelector: {
-                Intent intent = new Intent(getActivity(),
-                        TrainingSelectionList.class);
-                startActivityForResult(intent, ACTIVITY_REQUEST_TRAININGS_LIST);
-
-                return;
+        } else {
+            // tutorial is running, determine the next action
+            switch (mCurrentState) {
+                case SYNC: {
+                    mCurrentState = TutorialHelper.TutorialState.SELECT_TRAINING;
+                    createSelectTrainingsTutorial();
+                    break;
+                }
+                case SELECT_TRAINING: {
+                    mCurrentState = TutorialHelper.TutorialState.START_TRAINING;
+                    createTrainingStartTutorial();
+                    break;
+                }
+                case START_TRAINING: {
+                    mCurrentState = TutorialHelper.TutorialState.NONE;
+                    mCurrentShowcaseView.hide();
+                    mCurrentShowcaseView = null;
+                    mSettings.saveMainPageTutorialCount(mSettings.getMainPageTutorialCount() + 1);
+                    break;
+                }
+                default:
+                    break;
             }
         }
     }
@@ -254,6 +280,32 @@ public class StartTrainingFragment extends Fragment implements View.OnClickListe
         runUploadTrainings();
     }
 
+    private void showMainPageTutorial(){
+        // TODO: for now just show the tutorial if it has not been shown yet. In the future
+        // we can think about showing the tutorial more than once (hence the number and not
+        // a boolean flag)
+        if(mCurrentState == TutorialHelper.TutorialState.NONE && mSettings.getMainPageTutorialCount() == 0) {
+            mCurrentState = TutorialHelper.TutorialState.SYNC;
+
+            mCurrentShowcaseView = TutorialHelper.initTutorialView(getActivity(), this, "Sync trainings",
+                    "Tap here to download new trainings",
+                    new PointTarget(TutorialHelper.getTopRightPoint(getActivity())));
+        }
+    }
+
+    private void createSelectTrainingsTutorial(){
+        mCurrentShowcaseView.setScaleMultiplier(1.1f);
+        mCurrentShowcaseView.setContentTitle("Select training");
+        mCurrentShowcaseView.setContentText("Tap here to select a training.");
+        mCurrentShowcaseView.setShowcase(new ViewTarget(getActivity().findViewById(R.id.trainingSelector)), true);
+    }
+
+    private void createTrainingStartTutorial(){
+        mCurrentShowcaseView.setScaleMultiplier(1.7f);
+        mCurrentShowcaseView.setContentTitle("Start training");
+        mCurrentShowcaseView.setContentText("Tap here to start a training.");
+        mCurrentShowcaseView.setShowcase(new ViewTarget(getActivity().findViewById(R.id.circularProgress)), true);
+    }
 
     /**
      * Initiates the upload of completed trainings.

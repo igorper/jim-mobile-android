@@ -19,7 +19,7 @@ import com.trainerjim.mobile.android.storage.PermanentSettings;
  */
 public class TutorialHelper implements View.OnClickListener{
 
-    private enum TutorialState {
+    public enum TutorialState {
         NONE,
         SYNC,
         SELECT_TRAINING,
@@ -50,24 +50,11 @@ public class TutorialHelper implements View.OnClickListener{
         mSettings = settings;
     }
 
-    public void showMainPageTutorial(){
-        // TODO: for now just show the tutorial if it has not been shown yet. In the future
-        // we can think about showing the tutorial more than once (hence the number and not
-        // a boolean flag)
-        if(mSettings.getMainPageTutorialCount() == 0) {
-            mCurrentState = TutorialState.SYNC;
-
-            initTutorialView("Sync trainings",
-                    "Tap here to download new trainings",
-                    new PointTarget(getTopRightPoint()));
-        }
-    }
-
     public void showExerciseTutorial(){
         if(mSettings.getRestTutorialCount() == 0) {
             mCurrentState = TutorialState.EXERCISE_IMAGE;
 
-            initTutorialView("Exercise image",
+            mCurrentShowcaseView = initTutorialView(mParentActivity, this, "Exercise image",
                     "Tap here to see the current exercise image",
                     new ViewTarget(mParentActivity.findViewById(R.id.info_button)), 0.6f);
         }
@@ -77,7 +64,7 @@ public class TutorialHelper implements View.OnClickListener{
         if(mSettings.getSaveSeriesTutorialCount() == 0) {
             mCurrentState = TutorialState.SAVE_SERIES_OK;
 
-            initTutorialView("Next exercise",
+            mCurrentShowcaseView = initTutorialView(mParentActivity, this, "Next exercise",
                     "Tap here to move to the next exercise",
                     new ViewTarget(mParentActivity.findViewById(R.id.frag_exe_view_training_weight)), 1.5f);
         }
@@ -87,7 +74,7 @@ public class TutorialHelper implements View.OnClickListener{
         if(mSettings.getExercisesListTutorialCount() == 0) {
             mCurrentState = TutorialState.CHANGE_SKIP_EXERCISE;
 
-            initTutorialView("Change exercise",
+            mCurrentShowcaseView = initTutorialView(mParentActivity, this, "Change exercise",
                     "To change to another exercise select it from the list. Long press permanently skips the exercise",
                     new ViewTarget(mParentActivity.findViewById(R.id.tvExerciseName)));
         }
@@ -98,8 +85,8 @@ public class TutorialHelper implements View.OnClickListener{
     }
 
     /*** Helpers ***/
-    private Point getTopRightPoint(){
-        Display display = mParentActivity.getWindowManager().getDefaultDisplay();
+    public static Point getTopRightPoint(Activity activity){
+        Display display = activity.getWindowManager().getDefaultDisplay();
         Point topRight = new Point();
         display.getSize(topRight);
         topRight.y = 0;
@@ -107,34 +94,19 @@ public class TutorialHelper implements View.OnClickListener{
         return topRight;
     }
 
-    private void initTutorialView(String title, String text, Target target){
-        initTutorialView(title, text, target, 1f);
+    public static ShowcaseView initTutorialView(Activity activity, View.OnClickListener listener, String title, String text, Target target){
+        return initTutorialView(activity, listener, title, text, target, 1f);
     }
 
-    private void initTutorialView(String title, String text, Target target, float scaleMultiplier){
-        mCurrentShowcaseView = new ShowcaseView.Builder(mParentActivity, true)
+    public static ShowcaseView initTutorialView(Activity activity, View.OnClickListener listener, String title, String text, Target target, float scaleMultiplier){
+        return new ShowcaseView.Builder(activity, true)
                 .setStyle(R.style.JimShowcaseTheme)
-                .setOnClickListener(this)
+                .setOnClickListener(listener)
                 .setContentTitle(title)
                 .setContentText(text)
                 .setTarget(target)
                 .setScaleMultiplier(scaleMultiplier)
                 .build();
-    }
-
-    /*** Start training tutorial ***/
-    private void createSelectTrainingsTutorial(){
-        mCurrentShowcaseView.setScaleMultiplier(1.1f);
-        mCurrentShowcaseView.setContentTitle("Select training");
-        mCurrentShowcaseView.setContentText("Tap here to select a training.");
-        mCurrentShowcaseView.setShowcase(new ViewTarget(mParentActivity.findViewById(R.id.trainingSelector)), true);
-    }
-
-    private void createTrainingStartTutorial(){
-        mCurrentShowcaseView.setScaleMultiplier(1.7f);
-        mCurrentShowcaseView.setContentTitle("Start training");
-        mCurrentShowcaseView.setContentText("Tap here to start a training.");
-        mCurrentShowcaseView.setShowcase(new ViewTarget(mParentActivity.findViewById(R.id.circularProgress)), true);
     }
 
     /*** Start exercise tutorial ***/
@@ -156,7 +128,7 @@ public class TutorialHelper implements View.OnClickListener{
     private void createCancelTrainingTutorial(){
         mCurrentShowcaseView.setContentTitle("Cancel training");
         mCurrentShowcaseView.setContentText("Tap here to cancel the training.");
-        mCurrentShowcaseView.setShowcase(new PointTarget(getTopRightPoint()), true);
+        mCurrentShowcaseView.setShowcase(new PointTarget(getTopRightPoint(mParentActivity)), true);
     }
 
     /*** Save series tutorial ***/
@@ -179,23 +151,6 @@ public class TutorialHelper implements View.OnClickListener{
     @Override
     public void onClick(View view) {
         switch (mCurrentState){
-            case SYNC:{
-                mCurrentState = TutorialState.SELECT_TRAINING;
-                createSelectTrainingsTutorial();
-                break;
-            }
-            case SELECT_TRAINING: {
-                mCurrentState = TutorialState.START_TRAINING;
-                createTrainingStartTutorial();
-                break;
-            }
-            case START_TRAINING: {
-                mCurrentState = TutorialState.NONE;
-                mCurrentShowcaseView.hide();
-                mCurrentShowcaseView = null;
-                mSettings.saveMainPageTutorialCount(mSettings.getMainPageTutorialCount() + 1);
-                break;
-            }
             case EXERCISE_IMAGE: {
                 mCurrentState = TutorialState.EXERCISES_LIST;
                 createExercisesListTutorial();

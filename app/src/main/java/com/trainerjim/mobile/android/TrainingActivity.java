@@ -288,7 +288,7 @@ public class TrainingActivity extends Activity {
     private void showStartTrainingFragment(){
         FragmentManager fm = getFragmentManager();
         FragmentTransaction ft = fm.beginTransaction();
-        ft.replace(R.id.main_container, new StartTrainingFragment(mCurrentTraining, mTutorialHelper, mAnalytics, mSettings));
+        ft.replace(R.id.main_container, new StartTrainingFragment(mCurrentTraining, mAnalytics, mSettings));
         ft.commit();
 
         mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
