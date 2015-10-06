@@ -4,6 +4,7 @@ import android.app.AlertDialog;
 import android.app.Fragment;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
@@ -23,8 +24,11 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.github.amlcurran.showcaseview.ShowcaseView;
+import com.github.amlcurran.showcaseview.targets.ViewTarget;
 import com.trainerjim.mobile.android.R;
 import com.trainerjim.mobile.android.TrainingActivity;
+import com.trainerjim.mobile.android.TrainingSelectionList;
 import com.trainerjim.mobile.android.entities.Exercise;
 import com.trainerjim.mobile.android.entities.Series;
 import com.trainerjim.mobile.android.entities.Training;
@@ -33,9 +37,11 @@ import com.trainerjim.mobile.android.events.CancelTrainingEvent;
 import com.trainerjim.mobile.android.events.EndExerciseEvent;
 import com.trainerjim.mobile.android.events.ExerciseImageEvent;
 import com.trainerjim.mobile.android.events.ExercisesListEvent;
+import com.trainerjim.mobile.android.events.StartTrainingEvent;
 import com.trainerjim.mobile.android.events.ToggleGetReadyEvent;
 import com.trainerjim.mobile.android.events.EndRestEvent;
 import com.trainerjim.mobile.android.events.TrainingStateChangedEvent;
+import com.trainerjim.mobile.android.storage.PermanentSettings;
 import com.trainerjim.mobile.android.ui.CircularProgressControl;
 import com.trainerjim.mobile.android.ui.ExerciseAdapter;
 import com.trainerjim.mobile.android.ui.ExerciseImagesPagerAdapter;
@@ -54,7 +60,6 @@ import de.greenrobot.event.EventBus;
 public class RestViewFragment extends Fragment implements View.OnClickListener {
 
     private Training mCurrentTraining;
-    private TutorialHelper mTutorialHelper;
     private Analytics mAnalytics;
 
     private CircularProgressControl mCircularProgress;
@@ -71,16 +76,21 @@ public class RestViewFragment extends Fragment implements View.OnClickListener {
     private Handler mUiHandler = new Handler();
 
     private ExerciseImagesPagerAdapter mExerciseImagesPagerAdapter;
+    private PermanentSettings mSettings;
+
+    private TutorialHelper.TutorialState mCurrentState = TutorialHelper.TutorialState.NONE;
+
+    private ShowcaseView mCurrentShowcaseView;
 
     public RestViewFragment(){}
 
     // TODO: this is not the best pattern as if the fragment is killed and recreated by android
     // this constructor might not be called. In the future think about passing those args through
     // a bundle, but for now this should not be a problem.
-    public RestViewFragment(Training training, TutorialHelper tutorialHelper, Analytics analytics){
+    public RestViewFragment(Training training, Analytics analytics, PermanentSettings settings){
         this.mCurrentTraining = training;
-        this.mTutorialHelper = tutorialHelper;
         this.mAnalytics = analytics;
+        this.mSettings = settings;
     }
 
     @Override
@@ -247,7 +257,17 @@ public class RestViewFragment extends Fragment implements View.OnClickListener {
         mInfoButton.setVisibility(View.VISIBLE);
         mExercisesListButton.setVisibility(View.VISIBLE);
 
-        mTutorialHelper.showExerciseTutorial();
+        showExerciseTutorial();
+    }
+
+    private void showExerciseTutorial(){
+        if(mSettings.getRestTutorialCount() == 0) {
+            mCurrentState = TutorialHelper.TutorialState.EXERCISE_IMAGE;
+
+            mCurrentShowcaseView = TutorialHelper.initTutorialView(getActivity(), this, "Exercise image",
+                    "Tap here to see the current exercise image",
+                    new ViewTarget(getView().findViewById(R.id.info_button)), 0.6f);
+        }
     }
 
     private void showGetReadyScreen(){
@@ -263,39 +283,74 @@ public class RestViewFragment extends Fragment implements View.OnClickListener {
 
     @Override
     public void onClick(View view) {
-        if(mTutorialHelper.isTutorialActive()){
-            return;
-        }
+        if(mCurrentState == TutorialHelper.TutorialState.NONE){
+            // currently no tutorial is in shown, capture button actions
+            switch (view.getId()){
+                case R.id.circularProgress: {
+                    boolean isGetReadyStarted = mGetReadyTimer.toggleGetReadyStartTimestamp();
 
-        switch (view.getId()){
-            case R.id.circularProgress: {
-                boolean isGetReadyStarted = mGetReadyTimer.toggleGetReadyStartTimestamp();
+                    EventBus.getDefault().post(new ToggleGetReadyEvent(isGetReadyStarted));
 
-                EventBus.getDefault().post(new ToggleGetReadyEvent(isGetReadyStarted));
+                    if(isGetReadyStarted){
+                        showGetReadyScreen();
 
-                if(isGetReadyStarted){
-                    showGetReadyScreen();
+                        mUiHandler.postDelayed(mGetReadyTimer, 0);
+                    } else {
+                        mUiHandler.removeCallbacks(mGetReadyTimer);
 
-                    mUiHandler.postDelayed(mGetReadyTimer, 0);
-                } else {
-                    mUiHandler.removeCallbacks(mGetReadyTimer);
+                        // TODO: this should have a better name. it should be called smth like show
+                        // rest screen
+                        updateScreen();
+                    }
 
-                    // TODO: this should have a better name. it should be called smth like show
-                    // rest screen
-                    updateScreen();
+                    return;
                 }
-
-                return;
+                case R.id.info_button: {
+                    toggleInfoButtonVisible(true);
+                    return;
+                }
+                case R.id.exercises_list_button: {
+                    EventBus.getDefault().post(new ExercisesListEvent());
+                    return;
+                }
             }
-            case R.id.info_button: {
-                toggleInfoButtonVisible(true);
-                return;
-            }
-            case R.id.exercises_list_button: {
-                EventBus.getDefault().post(new ExercisesListEvent());
-                return;
+        } else {
+            // tutorial is running, determine the next action
+            switch (mCurrentState) {
+                case EXERCISE_IMAGE: {
+                    mCurrentState = TutorialHelper.TutorialState.EXERCISES_LIST;
+                    createExercisesListTutorial();
+                    break;
+                }
+                case EXERCISES_LIST: {
+                    mCurrentState = TutorialHelper.TutorialState.START_EXERCISE;
+                    createExerciseStartTutorial();
+                    break;
+                }
+                case START_EXERCISE: {
+                    mCurrentState = TutorialHelper.TutorialState.NONE;
+                    mCurrentShowcaseView.hide();
+                    mSettings.saveRestTutorialCount(mSettings.getRestTutorialCount() + 1);
+                    break;
+                }
+                default:
+                    break;
             }
         }
+    }
+
+    private void  createExercisesListTutorial(){
+        mCurrentShowcaseView.setScaleMultiplier(0.6f);
+        mCurrentShowcaseView.setContentTitle("Exercises list");
+        mCurrentShowcaseView.setContentText("Tap here to see the list of exercises to perform.");
+        mCurrentShowcaseView.setShowcase(new ViewTarget(getView().findViewById(R.id.exercises_list_button)), true);
+    }
+
+    private void createExerciseStartTutorial(){
+        mCurrentShowcaseView.setScaleMultiplier(1.8f);
+        mCurrentShowcaseView.setContentTitle("Start exercise");
+        mCurrentShowcaseView.setContentText("To start exercising tap here and put the phone to a safe place.");
+        mCurrentShowcaseView.setShowcase(new ViewTarget(getView().findViewById(R.id.circularProgress)), true);
     }
 
     @Override
@@ -309,7 +364,7 @@ public class RestViewFragment extends Fragment implements View.OnClickListener {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
 
-        if (mTutorialHelper.isTutorialActive()) {
+        if (mCurrentState != TutorialHelper.TutorialState.NONE) {
             return true;
         }
 

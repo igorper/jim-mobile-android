@@ -50,16 +50,6 @@ public class TutorialHelper implements View.OnClickListener{
         mSettings = settings;
     }
 
-    public void showExerciseTutorial(){
-        if(mSettings.getRestTutorialCount() == 0) {
-            mCurrentState = TutorialState.EXERCISE_IMAGE;
-
-            mCurrentShowcaseView = initTutorialView(mParentActivity, this, "Exercise image",
-                    "Tap here to see the current exercise image",
-                    new ViewTarget(mParentActivity.findViewById(R.id.info_button)), 0.6f);
-        }
-    }
-
     public void showSaveSeriesTutorial(){
         if(mSettings.getSaveSeriesTutorialCount() == 0) {
             mCurrentState = TutorialState.SAVE_SERIES_OK;
@@ -67,16 +57,6 @@ public class TutorialHelper implements View.OnClickListener{
             mCurrentShowcaseView = initTutorialView(mParentActivity, this, "Next exercise",
                     "Tap here to move to the next exercise",
                     new ViewTarget(mParentActivity.findViewById(R.id.frag_exe_view_training_weight)), 1.5f);
-        }
-    }
-
-    public void showExercisesListTutorial() {
-        if(mSettings.getExercisesListTutorialCount() == 0) {
-            mCurrentState = TutorialState.CHANGE_SKIP_EXERCISE;
-
-            mCurrentShowcaseView = initTutorialView(mParentActivity, this, "Change exercise",
-                    "To change to another exercise select it from the list. Long press permanently skips the exercise",
-                    new ViewTarget(mParentActivity.findViewById(R.id.tvExerciseName)));
         }
     }
 
@@ -109,28 +89,6 @@ public class TutorialHelper implements View.OnClickListener{
                 .build();
     }
 
-    /*** Start exercise tutorial ***/
-    private void  createExercisesListTutorial(){
-        mCurrentShowcaseView.setScaleMultiplier(0.6f);
-        mCurrentShowcaseView.setContentTitle("Exercises list");
-        mCurrentShowcaseView.setContentText("Tap here to see the list of exercises to perform.");
-        mCurrentShowcaseView.setShowcase(new ViewTarget(mParentActivity.findViewById(R.id.exercises_list_button)), true);
-    }
-
-    private void createExerciseStartTutorial(){
-        mCurrentShowcaseView.setScaleMultiplier(1.8f);
-        mCurrentShowcaseView.setContentTitle("Start exercise");
-        mCurrentShowcaseView.setContentText("To start exercising tap here and put the phone to a safe place.");
-        mCurrentShowcaseView.setShowcase(new ViewTarget(mParentActivity.findViewById(R.id.circularProgress)), true);
-    }
-
-    /*** Exercises list tutorial ***/
-    private void createCancelTrainingTutorial(){
-        mCurrentShowcaseView.setContentTitle("Cancel training");
-        mCurrentShowcaseView.setContentText("Tap here to cancel the training.");
-        mCurrentShowcaseView.setShowcase(new PointTarget(getTopRightPoint(mParentActivity)), true);
-    }
-
     /*** Save series tutorial ***/
     private void createSaveSeriesChangeTutorial(){
         int margin = (int)mParentActivity.getResources().getDimension(com.github.amlcurran.showcaseview.R.dimen.button_margin);
@@ -151,33 +109,6 @@ public class TutorialHelper implements View.OnClickListener{
     @Override
     public void onClick(View view) {
         switch (mCurrentState){
-            case EXERCISE_IMAGE: {
-                mCurrentState = TutorialState.EXERCISES_LIST;
-                createExercisesListTutorial();
-                break;
-            }
-            case EXERCISES_LIST: {
-                mCurrentState = TutorialState.START_EXERCISE;
-                createExerciseStartTutorial();
-                break;
-            }
-            case START_EXERCISE: {
-                mCurrentState = TutorialState.NONE;
-                mCurrentShowcaseView.hide();
-                mSettings.saveRestTutorialCount(mSettings.getRestTutorialCount() + 1);
-                break;
-            }
-            case CHANGE_SKIP_EXERCISE: {
-                mCurrentState = TutorialState.CANCEL_TRAINING;
-                createCancelTrainingTutorial();
-                break;
-            }
-            case CANCEL_TRAINING: {
-                mCurrentState = TutorialState.NONE;
-                mCurrentShowcaseView.hide();
-                mSettings.saveExercisesListTutorialCount(mSettings.getExercisesListTutorialCount() + 1);
-                break;
-            }
             case SAVE_SERIES_OK: {
                 mCurrentState = TutorialState.SAVE_SERIES_CHANGE;
                 createSaveSeriesChangeTutorial();

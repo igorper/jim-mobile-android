@@ -150,7 +150,7 @@ public class StartTrainingFragment extends Fragment implements View.OnClickListe
 
         if(trainingsAvailable) {
             mTrainingSelectorText.setText(selectedTrainingPlan.getName());
-            showMainPageTutorial();            showMainPageTutorial();
+            showMainPageTutorial();
 
         }
 
@@ -297,14 +297,14 @@ public class StartTrainingFragment extends Fragment implements View.OnClickListe
         mCurrentShowcaseView.setScaleMultiplier(1.1f);
         mCurrentShowcaseView.setContentTitle("Select training");
         mCurrentShowcaseView.setContentText("Tap here to select a training.");
-        mCurrentShowcaseView.setShowcase(new ViewTarget(getActivity().findViewById(R.id.trainingSelector)), true);
+        mCurrentShowcaseView.setShowcase(new ViewTarget(getView().findViewById(R.id.trainingSelector)), true);
     }
 
     private void createTrainingStartTutorial(){
         mCurrentShowcaseView.setScaleMultiplier(1.7f);
         mCurrentShowcaseView.setContentTitle("Start training");
         mCurrentShowcaseView.setContentText("Tap here to start a training.");
-        mCurrentShowcaseView.setShowcase(new ViewTarget(getActivity().findViewById(R.id.circularProgress)), true);
+        mCurrentShowcaseView.setShowcase(new ViewTarget(getView().findViewById(R.id.circularProgress)), true);
     }
 
     /**

@@ -25,6 +25,9 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import com.github.amlcurran.showcaseview.ShowcaseView;
+import com.github.amlcurran.showcaseview.targets.PointTarget;
+import com.github.amlcurran.showcaseview.targets.ViewTarget;
 import com.squareup.picasso.Picasso;
 import com.trainerjim.mobile.android.database.CompletedTraining;
 import com.trainerjim.mobile.android.database.TrainingPlan;
@@ -62,7 +65,7 @@ import com.trainerjim.mobile.android.util.Utils;
 
 import de.greenrobot.event.EventBus;
 
-public class TrainingActivity extends Activity {
+public class TrainingActivity extends Activity implements View.OnClickListener {
 
 	private static final String TAG = Utils.getApplicationTag();
 
@@ -97,6 +100,11 @@ public class TrainingActivity extends Activity {
     private Analytics mAnalytics;
 
     private TutorialHelper mTutorialHelper;
+
+    private TutorialHelper.TutorialState mCurrentState = TutorialHelper.TutorialState.NONE;
+
+
+    private ShowcaseView mCurrentShowcaseView;
 
     @Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -158,7 +166,7 @@ public class TrainingActivity extends Activity {
 
                 getActionBar().show();
 
-                mTutorialHelper.showExercisesListTutorial();
+                showExercisesListTutorial();
             }
         };
 
@@ -191,6 +199,16 @@ public class TrainingActivity extends Activity {
 
         registerForContextMenu(mDrawerExercisesList);
 	}
+
+    private void showExercisesListTutorial() {
+        if(mSettings.getExercisesListTutorialCount() == 0) {
+            mCurrentState = TutorialHelper.TutorialState.CHANGE_SKIP_EXERCISE;
+
+            mCurrentShowcaseView = TutorialHelper.initTutorialView(this, this, "Change exercise",
+                    "To change to another exercise select it from the list. Long press permanently skips the exercise",
+                    new ViewTarget(this.findViewById(R.id.tvExerciseName)));
+        }
+    }
 
     /**
 	 * Returns <code>true</code> if user is currently logged in, otherwise
@@ -333,7 +351,7 @@ public class TrainingActivity extends Activity {
         // there are still some exercises to be performed
         FragmentManager fm = getFragmentManager();
         FragmentTransaction ft = fm.beginTransaction();
-        ft.replace(R.id.main_container, new RestViewFragment(mCurrentTraining, mTutorialHelper, mAnalytics));
+        ft.replace(R.id.main_container, new RestViewFragment(mCurrentTraining, mAnalytics, mSettings));
         ft.commit();
 
         populateExerciseList();
@@ -401,7 +419,7 @@ public class TrainingActivity extends Activity {
         // switch fragments
         FragmentManager fm = getFragmentManager();
         FragmentTransaction ft = fm.beginTransaction();
-        RestViewFragment frag = new RestViewFragment(mCurrentTraining, mTutorialHelper, mAnalytics);
+        RestViewFragment frag = new RestViewFragment(mCurrentTraining, mAnalytics, mSettings);
         ft.replace(R.id.main_container, frag);
         ft.commit();
 
@@ -524,5 +542,31 @@ public class TrainingActivity extends Activity {
         mCurrentTraining = null;
         saveCurrentTraining();
         showStartTrainingFragment();
+    }
+
+    @Override
+    public void onClick(View view) {
+        // tutorial is running, determine the next action
+        switch (mCurrentState) {
+            case CHANGE_SKIP_EXERCISE: {
+                mCurrentState = TutorialHelper.TutorialState.CANCEL_TRAINING;
+                createCancelTrainingTutorial();
+                break;
+            }
+            case CANCEL_TRAINING: {
+                mCurrentState = TutorialHelper.TutorialState.NONE;
+                mCurrentShowcaseView.hide();
+                mSettings.saveExercisesListTutorialCount(mSettings.getExercisesListTutorialCount() + 1);
+                break;
+            }
+            default:
+                break;
+        }
+    }
+
+    private void createCancelTrainingTutorial(){
+        mCurrentShowcaseView.setContentTitle("Cancel training");
+        mCurrentShowcaseView.setContentText("Tap here to cancel the training.");
+        mCurrentShowcaseView.setShowcase(new PointTarget(TutorialHelper.getTopRightPoint(this)), true);
     }
 }
