@@ -184,14 +184,6 @@ public class StartTrainingFragment extends Fragment implements View.OnClickListe
         }
     }
 
-    @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        inflater.inflate(R.menu.inactive_training_actions, menu);
-
-        super.onCreateOptionsMenu(menu, inflater);
-    }
-
-
     public void onEvent(final TrainingSelectedEvent event){
         mSettings.saveSelectedTrainingId(event.getSelectedTrainingId());
         updateSelectedTrainingText();
