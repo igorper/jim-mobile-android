@@ -298,7 +298,7 @@ public class TrainingActivity extends Activity implements View.OnClickListener {
 
         mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
 
-        getActionBar().show();
+        getActionBar().hide();
     }
 
     private void showEndTrainingFragment(){
@@ -403,12 +403,6 @@ public class TrainingActivity extends Activity implements View.OnClickListener {
                 Training.class);
         mCurrentTraining.startTraining();
 
-        // switch fragments
-        FragmentManager fm = getFragmentManager();
-        FragmentTransaction ft = fm.beginTransaction();
-        RestViewFragment frag = new RestViewFragment(mCurrentTraining, mAnalytics, mSettings);
-        ft.replace(R.id.main_container, frag);
-        ft.commit();
 
         // rebuild the menu and hide it
         getActionBar().hide();
@@ -416,6 +410,13 @@ public class TrainingActivity extends Activity implements View.OnClickListener {
         populateExerciseList();
 
         saveCurrentTraining();
+
+        // switch fragments
+        FragmentManager fm = getFragmentManager();
+        FragmentTransaction ft = fm.beginTransaction();
+        RestViewFragment frag = new RestViewFragment(mCurrentTraining, mAnalytics, mSettings);
+        ft.replace(R.id.main_container, frag);
+        ft.commit();
     }
 
     /**

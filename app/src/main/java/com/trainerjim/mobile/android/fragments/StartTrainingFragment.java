@@ -95,16 +95,7 @@ public class StartTrainingFragment extends Fragment implements View.OnClickListe
         mBottomContainer.setVisibility(View.VISIBLE);
         mTrainingSelector.setOnClickListener(this);
 
-        boolean trainingsAvailable = TrainingPlan.getAll(mSettings.getUserId()).size() > 0;
-        if(trainingsAvailable){
-            updateSelectedTrainingText();
-        } else {
-            runTrainingsSync();
-        }
-
         EventBus.getDefault().register(this);
-
-        setHasOptionsMenu(true);
 
         return fragmentView;
     }
@@ -115,29 +106,20 @@ public class StartTrainingFragment extends Fragment implements View.OnClickListe
         super.onResume();
 
         // always upload the trainings on start
-        runUploadTrainings();
+        runTrainingsSync();
     }
 
-
     @Override
-	public boolean onOptionsItemSelected(MenuItem item) {
+    public void onActivityCreated(Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
 
-        if (mCurrentState != TutorialState.NONE) {
-            return true;
-        }
-
-		switch (item.getItemId()) {
-		case R.id.action_sync: {
-            //EventBus.getDefault().post(new SyncTrainingsEvent());
+        boolean trainingsAvailable = TrainingPlan.getAll(mSettings.getUserId()).size() > 0;
+        if(trainingsAvailable){
+            updateSelectedTrainingText();
+        } else {
             runTrainingsSync();
-			break;
-		}
-		default:
-			break;
-		}
-
-		return super.onOptionsItemSelected(item);
-	}
+        }
+    }
 
     /**
      * Shows the training name or the label stating that no trainings are currently available.
@@ -184,11 +166,6 @@ public class StartTrainingFragment extends Fragment implements View.OnClickListe
         } else {
             // tutorial is running, determine the next action
             switch (mCurrentState) {
-                case SYNC: {
-                    mCurrentState = TutorialState.SELECT_TRAINING;
-                    createSelectTrainingsTutorial();
-                    break;
-                }
                 case SELECT_TRAINING: {
                     mCurrentState = TutorialState.START_TRAINING;
                     createTrainingStartTutorial();
@@ -255,7 +232,6 @@ public class StartTrainingFragment extends Fragment implements View.OnClickListe
         mUiHandler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                getActivity().setProgressBarIndeterminateVisibility(false);
                 if (event.getStatus()) {
                     // once the trainings are downloaded select the first one by default (or -1
                     // if no training exists)
@@ -283,19 +259,12 @@ public class StartTrainingFragment extends Fragment implements View.OnClickListe
         // we can think about showing the tutorial more than once (hence the number and not
         // a boolean flag)
         if(mCurrentState == TutorialState.NONE && mSettings.getMainPageTutorialCount() == 0) {
-            mCurrentState = TutorialState.SYNC;
+            mCurrentState = TutorialState.SELECT_TRAINING;
 
-            mCurrentShowcaseView = TutorialHelper.initTutorialView(getActivity(), this, "Sync trainings",
-                    "Tap here to download new trainings",
-                    new PointTarget(TutorialHelper.getTopRightPoint(getActivity())));
+            mCurrentShowcaseView = TutorialHelper.initTutorialView(getActivity(), this, "Select training",
+                    "Tap here to select a training.",
+                    new ViewTarget(getView().findViewById(R.id.trainingSelector)), 1.1f);
         }
-    }
-
-    private void createSelectTrainingsTutorial(){
-        mCurrentShowcaseView.setScaleMultiplier(1.1f);
-        mCurrentShowcaseView.setContentTitle("Select training");
-        mCurrentShowcaseView.setContentText("Tap here to select a training.");
-        mCurrentShowcaseView.setShowcase(new ViewTarget(getView().findViewById(R.id.trainingSelector)), true);
     }
 
     private void createTrainingStartTutorial(){
@@ -309,9 +278,6 @@ public class StartTrainingFragment extends Fragment implements View.OnClickListe
      * Initiates the upload of completed trainings.
      */
     private void runUploadTrainings() {
-        // show the progress bar
-        getActivity().setProgressBarIndeterminateVisibility(true);
-
         Intent intent = new Intent(getActivity(), ServerCommunicationService.class);
         intent.putExtra(ServerCommunicationService.INTENT_KEY_ACTION,
                 ServerCommunicationService.ACTION_UPLOAD_COMPLETED_TRAININGS);
@@ -327,8 +293,6 @@ public class StartTrainingFragment extends Fragment implements View.OnClickListe
      * Initiates the training sync process.
      */
     private void runTrainingsSync() {
-        getActivity().setProgressBarIndeterminateVisibility(true);
-
         Intent intent = new Intent(getActivity(), ServerCommunicationService.class);
         intent.putExtra(ServerCommunicationService.INTENT_KEY_ACTION,
                 ServerCommunicationService.ACTION_FETCH_TRAININGS);

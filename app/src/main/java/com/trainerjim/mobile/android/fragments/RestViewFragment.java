@@ -253,16 +253,6 @@ public class RestViewFragment extends Fragment implements View.OnClickListener {
         showExerciseTutorial();
     }
 
-    private void showExerciseTutorial(){
-        if(mSettings.getRestTutorialCount() == 0) {
-            mCurrentState = TutorialState.EXERCISE_IMAGE;
-
-            mCurrentShowcaseView = TutorialHelper.initTutorialView(getActivity(), this, "Exercise image",
-                    "Tap here to see the current exercise image",
-                    new ViewTarget(getView().findViewById(R.id.info_button)), 0.6f);
-        }
-    }
-
     private void showGetReadyScreen(){
         mUiHandler.removeCallbacks(mUpdateRestTimer);
 
@@ -329,6 +319,16 @@ public class RestViewFragment extends Fragment implements View.OnClickListener {
                 default:
                     break;
             }
+        }
+    }
+
+    private void showExerciseTutorial(){
+        if(mSettings.getRestTutorialCount() == 0) {
+            mCurrentState = TutorialState.EXERCISE_IMAGE;
+
+            mCurrentShowcaseView = TutorialHelper.initTutorialView(getActivity(), this, "Exercise image",
+                    "Tap here to see the current exercise image",
+                    new ViewTarget(getView().findViewById(R.id.info_button)), 0.6f);
         }
     }
 
