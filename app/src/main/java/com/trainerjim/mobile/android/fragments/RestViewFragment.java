@@ -4,13 +4,11 @@ import android.app.AlertDialog;
 import android.app.Fragment;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.Intent;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Vibrator;
 import android.support.v4.view.ViewPager;
-import android.util.Log;
 import android.view.GestureDetector;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -20,15 +18,12 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.github.amlcurran.showcaseview.ShowcaseView;
 import com.github.amlcurran.showcaseview.targets.ViewTarget;
 import com.trainerjim.mobile.android.R;
 import com.trainerjim.mobile.android.TrainingActivity;
-import com.trainerjim.mobile.android.TrainingSelectionList;
 import com.trainerjim.mobile.android.entities.Exercise;
 import com.trainerjim.mobile.android.entities.Series;
 import com.trainerjim.mobile.android.entities.Training;
@@ -37,19 +32,17 @@ import com.trainerjim.mobile.android.events.CancelTrainingEvent;
 import com.trainerjim.mobile.android.events.EndExerciseEvent;
 import com.trainerjim.mobile.android.events.ExerciseImageEvent;
 import com.trainerjim.mobile.android.events.ExercisesListEvent;
-import com.trainerjim.mobile.android.events.StartTrainingEvent;
 import com.trainerjim.mobile.android.events.ToggleGetReadyEvent;
 import com.trainerjim.mobile.android.events.EndRestEvent;
 import com.trainerjim.mobile.android.events.TrainingStateChangedEvent;
 import com.trainerjim.mobile.android.storage.PermanentSettings;
 import com.trainerjim.mobile.android.ui.CircularProgressControl;
-import com.trainerjim.mobile.android.ui.ExerciseAdapter;
 import com.trainerjim.mobile.android.ui.ExerciseImagesPagerAdapter;
 import com.trainerjim.mobile.android.util.Analytics;
 import com.trainerjim.mobile.android.util.TutorialHelper;
+import com.trainerjim.mobile.android.util.TutorialState;
 import com.trainerjim.mobile.android.util.Utils;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import de.greenrobot.event.EventBus;
@@ -78,7 +71,7 @@ public class RestViewFragment extends Fragment implements View.OnClickListener {
     private ExerciseImagesPagerAdapter mExerciseImagesPagerAdapter;
     private PermanentSettings mSettings;
 
-    private TutorialHelper.TutorialState mCurrentState = TutorialHelper.TutorialState.NONE;
+    private TutorialState mCurrentState = TutorialState.NONE;
 
     private ShowcaseView mCurrentShowcaseView;
 
@@ -262,7 +255,7 @@ public class RestViewFragment extends Fragment implements View.OnClickListener {
 
     private void showExerciseTutorial(){
         if(mSettings.getRestTutorialCount() == 0) {
-            mCurrentState = TutorialHelper.TutorialState.EXERCISE_IMAGE;
+            mCurrentState = TutorialState.EXERCISE_IMAGE;
 
             mCurrentShowcaseView = TutorialHelper.initTutorialView(getActivity(), this, "Exercise image",
                     "Tap here to see the current exercise image",
@@ -283,7 +276,7 @@ public class RestViewFragment extends Fragment implements View.OnClickListener {
 
     @Override
     public void onClick(View view) {
-        if(mCurrentState == TutorialHelper.TutorialState.NONE){
+        if(mCurrentState == TutorialState.NONE){
             // currently no tutorial is in shown, capture button actions
             switch (view.getId()){
                 case R.id.circularProgress: {
@@ -318,17 +311,17 @@ public class RestViewFragment extends Fragment implements View.OnClickListener {
             // tutorial is running, determine the next action
             switch (mCurrentState) {
                 case EXERCISE_IMAGE: {
-                    mCurrentState = TutorialHelper.TutorialState.EXERCISES_LIST;
+                    mCurrentState = TutorialState.EXERCISES_LIST;
                     createExercisesListTutorial();
                     break;
                 }
                 case EXERCISES_LIST: {
-                    mCurrentState = TutorialHelper.TutorialState.START_EXERCISE;
+                    mCurrentState = TutorialState.START_EXERCISE;
                     createExerciseStartTutorial();
                     break;
                 }
                 case START_EXERCISE: {
-                    mCurrentState = TutorialHelper.TutorialState.NONE;
+                    mCurrentState = TutorialState.NONE;
                     mCurrentShowcaseView.hide();
                     mSettings.saveRestTutorialCount(mSettings.getRestTutorialCount() + 1);
                     break;
@@ -364,7 +357,7 @@ public class RestViewFragment extends Fragment implements View.OnClickListener {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
 
-        if (mCurrentState != TutorialHelper.TutorialState.NONE) {
+        if (mCurrentState != TutorialState.NONE) {
             return true;
         }
 

@@ -16,13 +16,17 @@ import android.widget.NumberPicker;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.github.amlcurran.showcaseview.ShowcaseView;
+import com.github.amlcurran.showcaseview.targets.ViewTarget;
 import com.trainerjim.mobile.android.R;
 import com.trainerjim.mobile.android.entities.Exercise;
 import com.trainerjim.mobile.android.entities.SeriesExecution;
 import com.trainerjim.mobile.android.entities.Training;
 import com.trainerjim.mobile.android.events.EndExerciseEvent;
 import com.trainerjim.mobile.android.events.EndRestEvent;
+import com.trainerjim.mobile.android.storage.PermanentSettings;
 import com.trainerjim.mobile.android.util.TutorialHelper;
+import com.trainerjim.mobile.android.util.TutorialState;
 import com.trainerjim.mobile.android.util.Utils;
 
 import de.greenrobot.event.EventBus;
@@ -90,8 +94,6 @@ public class ExerciseViewFragment extends Fragment implements View.OnClickListen
      */
     private Boolean mEditSeriesDetails = false;
 
-    private TutorialHelper mTutorialHelper;
-
     private TextView mExerciseTimer;
     private LinearLayout mLlEditReps;
     private NumberPicker mEditRepetitionsNumPick;
@@ -99,10 +101,16 @@ public class ExerciseViewFragment extends Fragment implements View.OnClickListen
     private RelativeLayout mEditDetailsView;
     private EditText mEditCommentValue;
 
+    private TutorialState mCurrentState = TutorialState.NONE;
+
+    private ShowcaseView mCurrentShowcaseView;
+
+    private PermanentSettings mSettings;
+
     public ExerciseViewFragment(){}
-    public ExerciseViewFragment(Training currentTrainig, TutorialHelper tutorialHelper){
+    public ExerciseViewFragment(Training currentTrainig, PermanentSettings settings){
         this.mCurrentTraining = currentTrainig;
-        this.mTutorialHelper = tutorialHelper;
+        this.mSettings = settings;
     }
 
     @Override
@@ -148,9 +156,25 @@ public class ExerciseViewFragment extends Fragment implements View.OnClickListen
 
         mUiHandler.postDelayed(mUpdateExerciseTimer, 0);
 
-       // mTutorialHelper.showSaveSeriesTutorial();
-
         return fragmentView;
+    }
+
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+
+        showSaveSeriesTutorial();
+    }
+
+    private void showSaveSeriesTutorial(){
+        if(mSettings.getSaveSeriesTutorialCount() == 0) {
+            mCurrentState = TutorialState.SAVE_SERIES_OK;
+
+            mCurrentShowcaseView = TutorialHelper.initTutorialView(getActivity(), this, "Next exercise",
+                    "Tap here to move to the next exercise",
+                    new ViewTarget(getView()
+                            .findViewById(R.id.frag_exe_view_training_weight)), 1.5f);
+        }
     }
 
     public void onEvent(EndRestEvent event){}
@@ -163,29 +187,45 @@ public class ExerciseViewFragment extends Fragment implements View.OnClickListen
 
     @Override
     public void onClick(View view) {
-        if(mTutorialHelper.isTutorialActive()){
-            return;
-        }
-
-        switch (view.getId()){
-            case R.id.frag_exe_view_training_weight:{
-                onSeriesDoneClick();
-                return;
+        if(mCurrentState == TutorialState.NONE){
+            // currently no tutorial is in shown, capture button actions
+            switch (view.getId()){
+                case R.id.frag_exe_view_training_weight:{
+                    onSeriesDoneClick();
+                    return;
+                }
+                case R.id.frag_exe_view_edit: {
+                    onSeriesDetailsClick();
+                    return;
+                }
+                case R.id.frag_exe_view_btn_save_series: {
+                    onEditDetailsDoneClick();
+                    return;
+                }
+                case R.id.exerciseRating1:
+                case R.id.exerciseRating2:
+                case R.id.exerciseRating3:
+                {
+                    onExerciseRatingSelected(view);
+                    return;
+                }
             }
-            case R.id.frag_exe_view_edit: {
-                onSeriesDetailsClick();
-                return;
-            }
-            case R.id.frag_exe_view_btn_save_series: {
-                onEditDetailsDoneClick();
-                return;
-            }
-            case R.id.exerciseRating1:
-            case R.id.exerciseRating2:
-            case R.id.exerciseRating3:
-            {
-                onExerciseRatingSelected(view);
-                return;
+        } else {
+            // tutorial is running, determine the next action
+            switch (mCurrentState){
+                case SAVE_SERIES_OK: {
+                    mCurrentState = TutorialState.SAVE_SERIES_CHANGE;
+                    createSaveSeriesChangeTutorial();
+                    break;
+                }
+                case SAVE_SERIES_CHANGE: {
+                    mCurrentState = TutorialState.NONE;
+                    mCurrentShowcaseView.hide();
+                    mSettings.saveSeriesTutorialCount(mSettings.getSaveSeriesTutorialCount() + 1);
+                    break;
+                }
+                default:
+                    break;
             }
         }
     }
@@ -216,6 +256,22 @@ public class ExerciseViewFragment extends Fragment implements View.OnClickListen
         ImageView exerciseRatingImage = (ImageView) v;
 
         selectSeriesRatingIcon(exerciseRatingImage);
+    }
+
+    private void createSaveSeriesChangeTutorial(){
+        int margin = (int)getActivity().getResources().getDimension(com.github.amlcurran.showcaseview.R.dimen.button_margin);
+
+        RelativeLayout.LayoutParams showcaseLP = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT,
+                RelativeLayout.LayoutParams.WRAP_CONTENT);
+        showcaseLP.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
+        showcaseLP.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
+        showcaseLP.setMargins(margin, margin, margin, margin);
+
+        mCurrentShowcaseView.setScaleMultiplier(1f);
+        mCurrentShowcaseView.setButtonPosition(showcaseLP);
+        mCurrentShowcaseView.setContentTitle("Series change");
+        mCurrentShowcaseView.setContentText("If you did not exercise according to the plan tap here to log the change.");
+        mCurrentShowcaseView.setShowcase(new ViewTarget(getView().findViewById(R.id.frag_exe_view_edit)), true);
     }
 
     /**

@@ -1,15 +1,10 @@
 package com.trainerjim.mobile.android;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import android.app.Activity;
-import android.app.AlertDialog;
-import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
-import android.app.ProgressDialog;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -23,31 +18,24 @@ import android.view.View;
 import android.view.Window;
 import android.widget.AdapterView;
 import android.widget.ListView;
-import android.widget.Toast;
 
 import com.github.amlcurran.showcaseview.ShowcaseView;
 import com.github.amlcurran.showcaseview.targets.PointTarget;
 import com.github.amlcurran.showcaseview.targets.ViewTarget;
-import com.squareup.picasso.Picasso;
 import com.trainerjim.mobile.android.database.CompletedTraining;
 import com.trainerjim.mobile.android.database.TrainingPlan;
 import com.trainerjim.mobile.android.entities.Training;
 import com.trainerjim.mobile.android.events.BackPressedEvent;
 import com.trainerjim.mobile.android.events.CancelTrainingEvent;
-import com.trainerjim.mobile.android.events.DismissProgressEvent;
-import com.trainerjim.mobile.android.events.EndDownloadTrainingsEvent;
 import com.trainerjim.mobile.android.events.EndExerciseEvent;
 import com.trainerjim.mobile.android.events.EndOverviewEvent;
 import com.trainerjim.mobile.android.events.EndRateTraining;
 import com.trainerjim.mobile.android.events.EndRestEvent;
-import com.trainerjim.mobile.android.events.EndUploadCompletedTrainings;
 import com.trainerjim.mobile.android.events.ExerciseImageEvent;
 import com.trainerjim.mobile.android.events.ExercisesListEvent;
-import com.trainerjim.mobile.android.events.ReportProgressEvent;
 import com.trainerjim.mobile.android.events.EndTrainingEvent;
 import com.trainerjim.mobile.android.events.StartTrainingEvent;
 import com.trainerjim.mobile.android.events.ToggleGetReadyEvent;
-import com.trainerjim.mobile.android.events.TrainingSelectedEvent;
 import com.trainerjim.mobile.android.events.TrainingStateChangedEvent;
 import com.trainerjim.mobile.android.fragments.EndTrainingFragment;
 import com.trainerjim.mobile.android.fragments.ExerciseViewFragment;
@@ -55,12 +43,11 @@ import com.trainerjim.mobile.android.fragments.OverviewTrainingFragment;
 import com.trainerjim.mobile.android.fragments.RateTrainingFragment;
 import com.trainerjim.mobile.android.fragments.RestViewFragment;
 import com.trainerjim.mobile.android.fragments.StartTrainingFragment;
-import com.trainerjim.mobile.android.network.ServerCommunicationService;
 import com.trainerjim.mobile.android.storage.PermanentSettings;
 import com.trainerjim.mobile.android.ui.ExerciseAdapter;
-import com.trainerjim.mobile.android.ui.ExerciseImagesPagerAdapter;
 import com.trainerjim.mobile.android.util.Analytics;
 import com.trainerjim.mobile.android.util.TutorialHelper;
+import com.trainerjim.mobile.android.util.TutorialState;
 import com.trainerjim.mobile.android.util.Utils;
 
 import de.greenrobot.event.EventBus;
@@ -101,7 +88,7 @@ public class TrainingActivity extends Activity implements View.OnClickListener {
 
     private TutorialHelper mTutorialHelper;
 
-    private TutorialHelper.TutorialState mCurrentState = TutorialHelper.TutorialState.NONE;
+    private TutorialState mCurrentState = TutorialState.NONE;
 
 
     private ShowcaseView mCurrentShowcaseView;
@@ -202,7 +189,7 @@ public class TrainingActivity extends Activity implements View.OnClickListener {
 
     private void showExercisesListTutorial() {
         if(mSettings.getExercisesListTutorialCount() == 0) {
-            mCurrentState = TutorialHelper.TutorialState.CHANGE_SKIP_EXERCISE;
+            mCurrentState = TutorialState.CHANGE_SKIP_EXERCISE;
 
             mCurrentShowcaseView = TutorialHelper.initTutorialView(this, this, "Change exercise",
                     "To change to another exercise select it from the list. Long press permanently skips the exercise",
@@ -484,7 +471,7 @@ public class TrainingActivity extends Activity implements View.OnClickListener {
 
         FragmentManager fm = getFragmentManager();
         FragmentTransaction ft = fm.beginTransaction();
-        ExerciseViewFragment evf = new ExerciseViewFragment(mCurrentTraining, mTutorialHelper);
+        ExerciseViewFragment evf = new ExerciseViewFragment(mCurrentTraining, mSettings);
         ft.replace(R.id.main_container, evf);
         ft.commit();
     }
@@ -549,12 +536,12 @@ public class TrainingActivity extends Activity implements View.OnClickListener {
         // tutorial is running, determine the next action
         switch (mCurrentState) {
             case CHANGE_SKIP_EXERCISE: {
-                mCurrentState = TutorialHelper.TutorialState.CANCEL_TRAINING;
+                mCurrentState = TutorialState.CANCEL_TRAINING;
                 createCancelTrainingTutorial();
                 break;
             }
             case CANCEL_TRAINING: {
-                mCurrentState = TutorialHelper.TutorialState.NONE;
+                mCurrentState = TutorialState.NONE;
                 mCurrentShowcaseView.hide();
                 mSettings.saveExercisesListTutorialCount(mSettings.getExercisesListTutorialCount() + 1);
                 break;

@@ -5,7 +5,6 @@ import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -29,14 +28,13 @@ import com.trainerjim.mobile.android.events.EndDownloadTrainingsEvent;
 import com.trainerjim.mobile.android.events.EndUploadCompletedTrainings;
 import com.trainerjim.mobile.android.events.ReportProgressEvent;
 import com.trainerjim.mobile.android.events.StartTrainingEvent;
-import com.trainerjim.mobile.android.events.SyncTrainingsEvent;
 import com.trainerjim.mobile.android.events.TrainingSelectedEvent;
 import com.trainerjim.mobile.android.network.ServerCommunicationService;
 import com.trainerjim.mobile.android.storage.PermanentSettings;
 import com.trainerjim.mobile.android.ui.CircularProgressControl;
 import com.trainerjim.mobile.android.util.Analytics;
 import com.trainerjim.mobile.android.util.TutorialHelper;
-import com.trainerjim.mobile.android.util.Utils;
+import com.trainerjim.mobile.android.util.TutorialState;
 
 import java.util.List;
 
@@ -60,7 +58,7 @@ public class StartTrainingFragment extends Fragment implements View.OnClickListe
     private LinearLayout mTrainingSelector;
     private TextView mTextNoTrainings;
 
-    private TutorialHelper.TutorialState mCurrentState = TutorialHelper.TutorialState.NONE;
+    private TutorialState mCurrentState = TutorialState.NONE;
     private ShowcaseView mCurrentShowcaseView;
 
     private Handler mUiHandler = new Handler();
@@ -124,7 +122,7 @@ public class StartTrainingFragment extends Fragment implements View.OnClickListe
     @Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 
-        if (mCurrentState != TutorialHelper.TutorialState.NONE) {
+        if (mCurrentState != TutorialState.NONE) {
             return true;
         }
 
@@ -167,7 +165,7 @@ public class StartTrainingFragment extends Fragment implements View.OnClickListe
 
     @Override
     public void onClick(View view) {
-        if(mCurrentState == TutorialHelper.TutorialState.NONE){
+        if(mCurrentState == TutorialState.NONE){
             // currently no tutorial is in shown, capture button actions
             switch (view.getId()){
                 case R.id.circularProgress: {
@@ -187,17 +185,17 @@ public class StartTrainingFragment extends Fragment implements View.OnClickListe
             // tutorial is running, determine the next action
             switch (mCurrentState) {
                 case SYNC: {
-                    mCurrentState = TutorialHelper.TutorialState.SELECT_TRAINING;
+                    mCurrentState = TutorialState.SELECT_TRAINING;
                     createSelectTrainingsTutorial();
                     break;
                 }
                 case SELECT_TRAINING: {
-                    mCurrentState = TutorialHelper.TutorialState.START_TRAINING;
+                    mCurrentState = TutorialState.START_TRAINING;
                     createTrainingStartTutorial();
                     break;
                 }
                 case START_TRAINING: {
-                    mCurrentState = TutorialHelper.TutorialState.NONE;
+                    mCurrentState = TutorialState.NONE;
                     mCurrentShowcaseView.hide();
                     mCurrentShowcaseView = null;
                     mSettings.saveMainPageTutorialCount(mSettings.getMainPageTutorialCount() + 1);
@@ -284,8 +282,8 @@ public class StartTrainingFragment extends Fragment implements View.OnClickListe
         // TODO: for now just show the tutorial if it has not been shown yet. In the future
         // we can think about showing the tutorial more than once (hence the number and not
         // a boolean flag)
-        if(mCurrentState == TutorialHelper.TutorialState.NONE && mSettings.getMainPageTutorialCount() == 0) {
-            mCurrentState = TutorialHelper.TutorialState.SYNC;
+        if(mCurrentState == TutorialState.NONE && mSettings.getMainPageTutorialCount() == 0) {
+            mCurrentState = TutorialState.SYNC;
 
             mCurrentShowcaseView = TutorialHelper.initTutorialView(getActivity(), this, "Sync trainings",
                     "Tap here to download new trainings",
