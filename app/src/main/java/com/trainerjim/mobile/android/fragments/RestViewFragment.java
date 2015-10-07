@@ -4,7 +4,10 @@ import android.app.AlertDialog;
 import android.app.Fragment;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.graphics.Bitmap;
+import android.graphics.Matrix;
 import android.media.MediaPlayer;
+import android.opengl.Visibility;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Vibrator;
@@ -22,6 +25,9 @@ import android.widget.TextView;
 
 import com.github.amlcurran.showcaseview.ShowcaseView;
 import com.github.amlcurran.showcaseview.targets.ViewTarget;
+import com.squareup.picasso.NetworkPolicy;
+import com.squareup.picasso.Picasso;
+import com.squareup.picasso.Transformation;
 import com.trainerjim.mobile.android.R;
 import com.trainerjim.mobile.android.TrainingActivity;
 import com.trainerjim.mobile.android.entities.Exercise;
@@ -43,6 +49,7 @@ import com.trainerjim.mobile.android.util.TutorialHelper;
 import com.trainerjim.mobile.android.util.TutorialState;
 import com.trainerjim.mobile.android.util.Utils;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import de.greenrobot.event.EventBus;
@@ -61,6 +68,7 @@ public class RestViewFragment extends Fragment implements View.OnClickListener {
     private ImageView mInfoButton;
     private ImageView mExercisesListButton;
     private ViewPager mViewPager;
+    private ImageView mEquipmentTypeImage;
 
     private UpdateRestTimer mUpdateRestTimer = null;
 
@@ -96,6 +104,7 @@ public class RestViewFragment extends Fragment implements View.OnClickListener {
         mInfoButton = (ImageView) fragmentView.findViewById(R.id.info_button);
         mExercisesListButton = (ImageView) fragmentView.findViewById(R.id.exercises_list_button);
         mViewPager = (ViewPager) fragmentView.findViewById(R.id.pager);
+        mEquipmentTypeImage = (ImageView) fragmentView.findViewById(R.id.equipment_type_image);
 
         // since view pager ignores click event we had to implement a tap gesture detector to recognize
         // the tap gesture and perform the appropriate action (in this case moving to next page of the
@@ -193,9 +202,19 @@ public class RestViewFragment extends Fragment implements View.OnClickListener {
         // bind photos to the image view
         Exercise curExercise = mCurrentTraining.getCurrentExercise();
         List<String> photoImages = curExercise.getExerciseType().getPhotoImages();
+
         mExerciseImagesPagerAdapter = new ExerciseImagesPagerAdapter(this.getActivity(), photoImages);
         // TODO: do we need to remove previous adapter?
         mViewPager.setAdapter(mExerciseImagesPagerAdapter);
+
+        // show the exercise equipment type image (or hide the placeholder if no image exists)
+        mEquipmentTypeImage.setVisibility(curExercise.getExerciseType().getEquipmentTypeImage() == null ? View.GONE : View.VISIBLE);
+        Picasso.with(getActivity())
+                .load(String.format("%s%s",
+                        getActivity().getResources().getString(R.string.server_url),
+                        curExercise.getExerciseType().getEquipmentTypeImage()))
+                .networkPolicy(NetworkPolicy.OFFLINE)
+                .into(mEquipmentTypeImage);
 
         // show exercise and series information
         Series curSeries = curExercise.getCurrentSeries();

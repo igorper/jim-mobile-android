@@ -57,16 +57,30 @@
             android:orientation="vertical">
 
             <!-- EXERCISE DATA -->
-            <TextView
-                android:id="@+id/text_rect_lower_line"
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="@dimen/status_rect_height"
-                android:layout_gravity="center_vertical"
-                android:gravity="center"
-                android:includeFontPadding="false"
-                android:textColor="@color/select_training_text"
-                android:textSize="@dimen/select_training_text_size"
-                android:background="@color/status_rect_background"/>
+                android:layout_height="match_parent"
+                android:orientation="horizontal"
+                android:background="@color/status_rect_background">
+                <ImageView
+                    android:id="@+id/equipment_type_image"
+                    android:layout_width="60dp"
+                    android:layout_height="match_parent"
+                    android:layout_gravity="center_vertical|left"
+                    android:layout_margin="5dp"
+                    android:adjustViewBounds="true"
+                    android:scaleType="fitCenter"/>
+                <TextView
+                    android:id="@+id/text_rect_lower_line"
+                    android:layout_width="0dip"
+                    android:layout_weight="1"
+                    android:layout_height="@dimen/status_rect_height"
+                    android:layout_gravity="center_vertical"
+                    android:gravity="center"
+                    android:includeFontPadding="false"
+                    android:textColor="@color/select_training_text"
+                    android:textSize="@dimen/select_training_text_size" />
+            </LinearLayout>
 
             <!-- SERIES SERIES -->
             <LinearLayout
