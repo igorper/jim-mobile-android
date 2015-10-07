@@ -528,6 +528,11 @@ public class RestViewFragment extends Fragment implements View.OnClickListener {
         public void run() {
             Exercise currentExercise = mCurrentTraining.getCurrentExercise();
 
+            // no more exercises to perform, terminate the timer
+            if(currentExercise == null){
+                return;
+            }
+
             int currentRest = currentExercise.getCurrentSeries()
                     .getRestTime();
             int currentRestLeft = mCurrentTraining.calculateCurrentRestLeft();
