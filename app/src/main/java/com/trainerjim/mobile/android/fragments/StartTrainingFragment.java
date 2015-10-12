@@ -228,7 +228,17 @@ public class StartTrainingFragment extends Fragment implements View.OnClickListe
                     // once the trainings are downloaded select the first one by default (or -1
                     // if no training exists)
                     List<TrainingPlan> plans = TrainingPlan.getAll(mSettings.getUserId());
-                    int trainingId = -1;
+
+                    // if currently selected training still exists don't do anything
+                    int trainingId = mSettings.getSelectedTrainingId();
+                    for(TrainingPlan plan : plans){
+                        if(plan.getTrainingId() == trainingId){
+                            return;
+                        }
+                    }
+
+                    // if not and some trainings are available select the first training, otherwise -1
+                    trainingId = -1;
                     if (plans.size() > 0) {
                         trainingId = plans.get(0).getTrainingId();
                     }
