@@ -8,7 +8,7 @@
     </style>
 
     <style name="JimShowcaseTheme" parent="ShowcaseView.Light">
-        <item name="sv_backgroundColor">#CCFFD454</item>
+        <item name="sv_backgroundColor">#EEFFD454</item>
         <item name="sv_showcaseColor">#FF0080D0</item>
         <item name="sv_buttonText">Got it</item>
         <item name="sv_tintButtonColor">false</item>

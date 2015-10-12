@@ -168,7 +168,7 @@ public class TrainingActivity extends Activity implements View.OnClickListener {
         mDrawerExercisesList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-            if(mTutorialHelper.isTutorialActive()){
+            if(mCurrentState != TutorialState.NONE){
                 return;
             }
 
@@ -188,12 +188,12 @@ public class TrainingActivity extends Activity implements View.OnClickListener {
 	}
 
     private void showExercisesListTutorial() {
-        if(mSettings.getExercisesListTutorialCount() == 0) {
+        if(mCurrentState == TutorialState.NONE && mSettings.getExercisesListTutorialCount() == 0) {
             mCurrentState = TutorialState.CHANGE_SKIP_EXERCISE;
 
-            mCurrentShowcaseView = TutorialHelper.initTutorialView(this, this, "Change exercise",
-                    "To change to another exercise select it from the list. Long press permanently skips the exercise",
-                    new ViewTarget(this.findViewById(R.id.tvExerciseName)));
+            mCurrentShowcaseView = TutorialHelper.initTutorialView(this, this, getString(R.string.tutorial_change_exercise_title),
+                    getString(R.string.tutorial_change_exercise_message),
+                    new ViewTarget(this.findViewById(R.id.tvExerciseName)), 1.2f);
         }
     }
 
@@ -231,7 +231,7 @@ public class TrainingActivity extends Activity implements View.OnClickListener {
     @Override
     public boolean onContextItemSelected(MenuItem item) {
 
-        if(!mTutorialHelper.isTutorialActive()) {
+        if(mCurrentState == TutorialState.NONE) {
             AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
 
             switch (item.getItemId()) {
@@ -553,8 +553,8 @@ public class TrainingActivity extends Activity implements View.OnClickListener {
     }
 
     private void createCancelTrainingTutorial(){
-        mCurrentShowcaseView.setContentTitle("Cancel training");
-        mCurrentShowcaseView.setContentText("Tap here to cancel the training.");
+        mCurrentShowcaseView.setContentTitle(getString(R.string.tutorial_cancel_training_title));
+        mCurrentShowcaseView.setContentText(getString(R.string.tutorial_cancel_training_message));
         mCurrentShowcaseView.setShowcase(new PointTarget(TutorialHelper.getTopRightPoint(this)), true);
     }
 }

@@ -170,8 +170,8 @@ public class ExerciseViewFragment extends Fragment implements View.OnClickListen
         if(mSettings.getSaveSeriesTutorialCount() == 0) {
             mCurrentState = TutorialState.SAVE_SERIES_OK;
 
-            mCurrentShowcaseView = TutorialHelper.initTutorialView(getActivity(), this, "Next exercise",
-                    "Tap here to move to the next exercise",
+            mCurrentShowcaseView = TutorialHelper.initTutorialView(getActivity(), this, getString(R.string.tutorial_next_exercise_title),
+                    getString(R.string.tutorial_next_exercise_message),
                     new ViewTarget(getView()
                             .findViewById(R.id.frag_exe_view_training_weight)), 1.5f);
         }
@@ -269,8 +269,8 @@ public class ExerciseViewFragment extends Fragment implements View.OnClickListen
 
         mCurrentShowcaseView.setScaleMultiplier(1f);
         mCurrentShowcaseView.setButtonPosition(showcaseLP);
-        mCurrentShowcaseView.setContentTitle("Series change");
-        mCurrentShowcaseView.setContentText("If you did not exercise according to the plan tap here to log the change.");
+        mCurrentShowcaseView.setContentTitle(getString(R.string.tutorial_edit_exercise_title));
+        mCurrentShowcaseView.setContentText(getString(R.string.tutorial_edit_exercise_message));
         mCurrentShowcaseView.setShowcase(new ViewTarget(getView().findViewById(R.id.frag_exe_view_edit)), true);
     }
 

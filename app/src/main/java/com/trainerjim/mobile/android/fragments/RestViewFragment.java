@@ -342,26 +342,26 @@ public class RestViewFragment extends Fragment implements View.OnClickListener {
     }
 
     private void showExerciseTutorial(){
-        if(mSettings.getRestTutorialCount() == 0) {
+        if(mCurrentState == TutorialState.NONE && mSettings.getRestTutorialCount() == 0) {
             mCurrentState = TutorialState.EXERCISE_IMAGE;
 
-            mCurrentShowcaseView = TutorialHelper.initTutorialView(getActivity(), this, "Exercise image",
-                    "Tap here to see the current exercise image",
+            mCurrentShowcaseView = TutorialHelper.initTutorialView(getActivity(), this, getString(R.string.tutorial_exercise_images_title),
+                    getString(R.string.tutorial_exercise_images_message),
                     new ViewTarget(getView().findViewById(R.id.info_button)), 0.6f);
         }
     }
 
     private void  createExercisesListTutorial(){
         mCurrentShowcaseView.setScaleMultiplier(0.6f);
-        mCurrentShowcaseView.setContentTitle("Exercises list");
-        mCurrentShowcaseView.setContentText("Tap here to see the list of exercises to perform.");
+        mCurrentShowcaseView.setContentTitle(getString(R.string.tutorial_exercises_list_title));
+        mCurrentShowcaseView.setContentText(getString(R.string.tutorial_exercises_list_message));
         mCurrentShowcaseView.setShowcase(new ViewTarget(getView().findViewById(R.id.exercises_list_button)), true);
     }
 
     private void createExerciseStartTutorial(){
         mCurrentShowcaseView.setScaleMultiplier(1.8f);
-        mCurrentShowcaseView.setContentTitle("Start exercise");
-        mCurrentShowcaseView.setContentText("To start exercising tap here and put the phone to a safe place.");
+        mCurrentShowcaseView.setContentTitle(getString(R.string.tutorial_start_exercise_title));
+        mCurrentShowcaseView.setContentText(getString(R.string.tutorial_start_exercise_message));
         mCurrentShowcaseView.setShowcase(new ViewTarget(getView().findViewById(R.id.circularProgress)), true);
     }
 
@@ -371,7 +371,6 @@ public class RestViewFragment extends Fragment implements View.OnClickListener {
 
         super.onCreateOptionsMenu(menu, inflater);
     }
-
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -383,8 +382,8 @@ public class RestViewFragment extends Fragment implements View.OnClickListener {
         switch (item.getItemId()) {
             case R.id.action_cancel:{
                 new AlertDialog.Builder(getActivity())
-                        .setTitle("Cancel training")
-                        .setMessage("Are you sure you would like to cancel the training?")
+                        .setTitle(getString(R.string.tutorial_cancel_training_title))
+                        .setMessage(getString(R.string.tutorial_cancel_training_message))
                         .setIcon(android.R.drawable.ic_dialog_alert)
                         .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
 

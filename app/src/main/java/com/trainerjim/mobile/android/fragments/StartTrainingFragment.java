@@ -263,16 +263,16 @@ public class StartTrainingFragment extends Fragment implements View.OnClickListe
         if(mCurrentState == TutorialState.NONE && mSettings.getMainPageTutorialCount() == 0) {
             mCurrentState = TutorialState.SELECT_TRAINING;
 
-            mCurrentShowcaseView = TutorialHelper.initTutorialView(getActivity(), this, "Select training",
-                    "Tap here to select a training.",
+            mCurrentShowcaseView = TutorialHelper.initTutorialView(getActivity(), this, getString(R.string.tutorial_select_training_title),
+                    getString(R.string.tutorial_select_training_message),
                     new ViewTarget(getView().findViewById(R.id.trainingSelector)), 1.1f);
         }
     }
 
     private void createTrainingStartTutorial(){
         mCurrentShowcaseView.setScaleMultiplier(1.7f);
-        mCurrentShowcaseView.setContentTitle("Start training");
-        mCurrentShowcaseView.setContentText("Tap here to start a training.");
+        mCurrentShowcaseView.setContentTitle(getString(R.string.tutorial_start_training_title));
+        mCurrentShowcaseView.setContentText(getString(R.string.tutorial_start_training_message));
         mCurrentShowcaseView.setShowcase(new ViewTarget(getView().findViewById(R.id.circularProgress)), true);
     }
 
