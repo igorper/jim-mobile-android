@@ -33,6 +33,7 @@
     <dimen name="exercise_menu_item_height">60dp</dimen>
     <dimen name="exercise_menu_width">280dp</dimen>
     <dimen name="exercise_menu_item_name_width">200dp</dimen>
+    <dimen name="exercise_checkmark_padding">70dp</dimen>
 
     <!-- Start circular progress control -->
     <dimen name="cpc_outer_progress_thickness">10dp</dimen>

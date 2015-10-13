@@ -160,8 +160,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:clickable="true"
-                android:padding="@dimen/exercise_rating_smile_padding"
-                android:src="@drawable/weight" />
+                android:padding="@dimen/exercise_checkmark_padding"
+                android:src="@drawable/ic_check" />
             <ImageView
                 android:id="@+id/frag_exe_view_edit"
                 android:layout_width="@dimen/edit_series_info_image_size"

@@ -173,7 +173,7 @@ public class ExerciseViewFragment extends Fragment implements View.OnClickListen
             mCurrentShowcaseView = TutorialHelper.initTutorialView(getActivity(), this, getString(R.string.tutorial_next_exercise_title),
                     getString(R.string.tutorial_next_exercise_message),
                     new ViewTarget(getView()
-                            .findViewById(R.id.frag_exe_view_training_weight)), 1.5f);
+                            .findViewById(R.id.frag_exe_view_training_weight)), 1.2f);
         }
     }
 
