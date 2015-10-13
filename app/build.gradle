@@ -8,8 +8,8 @@ android {
         applicationId "com.trainerjim.mobile.android"
         minSdkVersion 14
         targetSdkVersion 22
-        versionCode 24
-        versionName "0.124"
+        versionCode 25
+        versionName "0.125"
     }
     buildTypes {
         release {
