@@ -41,19 +41,19 @@
     <string name="tutorial_select_training_title">Select training</string>
     <string name="tutorial_select_training_message">Tapping the highlighted area shows the available trainings.</string>
     <string name="tutorial_start_training_title">Start training</string>
-    <string name="tutorial_start_training_message">Tapping the highlighted area starts a new training.</string>
+    <string name="tutorial_start_training_message">Tapping the highlighted button starts a new training.</string>
     <string name="tutorial_exercise_images_title">Exercise images</string>
-    <string name="tutorial_exercise_images_message">Tapping the highlighted area shows the current exercise images.</string>
+    <string name="tutorial_exercise_images_message">The bulb icon shows the current exercise images.</string>
     <string name="tutorial_exercises_list_title">Exercises list</string>
-    <string name="tutorial_exercises_list_message">Tapping the highlighted area shows the list of exercises in current training.</string>
+    <string name="tutorial_exercises_list_message">The list icon shows all the exercises left in the current training. Here you can also cancel the training.</string>
     <string name="tutorial_start_exercise_title">Start exercise</string>
-    <string name="tutorial_start_exercise_message">Tapping the highlighted area starts the exercise.</string>
+    <string name="tutorial_start_exercise_message">Tapping the highlighted button starts the exercise.</string>
     <string name="tutorial_cancel_training_title">Cancel training</string>
-    <string name="tutorial_cancel_training_message">Tapping the highlighted area cancels the current training.</string>
+    <string name="tutorial_cancel_training_message">The cross icon cancels the current training.</string>
     <string name="tutorial_change_exercise_title">Change exercise</string>
     <string name="tutorial_change_exercise_message">To change to another exercise select it from the list. Long press permanently skips the exercise.</string>
     <string name="tutorial_next_exercise_title">Next exercise</string>
-    <string name="tutorial_next_exercise_message">Tapping the highlighted area ends the current exercise.</string>
+    <string name="tutorial_next_exercise_message">Tapping the checkmark ends the current exercise.</string>
     <string name="tutorial_edit_exercise_title">Edit exercise</string>
-    <string name="tutorial_edit_exercise_message">If you did not exercise according to the plan tap the highlighted area to log the change.</string>
+    <string name="tutorial_edit_exercise_message">If you did not exercise according to the plan tap the pencil to log the change.</string>
 </resources>
