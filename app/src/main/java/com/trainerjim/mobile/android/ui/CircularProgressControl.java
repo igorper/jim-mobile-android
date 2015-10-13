@@ -356,6 +356,11 @@ public class CircularProgressControl extends View {
 	private CircularProgressState mCurrentState;
 
 	/**
+	 * Is the get ready timer started or not?
+	 */
+	private boolean mIsGetReady;
+
+	/**
 	 * Holds the information if the button is currently pressed.
 	 */
 	private boolean mIsPressedState;
@@ -395,6 +400,17 @@ public class CircularProgressControl extends View {
 	private int mNumberTotal = 120;
 
 	private String mInfoChairLevel = "";
+
+	public boolean isGetReady(){
+		return mIsGetReady;
+	}
+
+	public void setGetReady(boolean value){
+		if(mIsGetReady != value){
+			mIsGetReady = value;
+			invalidate();
+		}
+	}
 
 	public void setInfoChairLevel(String value) {
 		if (!mInfoChairLevel.equals(value)) {
@@ -1303,7 +1319,13 @@ public class CircularProgressControl extends View {
 						/ 2, mTimerMessageTextY, mTextTimerMessagePaint);
 
 				StringBuilder unit = new StringBuilder();
-				String timerText = getFormatedTime(mTimer, unit, true);
+				String timerText = null;
+				if(mTimer < 0 && !mIsGetReady){
+					timerText = "GO!";
+				} else {
+					timerText = getFormatedTime(mTimer, unit, true);
+				}
+
 				float timerLength = mTextTimerPaint.measureText(timerText);
 				float unitLength = mTextTimerUnitPaint.measureText(unit
 						.toString());
@@ -1315,7 +1337,6 @@ public class CircularProgressControl extends View {
 						+ timerTextDescent, mTextTimerPaint);
 				canvas.drawText(unit.toString(), textStart + timerLength,
 						mCenterY + timerTextDescent, mTextTimerUnitPaint);
-
 
 
 			} else if (mCurrentState == CircularProgressState.EXERCISE) {

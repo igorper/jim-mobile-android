@@ -269,6 +269,12 @@ public class RestViewFragment extends Fragment implements View.OnClickListener {
         mInfoButton.setVisibility(View.VISIBLE);
         mExercisesListButton.setVisibility(View.VISIBLE);
 
+        // TODO: the usage of this is quite hacky. a better way would be to refactoring
+        // the progress control to contain only placeholders where we could write. another layer
+        // should take care of the presentation logic (which text views should be visible at the same
+        // time, etc.)
+        mCircularProgress.setGetReady(false);
+
         showExerciseTutorial();
     }
 
@@ -471,6 +477,7 @@ public class RestViewFragment extends Fragment implements View.OnClickListener {
 
         @Override
         public void run() {
+            mCircularProgress.setGetReady(true);
             mCircularProgress.setNotificationMessage("");
             int secLeft = Math.round(Utils.GET_READY_INTERVAL
                     - (float) (System.currentTimeMillis() - mGetReadyStartTimestamp)
@@ -493,6 +500,7 @@ public class RestViewFragment extends Fragment implements View.OnClickListener {
         }
 
         private void getReadyTimerOver(){
+            mCircularProgress.setGetReady(false);
             // otherwise show exercising UI
             mUiHandler.removeCallbacks(mUpdateRestTimer);
 
@@ -567,7 +575,7 @@ public class RestViewFragment extends Fragment implements View.OnClickListener {
             mCircularProgress.setTimerMessage(restOver ? "" : "RESTING");
             mCircularProgress.setNotificationMessage(restOver ? "Tap to exercise" : "");
 
-            mCircularProgress.setTimer(Math.abs(restLeft));
+            mCircularProgress.setTimer(restLeft);
         }
     }
 }
