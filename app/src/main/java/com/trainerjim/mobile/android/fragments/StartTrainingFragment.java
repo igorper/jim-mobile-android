@@ -205,7 +205,9 @@ public class StartTrainingFragment extends Fragment implements View.OnClickListe
         mUiHandler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                getActivity().setProgressBarIndeterminateVisibility(false);
+                if(getActivity() != null) {
+                    getActivity().setProgressBarIndeterminateVisibility(false);
+                }
             }
         }, 0);
     }
