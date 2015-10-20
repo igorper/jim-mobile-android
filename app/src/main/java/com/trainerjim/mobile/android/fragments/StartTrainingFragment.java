@@ -248,7 +248,9 @@ public class StartTrainingFragment extends Fragment implements View.OnClickListe
                     mSettings.saveSelectedTrainingId(trainingId);
                     updateSelectedTrainingText();
                 } else {
-                    Toast.makeText(getActivity(), "Download trainings: " + event.getErrorMessage(), Toast.LENGTH_LONG).show();
+                    // TODO: we should somehow notify the user that the application is unable to download the trainings
+                    // (temporary hidden the toast notification)
+                    // Toast.makeText(getActivity(), "Download trainings: " + event.getErrorMessage(), Toast.LENGTH_LONG).show();
                 }
             }
         }, 0);
