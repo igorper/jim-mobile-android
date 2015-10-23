@@ -388,8 +388,8 @@ public class RestViewFragment extends Fragment implements View.OnClickListener {
         switch (item.getItemId()) {
             case R.id.action_cancel:{
                 new AlertDialog.Builder(getActivity())
-                        .setTitle(getString(R.string.tutorial_cancel_training_title))
-                        .setMessage(getString(R.string.tutorial_cancel_training_message))
+                        .setTitle(getString(R.string.cancel_training_title))
+                        .setMessage(getString(R.string.cancel_training_message))
                         .setIcon(android.R.drawable.ic_dialog_alert)
                         .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
 

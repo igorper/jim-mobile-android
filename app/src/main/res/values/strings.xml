@@ -13,6 +13,8 @@
     <string name="rate_training_title_text">How was it?</string>
     <string name="rate_exercise_title_text">Rate to end!</string>
     <string name="checkbox_edit_details_text">Check to edit details</string>
+    <string name="cancel_training_title">Cancel training</string>
+    <string name="cancel_training_message">Are you sure you want to cancel the training?</string>
 
     <string name="action_sync">Sync</string>
     <string name="action_logout">Logout</string>
