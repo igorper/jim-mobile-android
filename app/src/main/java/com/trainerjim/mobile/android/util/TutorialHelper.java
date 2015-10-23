@@ -15,25 +15,11 @@ import com.trainerjim.mobile.android.storage.PermanentSettings;
  */
 public class TutorialHelper {
 
-    private TutorialState mCurrentState = TutorialState.NONE;
-
-    private Activity mParentActivity;
-
-    private ShowcaseView mCurrentShowcaseView;
-
-    // TODO: In the feature think about a more decoupled patter (e.g the parent activity could
-    // be the master writting the permanent settings while the tutorial helper could message
-    // the parent activity (via callbacks or custom listeners) that tutorial is done an the permanent
-    // settings should be changed
-    private PermanentSettings mSettings;
+    // TODO: we reuse the showcase view due to memory leaks in its implementation. This way we make
+    // sure it is instantiated only once.
+    private static ShowcaseView currentShowcaseView;
 
     public TutorialHelper(Activity parentActivity, PermanentSettings settings){
-        mParentActivity = parentActivity;
-        mSettings = settings;
-    }
-
-    public boolean isTutorialActive(){
-        return mCurrentState != TutorialState.NONE;
     }
 
     /*** Helpers ***/
@@ -51,13 +37,25 @@ public class TutorialHelper {
     }
 
     public static ShowcaseView initTutorialView(Activity activity, View.OnClickListener listener, String title, String text, Target target, float scaleMultiplier){
-        return new ShowcaseView.Builder(activity, true)
-                .setStyle(R.style.JimShowcaseTheme)
-                .setOnClickListener(listener)
-                .setContentTitle(title)
-                .setContentText(text)
-                .setTarget(target)
-                .setScaleMultiplier(scaleMultiplier)
-                .build();
+        if(currentShowcaseView == null){
+            currentShowcaseView = new ShowcaseView.Builder(activity, true)
+                    .setStyle(R.style.JimShowcaseTheme)
+                    .setContentTitle(title)
+                    .setContentText(text)
+                    .setTarget(target)
+                    .setScaleMultiplier(scaleMultiplier)
+                    .build();
+        } else {
+
+            currentShowcaseView.setContentTitle(title);
+            currentShowcaseView.setContentText(text);
+            currentShowcaseView.setTarget(target);
+            currentShowcaseView.setScaleMultiplier(scaleMultiplier);
+            currentShowcaseView.show();
+        }
+
+        currentShowcaseView.overrideButtonClick(listener);
+
+        return currentShowcaseView;
     }
 }

@@ -90,7 +90,6 @@ public class TrainingActivity extends Activity implements View.OnClickListener {
 
     private TutorialState mCurrentState = TutorialState.NONE;
 
-
     private ShowcaseView mCurrentShowcaseView;
 
     @Override
@@ -443,10 +442,6 @@ public class TrainingActivity extends Activity implements View.OnClickListener {
      * @param event
      */
     public void onEvent(ExercisesListEvent event){
-        if(mTutorialHelper.isTutorialActive()){
-            return;
-        }
-
         mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_OPEN);
         mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
     }
