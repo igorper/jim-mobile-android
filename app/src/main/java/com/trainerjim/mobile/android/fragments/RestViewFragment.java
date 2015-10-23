@@ -208,7 +208,10 @@ public class RestViewFragment extends Fragment implements View.OnClickListener {
         mViewPager.setAdapter(mExerciseImagesPagerAdapter);
 
         // show the exercise equipment type image (or hide the placeholder if no image exists)
-        mEquipmentTypeImage.setVisibility(curExercise.getExerciseType().getEquipmentTypeImage() == null ? View.GONE : View.VISIBLE);
+        //mEquipmentTypeImage.setVisibility(curExercise.getExerciseType().getEquipmentTypeImage() == null ? View.GONE : View.VISIBLE);
+        // TODO: for now we just hide the equipment type image (uncomment the upper line to enable this)
+        mEquipmentTypeImage.setVisibility(View.GONE);
+
         Picasso.with(getActivity())
                 .load(String.format("%s%s",
                         getActivity().getResources().getString(R.string.server_url),

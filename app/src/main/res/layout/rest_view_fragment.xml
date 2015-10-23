@@ -69,7 +69,7 @@
                     android:layout_gravity="center_vertical|left"
                     android:layout_margin="5dp"
                     android:adjustViewBounds="true"
-                    android:scaleType="fitCenter"/>
+                    android:scaleType="fitCenter" />
                 <TextView
                     android:id="@+id/text_rect_lower_line"
                     android:layout_width="0dip"
