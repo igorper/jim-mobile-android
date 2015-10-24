@@ -183,7 +183,6 @@ public class RestViewFragment extends Fragment implements View.OnClickListener {
         super.onPause();
 
         mUiHandler.removeCallbacks(mGetReadyTimer);
-        mUiHandler.removeCallbacks(mUpdateRestTimer);
     }
 
     @Override
@@ -197,6 +196,7 @@ public class RestViewFragment extends Fragment implements View.OnClickListener {
     // TODO: this should contain only the minimum code needed for redrawing the part of the UI
     // connected with get ready/rest timer
     private void updateScreen(){
+        mUiHandler.removeCallbacks(mUpdateRestTimer);
         // TODO: think about how this method goes together with onResume (lifecycle)
 
         // bind photos to the image view
