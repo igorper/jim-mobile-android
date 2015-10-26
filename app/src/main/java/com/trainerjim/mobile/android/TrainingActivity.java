@@ -6,6 +6,7 @@ import android.app.Activity;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
@@ -72,11 +73,6 @@ public class TrainingActivity extends Activity implements View.OnClickListener {
 	 * active;
 	 */
 	private Training mCurrentTraining;
-
-	/**
-	 * UI thread handler.
-	 */
-	private Handler mUiHandler = new Handler();
 
     /**
      * Holds the information if the exercise image is currently visible or not. Determines the behaviour
@@ -153,9 +149,24 @@ public class TrainingActivity extends Activity implements View.OnClickListener {
         // Set the drawer toggle as the DrawerListener
         mDrawerLayout.setDrawerListener(mDrawerToggle);
 
-		loadCurrentTraining();
+        // done in background to prevent UI problems and ANRs due to training deserialization.
+        // TODO we could also show a full page splash screen before and remove it once the background task
+        // (which could also include speaking with the server) is done
+        new AsyncTask<Void, Void, Void>() {
+            @Override
+            protected Void doInBackground( final Void ... params ) {
+                loadCurrentTraining();
 
-        updateScreen();
+                return null;
+            }
+
+            @Override
+            protected void onPostExecute(final Void result) {
+                updateScreen();
+
+            }
+        }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, null);
+
 
         // set action when the user clicks the exercise in the exercises menu
         mDrawerExercisesList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -258,8 +269,22 @@ public class TrainingActivity extends Activity implements View.OnClickListener {
 	 * this a bit lighter in the future.
 	 */
 	private void saveCurrentTraining() {
-		mSettings.saveCurrentTrainingPlan(mCurrentTraining == null ? ""
-                : Utils.getGsonObject().toJson(mCurrentTraining));
+        // training serialization is done in background to prevent UI problems and ANRs
+        new AsyncTask<Void, Void, Void>() {
+            @Override
+            protected Void doInBackground( final Void ... params ) {
+                mSettings.saveCurrentTrainingPlan(mCurrentTraining == null ? ""
+                        : Utils.getGsonObject().toJson(mCurrentTraining));
+
+                return null;
+            }
+
+            @Override
+            protected void onPostExecute(final Void result) {
+
+
+            }
+        }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, null);
 	}
 
     @Override
