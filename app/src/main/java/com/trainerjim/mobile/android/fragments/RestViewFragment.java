@@ -60,7 +60,6 @@ import de.greenrobot.event.EventBus;
 public class RestViewFragment extends Fragment implements View.OnClickListener {
 
     private Training mCurrentTraining;
-    private Analytics mAnalytics;
 
     private CircularProgressControl mCircularProgress;
     private TextView mTextExerciseName;
@@ -88,9 +87,8 @@ public class RestViewFragment extends Fragment implements View.OnClickListener {
     // TODO: this is not the best pattern as if the fragment is killed and recreated by android
     // this constructor might not be called. In the future think about passing those args through
     // a bundle, but for now this should not be a problem.
-    public RestViewFragment(Training training, Analytics analytics, PermanentSettings settings){
+    public RestViewFragment(Training training, PermanentSettings settings){
         this.mCurrentTraining = training;
-        this.mAnalytics = analytics;
         this.mSettings = settings;
     }
 
@@ -416,10 +414,6 @@ public class RestViewFragment extends Fragment implements View.OnClickListener {
      * @param visible
      */
     private void toggleInfoButtonVisible(boolean visible) {
-
-        if(visible){
-            mAnalytics.logShowExerciseImage();
-        }
 
         // only show/hide the images when there are some available
         if(mViewPager.getAdapter().getCount() > 0) {

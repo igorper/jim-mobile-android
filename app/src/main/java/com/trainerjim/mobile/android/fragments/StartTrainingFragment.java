@@ -48,7 +48,6 @@ public class StartTrainingFragment extends Fragment implements View.OnClickListe
     private static final int ACTIVITY_REQUEST_TRAININGS_LIST = 0;
 
     private Training mCurrentTraining;
-    private Analytics mAnalytics;
     private PermanentSettings mSettings;
 
     private ProgressDialog mProgressDialog;
@@ -67,10 +66,9 @@ public class StartTrainingFragment extends Fragment implements View.OnClickListe
     // TODO: this is not the best pattern as if the fragment is killed and recreated by android
     // this constructor might not be called. In the future think about passing those args through
     // a bundle, but for now this should not be a problem.
-    public StartTrainingFragment(Training training, Analytics analytics,
+    public StartTrainingFragment(Training training,
                                  PermanentSettings permanentSettings){
         this.mCurrentTraining = training;
-        this.mAnalytics = analytics;
         this.mSettings = permanentSettings;
     }
 

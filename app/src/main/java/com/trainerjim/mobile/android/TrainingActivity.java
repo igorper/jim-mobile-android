@@ -84,8 +84,6 @@ public class TrainingActivity extends Activity implements View.OnClickListener {
      */
     private boolean mExerciseImageVisible;
 
-    private Analytics mAnalytics;
-
     private TutorialHelper mTutorialHelper;
 
     private TutorialState mCurrentState = TutorialState.NONE;
@@ -96,8 +94,6 @@ public class TrainingActivity extends Activity implements View.OnClickListener {
 	protected void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
-
-        mAnalytics = Analytics.getInstance(getApplicationContext());
 
         EventBus.getDefault().register(this);
 
@@ -148,8 +144,6 @@ public class TrainingActivity extends Activity implements View.OnClickListener {
             public void onDrawerOpened(View drawerView) {
                 super.onDrawerOpened(drawerView);
 
-                mAnalytics.logMenuShow();
-
                 getActionBar().show();
 
                 showExercisesListTutorial();
@@ -170,8 +164,6 @@ public class TrainingActivity extends Activity implements View.OnClickListener {
             if(mCurrentState != TutorialState.NONE){
                 return;
             }
-
-            mAnalytics.logExerciseChanged();
 
             // move to a particular exercise in the training plan
             mCurrentTraining.selectExercise(i);
@@ -235,8 +227,6 @@ public class TrainingActivity extends Activity implements View.OnClickListener {
 
             switch (item.getItemId()) {
                 case R.id.skip_exercise: {
-                    mAnalytics.logExerciseSkipped();
-
                     mCurrentTraining.removeExercise(info.position);
                     saveCurrentTraining();
                     updateScreen();
@@ -292,7 +282,7 @@ public class TrainingActivity extends Activity implements View.OnClickListener {
     private void showStartTrainingFragment(){
         FragmentManager fm = getFragmentManager();
         FragmentTransaction ft = fm.beginTransaction();
-        ft.replace(R.id.main_container, new StartTrainingFragment(mCurrentTraining, mAnalytics, mSettings));
+        ft.replace(R.id.main_container, new StartTrainingFragment(mCurrentTraining, mSettings));
         ft.commit();
 
         mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
@@ -337,7 +327,7 @@ public class TrainingActivity extends Activity implements View.OnClickListener {
         // there are still some exercises to be performed
         FragmentManager fm = getFragmentManager();
         FragmentTransaction ft = fm.beginTransaction();
-        ft.replace(R.id.main_container, new RestViewFragment(mCurrentTraining, mAnalytics, mSettings));
+        ft.replace(R.id.main_container, new RestViewFragment(mCurrentTraining, mSettings));
         ft.commit();
 
         populateExerciseList();
@@ -413,7 +403,7 @@ public class TrainingActivity extends Activity implements View.OnClickListener {
         // switch fragments
         FragmentManager fm = getFragmentManager();
         FragmentTransaction ft = fm.beginTransaction();
-        RestViewFragment frag = new RestViewFragment(mCurrentTraining, mAnalytics, mSettings);
+        RestViewFragment frag = new RestViewFragment(mCurrentTraining, mSettings);
         ft.replace(R.id.main_container, frag);
         ft.commit();
     }
