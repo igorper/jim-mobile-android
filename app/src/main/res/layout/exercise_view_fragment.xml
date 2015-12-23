@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:fresco="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/rate_exercise_background"
@@ -161,7 +162,19 @@
                 android:layout_height="match_parent"
                 android:clickable="true"
                 android:padding="@dimen/exercise_checkmark_padding"
-                android:src="@drawable/ic_check" />
+                android:src="@drawable/ic_check"
+                android:visibility="gone"/>
+            <com.facebook.drawee.view.SimpleDraweeView
+                android:id="@+id/my_image_view"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:padding="@dimen/exercise_checkmark_padding"
+                fresco:roundedCornerRadius="5dp"
+                fresco:roundBottomLeft="true"
+                fresco:roundBottomRight="true"
+                fresco:roundTopLeft="true"
+                fresco:roundTopRight="true"
+                />
             <ImageView
                 android:id="@+id/frag_exe_view_edit"
                 android:layout_width="@dimen/edit_series_info_image_size"

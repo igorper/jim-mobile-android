@@ -3,6 +3,7 @@ package com.trainerjim.mobile.android.ui;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Matrix;
+import android.net.Uri;
 import android.support.v4.view.PagerAdapter;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -10,9 +11,11 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 
-import com.squareup.picasso.NetworkPolicy;
-import com.squareup.picasso.Picasso;
-import com.squareup.picasso.Transformation;
+import com.facebook.drawee.backends.pipeline.Fresco;
+import com.facebook.drawee.interfaces.DraweeController;
+import com.facebook.drawee.view.SimpleDraweeView;
+import com.facebook.imagepipeline.request.ImageRequest;
+import com.facebook.imagepipeline.request.ImageRequestBuilder;
 import com.trainerjim.mobile.android.R;
 
 import java.util.List;
@@ -43,47 +46,19 @@ public class ExerciseImagesPagerAdapter extends PagerAdapter {
     public Object instantiateItem(ViewGroup container, int position) {
         View itemView = mLayoutInflater.inflate(R.layout.pager_item, container, false);
 
-        ImageView imageView = (ImageView) itemView.findViewById(R.id.imageView);
-        Picasso.with(mContext)
-                .load(String.format("%s%s",
-                        mContext.getResources().getString(R.string.server_url),
-                        mExerciseImages.get(position)))
-                .networkPolicy(NetworkPolicy.OFFLINE)
-                .transform(new Transformation() {
-
-                    @Override
-                    public Bitmap transform(Bitmap source) {
-                        /**
-                         * This code rotates the image if it's height is bigger than width
-                         * (as the app is used in the portrait orientation only)
-                         */
-                        int targetWidth = source.getWidth();
-                        int targetHeight = source.getHeight();
-
-                        if (targetHeight < targetWidth) {
-                            Matrix matrix = new Matrix();
-
-                            matrix.postRotate(90);
-
-
-                            Bitmap rotatedBitmap = Bitmap.createBitmap(source, 0, 0, source.getWidth(), source.getHeight(), matrix, true);
-
-                            if (rotatedBitmap != source) {
-                                source.recycle();
-                            }
-
-                            return rotatedBitmap;
-                        }
-
-                        return source;
-                    }
-
-                    @Override
-                    public String key() {
-                        return "transformation" + " desiredWidth";
-                    }
-                })
-                .into(imageView);
+        DraweeController animatedGifController = Fresco.newDraweeControllerBuilder()
+                .setAutoPlayAnimations(true)
+                .setImageRequest(
+                        ImageRequestBuilder.newBuilderWithSource(Uri.parse(
+                                String.format("%s%s",
+                                        mContext.getResources().getString(R.string.server_url),
+                                        mExerciseImages.get(position))))
+                                .setLowestPermittedRequestLevel(ImageRequest.RequestLevel.DISK_CACHE)
+                                .build()
+                )
+                .build();
+        SimpleDraweeView draweeView = (SimpleDraweeView) itemView.findViewById(R.id.imageView);
+        draweeView.setController(animatedGifController);
 
         container.addView(itemView);
 

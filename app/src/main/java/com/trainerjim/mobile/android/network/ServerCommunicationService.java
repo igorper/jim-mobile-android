@@ -11,9 +11,9 @@ import android.preference.PreferenceManager;
 import android.util.Log;
 
 import com.activeandroid.ActiveAndroid;
-import com.squareup.okhttp.internal.Util;
-import com.squareup.picasso.Picasso;
-import com.squareup.picasso.Transformation;
+import com.facebook.drawee.backends.pipeline.Fresco;
+import com.facebook.imagepipeline.core.ImagePipeline;
+import com.facebook.imagepipeline.request.ImageRequest;
 import com.trainerjim.mobile.android.R;
 import com.trainerjim.mobile.android.database.CompletedTraining;
 import com.trainerjim.mobile.android.database.TrainingPlan;
@@ -275,6 +275,7 @@ public class ServerCommunicationService extends IntentService {
      * @return
      */
     private EndDownloadTrainingsEvent fetchTrainings(int userId) {
+        ImagePipeline imagePipeline = Fresco.getImagePipeline();
         ActiveAndroid.beginTransaction();
         try {
 
@@ -286,11 +287,9 @@ public class ServerCommunicationService extends IntentService {
 
                 // additionally, prefetch the equipment type images
                 if(exerciseGroup.isMachineGroup()){
-                    Picasso.with(this)
-                            .load(String.format("%s%s",
-                                    getResources().getString(R.string.server_url),
-                                    exerciseGroup.getImageUrl()))
-                            .fetch();
+                    imagePipeline.prefetchToDiskCache(ImageRequest.fromUri(String.format("%s%s",
+                            getResources().getString(R.string.server_url),
+                            exerciseGroup.getImageUrl())), this);
                 }
 
             }
@@ -329,16 +328,15 @@ public class ServerCommunicationService extends IntentService {
 
                 HashMap<Integer, List<String>> exercisePhotoLookup = new HashMap<Integer, List<String>>();
                 try {
-                    // download exercise photos. we do this by precaching them using the picasso library.
+                    // download exercise photos. we do this by prefetching them using fresco library.
                     // later, when we use the images, we set a flag saying they should always be loaded
                     // from cache (thus the images are not transferred and no data transfer should happen)
                     List<ExercisePhoto> exercisePhotos = service.getExercisePhotos(userId, trainingDescription.getId());
                     for (ExercisePhoto photo : exercisePhotos) {
-                        Picasso.with(this)
-                                .load(String.format("%s%s",
-                                        getResources().getString(R.string.server_url),
-                                        photo.medium_image_url))
-                                .fetch();
+                        // TODO: Added when swapping picasso for Fresco (remove picasso)
+                        imagePipeline.prefetchToDiskCache(ImageRequest.fromUri(String.format("%s%s",
+                                getResources().getString(R.string.server_url),
+                                photo.medium_image_url)), this);
 
                         // create an empty list for each exercise type
                         if (!exercisePhotoLookup.containsKey(photo.exercise_type_id)) {

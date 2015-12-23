@@ -2,6 +2,7 @@ package com.trainerjim.mobile.android.fragments;
 
 import android.app.Fragment;
 import android.media.MediaPlayer;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
@@ -16,6 +17,11 @@ import android.widget.NumberPicker;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.facebook.drawee.backends.pipeline.Fresco;
+import com.facebook.drawee.interfaces.DraweeController;
+import com.facebook.drawee.view.SimpleDraweeView;
+import com.facebook.imagepipeline.request.ImageRequest;
+import com.facebook.imagepipeline.request.ImageRequestBuilder;
 import com.github.amlcurran.showcaseview.ShowcaseView;
 import com.github.amlcurran.showcaseview.targets.ViewTarget;
 import com.trainerjim.mobile.android.R;
@@ -155,6 +161,19 @@ public class ExerciseViewFragment extends Fragment implements View.OnClickListen
         mExerciseTimer.setVisibility(mCurrentTraining.getCurrentExercise().getGuidanceType().equals(Exercise.GUIDANCE_TYPE_DURATION) ? View.VISIBLE : View.GONE);
 
         mUiHandler.postDelayed(mUpdateExerciseTimer, 0);
+        //TODO: check for rotation: http://frescolib.org/docs/resizing-rotating.html
+
+        DraweeController animatedGifController = Fresco.newDraweeControllerBuilder()
+                .setAutoPlayAnimations(true)
+                .setImageRequest(
+                        ImageRequestBuilder.newBuilderWithSource(Uri.parse("http://s3.amazonaws.com/lifting-revolution/squat-gifs/regular-squat.gif"))
+                                .setAutoRotateEnabled(true)
+                                .setLowestPermittedRequestLevel(ImageRequest.RequestLevel.DISK_CACHE)
+                                .build()
+                )
+                .build();
+        SimpleDraweeView draweeView = (SimpleDraweeView) fragmentView.findViewById(R.id.my_image_view);
+        draweeView.setController(animatedGifController);
 
         return fragmentView;
     }
