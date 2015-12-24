@@ -191,8 +191,16 @@ public class RestViewFragment extends Fragment implements View.OnClickListener {
         mUiHandler.removeCallbacks(mUpdateRestTimer);
         // TODO: think about how this method goes together with onResume (lifecycle)
 
-        // bind photos to the image view
         Exercise curExercise = mCurrentTraining.getCurrentExercise();
+
+        // it might happen that this fragment will be temporarily loaded after the training is
+        // already over. In this case current exercise will not exist and we cannot do anything else
+        // anymore
+        if(curExercise == null) {
+            return;
+        }
+
+        // bind photos to the image view
         List<String> photoImages = curExercise.getExerciseType().getPhotoImages();
 
         mExerciseImagesPagerAdapter = new ExerciseImagesPagerAdapter(this.getActivity(), photoImages);
