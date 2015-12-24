@@ -53,7 +53,7 @@ public class ExerciseImagesPagerAdapter extends PagerAdapter {
                                 String.format("%s%s",
                                         mContext.getResources().getString(R.string.server_url),
                                         mExerciseImages.get(position))))
-                                .setLowestPermittedRequestLevel(ImageRequest.RequestLevel.DISK_CACHE)
+                                //.setLowestPermittedRequestLevel(ImageRequest.RequestLevel.DISK_CACHE)
                                 .build()
                 )
                 .build();
