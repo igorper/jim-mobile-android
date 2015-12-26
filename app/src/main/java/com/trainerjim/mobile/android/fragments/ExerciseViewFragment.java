@@ -27,6 +27,7 @@ import com.github.amlcurran.showcaseview.ShowcaseView;
 import com.github.amlcurran.showcaseview.targets.ViewTarget;
 import com.trainerjim.mobile.android.R;
 import com.trainerjim.mobile.android.entities.Exercise;
+import com.trainerjim.mobile.android.entities.Series;
 import com.trainerjim.mobile.android.entities.SeriesExecution;
 import com.trainerjim.mobile.android.entities.Training;
 import com.trainerjim.mobile.android.events.EndExerciseEvent;
@@ -164,17 +165,23 @@ public class ExerciseViewFragment extends Fragment implements View.OnClickListen
 
         initializeExerciseRatings(fragmentView);
 
-        mExerciseTimer.setVisibility(mCurrentTraining.getCurrentExercise().getGuidanceType().equals(Exercise.GUIDANCE_TYPE_DURATION) ? View.VISIBLE : View.GONE);
-
-        mUiHandler.postDelayed(mUpdateExerciseTimer, 0);
+        //mExerciseTimer.setVisibility(mCurrentTraining.getCurrentExercise().getGuidanceType().equals(Exercise.GUIDANCE_TYPE_DURATION) ? View.VISIBLE : View.GONE);
 
         Exercise curExercise = mCurrentTraining.getCurrentExercise();
 
         if(curExercise != null) {
+            Series curSeries = curExercise.getCurrentSeries();
+
             List<String> photoImages = curExercise.getExerciseType().getPhotoImages();
 
             // TODO: do we need to remove previous adapter?
             mViewPager.setAdapter(new ExerciseImagesPagerAdapter(this.getActivity(), photoImages));
+
+            if(curExercise.getGuidanceType().equals(Exercise.GUIDANCE_TYPE_DURATION)) {
+                mUiHandler.postDelayed(mUpdateExerciseTimer, 0);
+            } else {
+                mExerciseTimer.setText(String.format("%d x %d kg", curSeries.getNumberTotalRepetitions(), curSeries.getWeight()));
+            }
 
         }
 
@@ -402,7 +409,7 @@ public class ExerciseViewFragment extends Fragment implements View.OnClickListen
         @Override
         public void run() {
             Exercise currentExercise = mCurrentTraining.getCurrentExercise();
-            if (currentExercise != null && currentExercise.getGuidanceType().equals(Exercise.GUIDANCE_TYPE_DURATION)) {
+            if (currentExercise != null) {
                 int currentDuration = currentExercise.getCurrentSeries()
                         .getNumberTotalRepetitions();
                 int currentDurationLeft = mCurrentTraining
