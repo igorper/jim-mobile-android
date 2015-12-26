@@ -3,7 +3,6 @@
     xmlns:fresco="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/rate_exercise_background"
     android:orientation="vertical">
     <!-- START: EDIT SERIES DETAILS VIEW -->
     <RelativeLayout
@@ -149,20 +148,30 @@
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent">
+            <android.support.v4.view.ViewPager
+                android:id="@+id/pager"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginTop="@dimen/exercise_screen_image_top_margin"
+                android:visibility="visible" >
+            </android.support.v4.view.ViewPager>
             <TextView
                 android:id="@+id/frag_exe_view_tv_exercise_timer"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:textSize="@dimen/exercise_timer_size"
                 android:textStyle="bold"
+                android:background="#00ffffff"
                 android:gravity="center"/>
             <ImageView
                 android:id="@+id/frag_exe_view_training_weight"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_width="@dimen/edit_series_info_image_size"
+                android:layout_height="@dimen/edit_series_info_image_size"
                 android:clickable="true"
-                android:padding="@dimen/exercise_checkmark_padding"
-                android:src="@drawable/ic_check" />
+                android:padding="@dimen/exercise_rating_smile_padding"
+                android:src="@drawable/ic_check"
+                android:layout_alignParentBottom="true"
+                android:layout_alignParentLeft="true" />
             <ImageView
                 android:id="@+id/frag_exe_view_edit"
                 android:layout_width="@dimen/edit_series_info_image_size"
@@ -171,6 +180,6 @@
                 android:padding="@dimen/exercise_rating_smile_padding"
                 android:src="@drawable/ic_edit"
                 android:layout_alignParentBottom="true"
-                android:layout_alignParentRight="true"/>
+                android:layout_alignParentRight="true" />
         </RelativeLayout>
 </LinearLayout>

@@ -5,6 +5,7 @@ import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.v4.view.ViewPager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -31,9 +32,12 @@ import com.trainerjim.mobile.android.entities.Training;
 import com.trainerjim.mobile.android.events.EndExerciseEvent;
 import com.trainerjim.mobile.android.events.EndRestEvent;
 import com.trainerjim.mobile.android.storage.PermanentSettings;
+import com.trainerjim.mobile.android.ui.ExerciseImagesPagerAdapter;
 import com.trainerjim.mobile.android.util.TutorialHelper;
 import com.trainerjim.mobile.android.util.TutorialState;
 import com.trainerjim.mobile.android.util.Utils;
+
+import java.util.List;
 
 import de.greenrobot.event.EventBus;
 
@@ -106,6 +110,8 @@ public class ExerciseViewFragment extends Fragment implements View.OnClickListen
     private NumberPicker mEditWeightNumPick;
     private RelativeLayout mEditDetailsView;
     private EditText mEditCommentValue;
+    private ViewPager mViewPager;
+
 
     private TutorialState mCurrentState = TutorialState.NONE;
 
@@ -129,7 +135,7 @@ public class ExerciseViewFragment extends Fragment implements View.OnClickListen
         mEditWeightNumPick = (NumberPicker)fragmentView.findViewById(R.id.edit_weight_num_pick);
         mEditDetailsView = (RelativeLayout)fragmentView.findViewById(R.id.editDetailsView);
         mEditCommentValue  =(EditText)fragmentView.findViewById(R.id.editCommentValue);
-
+        mViewPager = (ViewPager) fragmentView.findViewById(R.id.pager);
 
         mEditRepetitionsNumPick.setMinValue(0);
         mEditRepetitionsNumPick.setMaxValue(100);
@@ -161,6 +167,16 @@ public class ExerciseViewFragment extends Fragment implements View.OnClickListen
         mExerciseTimer.setVisibility(mCurrentTraining.getCurrentExercise().getGuidanceType().equals(Exercise.GUIDANCE_TYPE_DURATION) ? View.VISIBLE : View.GONE);
 
         mUiHandler.postDelayed(mUpdateExerciseTimer, 0);
+
+        Exercise curExercise = mCurrentTraining.getCurrentExercise();
+
+        if(curExercise != null) {
+            List<String> photoImages = curExercise.getExerciseType().getPhotoImages();
+
+            // TODO: do we need to remove previous adapter?
+            mViewPager.setAdapter(new ExerciseImagesPagerAdapter(this.getActivity(), photoImages));
+
+        }
 
         return fragmentView;
     }
