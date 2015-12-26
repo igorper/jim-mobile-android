@@ -8,6 +8,8 @@ import java.util.Date;
 import android.content.Context;
 import android.os.Environment;
 
+import com.facebook.cache.disk.DiskCacheConfig;
+import com.facebook.common.util.ByteConstants;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -87,4 +89,12 @@ public class Utils {
     public static Gson getGsonObject(){
         return sGson;
     }
+
+	public static DiskCacheConfig GetImageDiskCacheConfig(Context context){
+		return DiskCacheConfig.newBuilder()
+				.setBaseDirectoryPath(Utils.getDataFolderFile(context))
+				.setBaseDirectoryName("image_cache")
+				.setMaxCacheSize(50 * ByteConstants.MB)
+				.build();
+	}
 }

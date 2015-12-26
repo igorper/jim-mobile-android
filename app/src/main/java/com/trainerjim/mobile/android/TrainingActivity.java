@@ -20,7 +20,10 @@ import android.view.Window;
 import android.widget.AdapterView;
 import android.widget.ListView;
 
+import com.facebook.cache.disk.DiskCacheConfig;
+import com.facebook.common.util.ByteConstants;
 import com.facebook.drawee.backends.pipeline.Fresco;
+import com.facebook.imagepipeline.core.ImagePipelineConfig;
 import com.github.amlcurran.showcaseview.ShowcaseView;
 import com.github.amlcurran.showcaseview.targets.PointTarget;
 import com.github.amlcurran.showcaseview.targets.ViewTarget;
@@ -92,7 +95,13 @@ public class TrainingActivity extends Activity implements View.OnClickListener {
 
         super.onCreate(savedInstanceState);
 
-        Fresco.initialize(this);
+        // initialize the image library (this has to be done only once per application so we
+        // perform it here as this activity is the central one)
+        Fresco.initialize(this, ImagePipelineConfig.newBuilder(this)
+                        .setMainDiskCacheConfig(Utils.GetImageDiskCacheConfig(this))
+                        .build()
+        );
+
 
         EventBus.getDefault().register(this);
 
