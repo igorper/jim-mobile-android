@@ -161,19 +161,6 @@ public class ExerciseViewFragment extends Fragment implements View.OnClickListen
         mExerciseTimer.setVisibility(mCurrentTraining.getCurrentExercise().getGuidanceType().equals(Exercise.GUIDANCE_TYPE_DURATION) ? View.VISIBLE : View.GONE);
 
         mUiHandler.postDelayed(mUpdateExerciseTimer, 0);
-        //TODO: check for rotation: http://frescolib.org/docs/resizing-rotating.html
-
-        DraweeController animatedGifController = Fresco.newDraweeControllerBuilder()
-                .setAutoPlayAnimations(true)
-                .setImageRequest(
-                        ImageRequestBuilder.newBuilderWithSource(Uri.parse("http://s3.amazonaws.com/lifting-revolution/squat-gifs/regular-squat.gif"))
-                                .setAutoRotateEnabled(true)
-                                .setLowestPermittedRequestLevel(ImageRequest.RequestLevel.DISK_CACHE)
-                                .build()
-                )
-                .build();
-        SimpleDraweeView draweeView = (SimpleDraweeView) fragmentView.findViewById(R.id.my_image_view);
-        draweeView.setController(animatedGifController);
 
         return fragmentView;
     }
