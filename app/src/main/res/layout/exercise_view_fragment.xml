@@ -148,13 +148,14 @@
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent">
-            <android.support.v4.view.ViewPager
-                android:id="@+id/pager"
+            <com.facebook.drawee.view.SimpleDraweeView
+                android:id="@+id/frag_exe_view_training_weight"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_marginTop="@dimen/exercise_screen_image_top_margin"
-                android:visibility="visible" >
-            </android.support.v4.view.ViewPager>
+                android:clickable="true"
+                fresco:actualImageScaleType="fitCenter"
+                />
             <TextView
                 android:id="@+id/frag_exe_view_tv_exercise_timer"
                 android:layout_width="match_parent"
@@ -163,15 +164,6 @@
                 android:textStyle="bold"
                 android:background="#00ffffff"
                 android:gravity="center"/>
-            <ImageView
-                android:id="@+id/frag_exe_view_training_weight"
-                android:layout_width="@dimen/edit_series_info_image_size"
-                android:layout_height="@dimen/edit_series_info_image_size"
-                android:clickable="true"
-                android:padding="@dimen/exercise_rating_smile_padding"
-                android:src="@drawable/ic_check"
-                android:layout_alignParentBottom="true"
-                android:layout_alignParentLeft="true" />
             <ImageView
                 android:id="@+id/frag_exe_view_edit"
                 android:layout_width="@dimen/edit_series_info_image_size"

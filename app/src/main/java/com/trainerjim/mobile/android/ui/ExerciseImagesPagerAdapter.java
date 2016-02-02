@@ -49,10 +49,10 @@ public class ExerciseImagesPagerAdapter extends PagerAdapter {
         DraweeController animatedGifController = Fresco.newDraweeControllerBuilder()
                 .setAutoPlayAnimations(true)
                 .setImageRequest(
-                        ImageRequestBuilder.newBuilderWithSource(Uri.parse(
-                                String.format("%s%s",
-                                        mContext.getResources().getString(R.string.server_url),
-                                        mExerciseImages.get(position))))
+                            ImageRequestBuilder.newBuilderWithSource(Uri.parse(
+                                    String.format("%s%s",
+                                            mContext.getResources().getString(R.string.server_url),
+                                            mExerciseImages.get(position))))
                                 //.setLowestPermittedRequestLevel(ImageRequest.RequestLevel.DISK_CACHE)
                                 .build()
                 )

@@ -1,6 +1,7 @@
 package com.trainerjim.mobile.android.fragments;
 
 import android.app.Fragment;
+import android.media.Image;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
@@ -111,8 +112,7 @@ public class ExerciseViewFragment extends Fragment implements View.OnClickListen
     private NumberPicker mEditWeightNumPick;
     private RelativeLayout mEditDetailsView;
     private EditText mEditCommentValue;
-    private ViewPager mViewPager;
-
+    private SimpleDraweeView mExerciseImagePreview;
 
     private TutorialState mCurrentState = TutorialState.NONE;
 
@@ -136,7 +136,7 @@ public class ExerciseViewFragment extends Fragment implements View.OnClickListen
         mEditWeightNumPick = (NumberPicker)fragmentView.findViewById(R.id.edit_weight_num_pick);
         mEditDetailsView = (RelativeLayout)fragmentView.findViewById(R.id.editDetailsView);
         mEditCommentValue  =(EditText)fragmentView.findViewById(R.id.editCommentValue);
-        mViewPager = (ViewPager) fragmentView.findViewById(R.id.pager);
+        mExerciseImagePreview = (SimpleDraweeView) fragmentView.findViewById(R.id.frag_exe_view_training_weight);
 
         mEditRepetitionsNumPick.setMinValue(0);
         mEditRepetitionsNumPick.setMaxValue(100);
@@ -144,7 +144,7 @@ public class ExerciseViewFragment extends Fragment implements View.OnClickListen
         mEditWeightNumPick.setMinValue(0);
         mEditWeightNumPick.setMaxValue(300);
 
-        fragmentView.findViewById(R.id.frag_exe_view_training_weight).setOnClickListener(this);
+        mExerciseImagePreview.setOnClickListener(this);
         fragmentView.findViewById(R.id.frag_exe_view_edit).setOnClickListener(this);
         fragmentView.findViewById(R.id.frag_exe_view_btn_save_series).setOnClickListener(this);
         fragmentView.findViewById(R.id.exerciseRating1).setOnClickListener(this);
@@ -174,8 +174,26 @@ public class ExerciseViewFragment extends Fragment implements View.OnClickListen
 
             List<String> photoImages = curExercise.getExerciseType().getPhotoImages();
 
-            // TODO: do we need to remove previous adapter?
-            mViewPager.setAdapter(new ExerciseImagesPagerAdapter(this.getActivity(), photoImages));
+            // simply use the first image here in exercise view mode
+            if(photoImages.size() > 0) {
+                DraweeController animatedGifController = Fresco.newDraweeControllerBuilder()
+                        .setAutoPlayAnimations(true)
+                        .setImageRequest(
+                                ImageRequestBuilder.newBuilderWithSource(Uri.parse(
+                                        String.format("%s%s",
+                                                getResources().getString(R.string.server_url),
+                                                photoImages.get(0))))
+                                        //.setLowestPermittedRequestLevel(ImageRequest.RequestLevel.DISK_CACHE)
+                                        .build()
+                        )
+                        .build();
+                mExerciseImagePreview.setController(animatedGifController);
+
+                /*mExerciseImagePreview.setImageURI(Uri.parse(
+                        String.format("%s%s",
+                                getResources().getString(R.string.server_url),
+                                photoImages.get(0))));*/
+            }
 
             if(curExercise.getGuidanceType().equals(Exercise.GUIDANCE_TYPE_DURATION)) {
                 mUiHandler.postDelayed(mUpdateExerciseTimer, 0);
@@ -202,7 +220,7 @@ public class ExerciseViewFragment extends Fragment implements View.OnClickListen
             mCurrentShowcaseView = TutorialHelper.initTutorialView(getActivity(), this, getString(R.string.tutorial_next_exercise_title),
                     getString(R.string.tutorial_next_exercise_message),
                     new ViewTarget(getView()
-                            .findViewById(R.id.frag_exe_view_training_weight)), 1.2f);
+                            .findViewById(R.id.frag_exe_view_training_weight)), 1.6f);
         }
     }
 

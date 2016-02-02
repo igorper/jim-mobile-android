@@ -55,7 +55,7 @@
     <string name="tutorial_change_exercise_title">Change exercise</string>
     <string name="tutorial_change_exercise_message">To change to another exercise select it from the list. Long press permanently skips the exercise.</string>
     <string name="tutorial_next_exercise_title">Next exercise</string>
-    <string name="tutorial_next_exercise_message">Tapping the checkmark ends the current exercise.</string>
+    <string name="tutorial_next_exercise_message">Tapping the exercise image moves to the next exercise.</string>
     <string name="tutorial_edit_exercise_title">Edit exercise</string>
     <string name="tutorial_edit_exercise_message">If you did not exercise according to the plan tap the pencil to log the change.</string>
 </resources>
